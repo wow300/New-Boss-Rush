@@ -28,7 +28,11 @@ body{
 canvas{
     background:#000;
     display:block;
-    margin:0 auto;
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    margin:0;
     cursor:crosshair;
     border:4px solid #222;
     box-shadow:0 0 20px rgba(0,255,0,.1);
@@ -425,7 +429,7 @@ const uiPower=document.getElementById("power");
    PIXEL MUSIC — STABLE VERSION
    Long looping songs with a reliable WebAudio scheduler.
 ========================================================= */
-let audioCtx=null, musicTimer=null, musicStep=0, currentMusicKey="", musicGeneration=0;
+let audioCtx=null, musicTimer=null, musicStep=0, currentMusicKey="", musicGeneration=0, musicBus=null;
 let desiredMusicTheme=null, desiredMusicKey="";
 
 const bossMusicThemes=[
@@ -460,26 +464,54 @@ const sandboxMusic=[126,165,[0,2,3,5,7,9],[0,3,5,2,4,1,3,0,4,2,5,3,1,4,2,5,3,0,2
 
 function expandTheme(theme,index=0){
     const [bpm,root,scale,base]=theme;
-    const song=[];
-    // 16 sections = a genuinely long arrangement. Each boss gets different
-    // phrasing, octave movement and rhythmic variation from its theme index.
-    const variants=[
-        [0,1,0,2,0,1,3,0,2,1,0,3,1,0,2,4],
-        [0,0,2,1,3,0,1,2,0,3,1,0,2,4,1,0],
-        [0,2,4,1,0,3,2,0,4,2,1,3,0,2,5,1],
-        [0,1,3,0,2,4,1,3,0,2,5,1,3,0,2,4]
+    // Each boss gets a genuinely different 64-section arrangement.  The
+    // motifs below deliberately use different shapes so the themes do not
+    // sound like the same tune transposed.
+    const motifs=[
+      [0,2,4,7,4,2,0,5,7,9,7,5,3,2,0,2,4,7,9,7,4,2,5,3,2,0,7,5,4,2,3,0],
+      [7,5,3,2,0,1,3,5,7,6,4,2,1,0,2,4,6,8,6,4,3,1,0,3,5,7,5,3,1,2,0,1],
+      [0,0,4,4,7,7,4,4,2,2,5,5,9,7,5,2,0,0,3,3,7,7,10,9,7,3,2,2,5,4,2,0],
+      [0,4,2,7,5,9,7,4,2,6,4,9,7,11,9,6,4,8,5,10,8,5,3,7,5,2,0,4,2,7,5,0],
+      [0,1,3,6,8,6,3,1,0,3,5,8,10,8,5,3,2,5,7,10,12,10,7,5,3,6,8,11,9,6,3,0],
+      [10,9,7,5,3,2,0,2,3,5,7,9,11,9,7,5,3,1,0,1,3,5,7,8,10,8,6,4,2,1,0,2],
+      [0,3,7,3,0,5,9,5,2,6,10,6,3,7,11,7,4,8,12,8,5,9,13,9,7,4,2,6,4,1,3,0],
+      [0,5,3,8,5,10,7,12,8,5,9,6,11,7,4,9,5,2,7,3,8,4,10,6,3,7,5,1,6,2,4,0],
+      [0,2,1,4,3,6,5,8,7,10,9,7,8,5,6,3,4,1,2,0,3,2,5,4,7,6,9,5,4,2,1,0],
+      [0,7,0,5,0,9,0,4,0,8,0,3,0,10,0,5,0,7,0,2,0,9,0,4,0,11,0,6,0,3,0,8],
+      [0,3,5,3,0,3,7,3,2,5,8,5,2,5,10,5,4,7,9,7,4,7,11,7,5,8,10,8,5,3,2,0],
+      [11,8,9,5,7,3,4,0,2,6,5,9,7,11,8,6,4,1,3,0,5,2,7,4,9,6,10,5,8,3,2,0],
+      [0,4,8,6,3,7,11,9,5,10,8,4,1,6,9,7,3,0,5,8,6,2,7,10,8,4,0,3,6,4,2,0],
+      [0,0,2,0,5,0,7,0,9,0,7,0,5,0,3,0,2,0,4,0,8,0,10,0,8,0,6,0,4,0,1,0],
+      [0,2,5,7,10,12,10,7,5,3,6,9,11,9,6,3,2,4,8,10,13,10,8,4,3,5,7,9,7,5,2,0],
+      [0,6,4,2,7,5,3,9,7,5,10,8,6,4,11,9,7,5,3,1,8,6,4,2,9,7,5,3,6,4,2,0],
+      [0,1,5,2,7,3,9,4,11,6,10,5,8,3,6,1,0,4,2,7,5,10,8,12,9,6,4,9,7,3,5,1],
+      [12,10,8,6,5,3,1,0,2,4,6,8,10,12,11,9,7,5,3,2,0,2,4,7,9,7,5,3,1,0,2,4],
+      [0,4,3,7,6,10,9,12,10,8,5,7,4,2,5,3,0,6,4,9,7,11,8,6,3,5,2,7,5,3,1,0],
+      [0,2,6,4,8,5,10,7,12,9,13,11,8,10,6,4,2,5,1,3,7,5,9,6,11,8,4,2,7,3,5,0],
+      [0,5,9,7,4,2,6,10,8,5,3,7,11,9,6,4,8,12,10,7,5,3,1,4,8,6,3,2,5,7,4,0],
+      [0,3,1,5,2,7,4,9,6,11,8,5,10,7,4,1,3,0,6,2,8,4,10,5,9,3,7,2,5,1,4,0],
+      [0,2,4,6,8,10,8,6,4,2,0,3,5,7,9,11,9,7,5,3,1,4,6,8,10,12,10,8,6,4,2,0],
+      [9,7,5,3,1,0,4,2,6,5,9,7,11,10,8,6,4,2,0,3,5,8,7,5,3,1,4,6,9,7,5,2],
+      [0,7,5,2,9,6,4,10,7,3,8,5,11,8,6,2,0,5,3,9,6,4,10,7,5,12,9,4,7,3,2,0]
     ];
-    const variant=variants[index%variants.length];
-    for(let section=0;section<16;section++){
-        for(let i=0;i<base.length;i++){
-            let n=base[(i + (section*(index%5)))%base.length];
-            if(section%4===1)n += (i%4===0 ? 1 : 0);
-            if(section%4===2)n += (i%8>=4 ? 1 : 0);
-            if(section%4===3)n += (i%4===0 ? 2 : 1);
-            n += variant[section] % Math.max(1,scale.length-1);
-            if((index%5===1 || index%5===4) && section>=8 && i%8===0)n+=2;
-            if(index%5===2 && section%3===0 && i%4===2)n-=1;
-            if(index%5===3 && section>=12)n+=3;
+    const motif=motifs[index%motifs.length];
+    const song=[];
+    const mode=index%8;
+    for(let section=0;section<64;section++){
+        const reverse=(mode===1&&section%8>=4)||(mode===5&&section%4===3);
+        const rotate=(section*(1+(index%5)))%motif.length;
+        for(let i=0;i<motif.length;i++){
+            const pos=reverse?(motif.length-1-i):i;
+            let n=motif[(pos+rotate)%motif.length];
+            // Four different musical sections: statement, answer, lift, finale.
+            if(section%4===1)n += (i%8===0 ? (index%3)-1 : 0);
+            if(section%4===2)n += (i%4===0 ? 2+(index%2) : (i%8===4 ? 1 : 0));
+            if(section%4===3)n += (i%8===0 ? 3 : (i%8===7 ? -1 : 0));
+            if(mode===2 && section%6===0)n += (i%3===0?2:-1);
+            if(mode===3 && section%5===2)n = Math.max(0,n-2);
+            if(mode===4 && section>=32)n += 2;
+            if(mode===6 && section%8===6)n = Math.max(0,12-n%13);
+            if(mode===7 && section%3===0)n += (i%2?1:0);
             song.push(Math.max(0,n));
         }
     }
@@ -501,7 +533,7 @@ function playTone(freq,duration,volume,type,when,attack=.008,release=.04,detune=
     o.type=type;o.frequency.setValueAtTime(freq,when);o.detune.setValueAtTime(detune,when);
     g.gain.setValueAtTime(.0001,when);g.gain.linearRampToValueAtTime(volume,when+attack);
     g.gain.exponentialRampToValueAtTime(.0001,when+Math.max(attack+.01,duration-release));
-    o.connect(g);g.connect(audioCtx.destination);o.start(when);o.stop(when+duration+.03);
+    o.connect(g);g.connect(musicBus||audioCtx.destination);o.start(when);o.stop(when+duration+.03);
 }
 function noiseHit(when,volume,duration){
     if(!audioCtx)return;
@@ -509,12 +541,12 @@ function noiseHit(when,volume,duration){
     for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,2.4);
     const src=audioCtx.createBufferSource(),g=audioCtx.createGain();src.buffer=buffer;
     g.gain.setValueAtTime(volume,when);g.gain.exponentialRampToValueAtTime(.0001,when+duration);
-    src.connect(g);g.connect(audioCtx.destination);src.start(when);
+    src.connect(g);g.connect(musicBus||audioCtx.destination);src.start(when);
 }
 function playKick(when,v=.07){playTone(150,.17,v,"sine",when,.002,.08);}
 function playSnare(when,v=.035){noiseHit(when,v,.12);}
 function playHat(when,v=.014){noiseHit(when,v,.045);}
-function playTom(when,v=.028){if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="triangle";o.frequency.setValueAtTime(180,when);o.frequency.exponentialRampToValueAtTime(80,when+.11);g.gain.setValueAtTime(v,when);g.gain.exponentialRampToValueAtTime(.0001,when+.13);o.connect(g);g.connect(audioCtx.destination);o.start(when);o.stop(when+.15);}
+function playTom(when,v=.028){if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="triangle";o.frequency.setValueAtTime(180,when);o.frequency.exponentialRampToValueAtTime(80,when+.11);g.gain.setValueAtTime(v,when);g.gain.exponentialRampToValueAtTime(.0001,when+.13);o.connect(g);g.connect(musicBus||audioCtx.destination);o.start(when);o.stop(when+.15);}
 function playPluck(freq,when,v=.025){playTone(freq,.16,v,"square",when,.002,.09);playTone(freq*2,.10,v*.28,"triangle",when,.002,.06);}
 function playArp(freq,duration,v,when){playTone(freq,duration,v,"square",when,.003,.025,-5);playTone(freq,duration,v*.35,"sawtooth",when,.003,.025,5);}
 
@@ -522,6 +554,15 @@ function stopMusic(){
     musicGeneration++;
     if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
     currentMusicKey="";
+    if(audioCtx&&musicBus){
+        const oldBus=musicBus;
+        const now=audioCtx.currentTime;
+        oldBus.gain.cancelScheduledValues(now);
+        oldBus.gain.setValueAtTime(Math.max(.0001,oldBus.gain.value),now);
+        oldBus.gain.exponentialRampToValueAtTime(.0001,now+.035);
+        setTimeout(()=>{try{oldBus.disconnect();}catch(e){}},80);
+    }
+    musicBus=null;
 }
 
 function startMusic(theme,key){
@@ -529,6 +570,10 @@ function startMusic(theme,key){
     if(!ensureAudio())return;
     if(currentMusicKey===key&&musicTimer)return;
     stopMusic();currentMusicKey=key;musicStep=0;
+    musicBus=audioCtx.createGain();
+    musicBus.gain.setValueAtTime(.0001,audioCtx.currentTime);
+    musicBus.gain.exponentialRampToValueAtTime(.16,audioCtx.currentTime+.045);
+    musicBus.connect(audioCtx.destination);
     const gen=musicGeneration;
     const [bpm,root,scale,melody]=theme;
     const bossIndex=key.startsWith("boss")?parseInt(key.slice(4),10):-1;
@@ -541,7 +586,7 @@ function startMusic(theme,key){
     let scheduled=0;
     function scheduleStep(s,when){
         const idx=melody[s%melody.length];
-        const section=Math.floor(s/melody.length)%16;
+        const section=Math.floor(s/melody.length)%64;
         const beat=s%16;
         const d=stepSec;
         const highSection=(section===3||section===7||section===11||section===15);
