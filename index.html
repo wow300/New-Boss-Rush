@@ -772,7 +772,170 @@ function aimSpread(
 
 
 /* =========================================================
-   25 BOSSES
+   15 NEW BOSS HAZARD ATTACKS
+   These are arena hazards rather than ordinary bullets.
+========================================================= */
+
+let bossHazards=[];
+
+function hurtPlayer(amount){
+    if(player.shield>0) player.shield--;
+    else player.hp-=amount;
+    updateUI();
+    if(player.hp<=0) playerDefeated();
+}
+
+function hazardHit(h,px=player.x,py=player.y){
+    if(h.type==='lightning') return Math.abs(px-h.x)<h.width/2 && Math.abs(py-h.y)<h.height/2;
+    if(h.type==='ring') return Math.abs(Math.hypot(px-h.x,py-h.y)-h.r)<h.thickness;
+    if(h.type==='beam'){
+        const dx=px-h.x,dy=py-h.y,c=Math.cos(h.angle),ss=Math.sin(h.angle);
+        return Math.abs(dx*ss-dy*c)<h.width/2 && dx*c+dy*ss>0 && dx*c+dy*ss<h.length;
+    }
+    if(h.type==='fire') return Math.hypot(px-h.x,py-h.y)<h.r;
+    if(h.type==='slow') return Math.hypot(px-h.x,py-h.y)<h.r;
+    if(h.type==='gravity') return Math.hypot(px-h.x,py-h.y)<h.r;
+    if(h.type==='sweep') return Math.abs(py-(h.y+h.amp*Math.sin(h.timer*h.freq)))<h.width/2;
+    if(h.type==='meteor') return Math.hypot(px-h.x,py-h.y)<h.r;
+    if(h.type==='spikes') return px>h.x-h.w/2 && px<h.x+h.w/2 && py>h.y-h.h/2 && py<h.y+h.h/2;
+    if(h.type==='blade') return Math.hypot(px-h.x,py-h.y)<h.r;
+    if(h.type==='wall') return px>h.x-h.w/2 && px<h.x+h.w/2 && py>h.y-h.h/2 && py<h.y+h.h/2;
+    if(h.type==='mine') return Math.hypot(px-h.x,py-h.y)<h.r;
+    if(h.type==='blink') return Math.hypot(px-h.x,py-h.y)<h.r;
+    if(h.type==='freeze') return Math.hypot(px-h.x,py-h.y)<h.r;
+    if(h.type==='shrink') return px<h.x || px>canvas.width-h.x || py<h.x || py>canvas.height-h.x;
+    return false;
+}
+
+function spawnHazard(type,opts={}){
+    bossHazards.push({type,timer:0,life:opts.life??120,warning:opts.warning??45,damage:opts.damage??8,
+        x:opts.x??player.x,y:opts.y??player.y,r:opts.r??45,width:opts.width??24,height:opts.height??700,
+        w:opts.w??40,h:opts.h??40,thickness:opts.thickness??8,length:opts.length??900,
+        angle:opts.angle??0,amp:opts.amp??180,freq:opts.freq??.08,vx:opts.vx??0,vy:opts.vy??0,
+        color:opts.color??'#fff',gap:opts.gap??120,hitCooldown:0,spin:opts.spin??0});
+}
+
+function newBossAttack(boss,index){
+    const t=boss.timer;
+    switch(index){
+        case 0: // LIGHTNING STRIKES
+            if(t%100===20) for(let i=0;i<3;i++) spawnHazard('lightning',{x:100+Math.random()*700,y:350,width:42,height:700,warning:55,life:75,damage:12,color:'#ffff44'});
+            break;
+        case 1: // SHOCKWAVE RINGS
+            if(t%110===0) spawnHazard('ring',{x:450,y:350,r:35,thickness:13,warning:20,life:125,damage:10,color:'#ff66ff'});
+            break;
+        case 2: // ROTATING BEAM
+            if(t%150===0) spawnHazard('beam',{x:450,y:350,angle:0,width:20,length:850,warning:45,life:150,damage:10,color:'#00ffff',spin:.045});
+            break;
+        case 3: // FIRE ZONES
+            if(t%90===0) spawnHazard('fire',{x:100+Math.random()*700,y:100+Math.random()*500,r:75,warning:40,life:180,damage:7,color:'#ff6600'});
+            break;
+        case 4: // ICE / SLOW FIELDS
+            if(t%130===0) spawnHazard('slow',{x:100+Math.random()*700,y:100+Math.random()*500,r:95,warning:35,life:190,damage:5,color:'#66ccff'});
+            break;
+        case 5: // GRAVITY VORTEX
+            if(t%145===0) spawnHazard('gravity',{x:450+Math.sin(t*.02)*250,y:350+Math.cos(t*.025)*170,r:135,warning:45,life:170,damage:6,color:'#aa44ff'});
+            break;
+        case 6: // MOVING LASER SWEEP
+            if(t%135===0) spawnHazard('sweep',{y:350,width:30,amp:280,freq:.055,warning:40,life:180,damage:11,color:'#ff2255'});
+            break;
+        case 7: // METEOR IMPACTS
+            if(t%95===0) for(let i=0;i<3;i++) spawnHazard('meteor',{x:90+Math.random()*720,y:90+Math.random()*520,r:38,warning:60,life:82,damage:14,color:'#ff8844'});
+            break;
+        case 8: // SPIKE ROWS
+            if(t%120===0){
+                const horizontal=t%240===0;
+                spawnHazard('spikes',{x:450,y:horizontal?350:350,w:horizontal?820:90,h:horizontal?90:620,warning:45,life:115,damage:12,color:'#88ff44'});
+            }
+            break;
+        case 9: // BOOMERANG BLADE
+            if(t%100===0) spawnHazard('blade',{x:450,y:150,r:28,warning:15,life:230,damage:12,vx:5,vy:2,color:'#ffffff'});
+            break;
+        case 10: // CLOSING WALLS WITH GAP
+            if(t%180===0){
+                const gap=120+Math.random()*460;
+                spawnHazard('wall',{x:-40,y:350,w:70,h:700,warning:35,life:190,damage:10,vx:4,color:'#00ff88',gap});
+                spawnHazard('wall',{x:940,y:350,w:70,h:700,warning:35,life:190,damage:10,vx:-4,color:'#00ff88',gap});
+            }
+            break;
+        case 11: // DELAYED MINEFIELD
+            if(t%155===0) for(let i=0;i<7;i++) spawnHazard('mine',{x:80+Math.random()*740,y:100+Math.random()*500,r:25,warning:55,life:150,damage:15,color:'#ff66aa'});
+            break;
+        case 12: // BLINK TRAPS
+            if(t%105===0) spawnHazard('blink',{x:player.x,y:player.y,r:58,warning:50,life:95,damage:16,color:'#9966ff'});
+            break;
+        case 13: // FREEZE PULSES
+            if(t%160===0) spawnHazard('freeze',{x:450,y:350,r:115,warning:50,life:125,damage:9,color:'#ffffff'});
+            break;
+        case 14: // ARENA SHRINK
+            if(t%240===0) spawnHazard('shrink',{x:70,warning:45,life:210,damage:13,color:'#ff0055'});
+            break;
+    }
+}
+
+function updateBossHazards(){
+    for(let i=bossHazards.length-1;i>=0;i--){
+        const h=bossHazards[i];
+        h.timer++;
+        if(h.hitCooldown>0) h.hitCooldown--;
+        h.angle+=h.spin;
+        h.x+=h.vx; h.y+=h.vy;
+        if(h.type==='gravity' && h.timer>h.warning){
+            const dx=h.x-player.x,dy=h.y-player.y,d=Math.hypot(dx,dy)||1;
+            if(d<h.r) { player.x+=dx/d*1.7; player.y+=dy/d*1.7; }
+        }
+        if(h.type==='blade' && (h.x<30||h.x>870)) h.vx*=-1;
+        if(h.type==='blade' && (h.y<30||h.y>670)) h.vy*=-1;
+        if(h.type==='wall' && h.gap!=null){
+            // The wall is solid except for a moving-sized opening around the gap.
+            h.holeY=h.gap+Math.sin(h.timer*.035)*150;
+        }
+        if(h.timer>h.warning && h.hitCooldown===0 && hazardHit(h)){
+            hurtPlayer(h.damage);
+            h.hitCooldown=35;
+        }
+        if(h.timer>=h.life) bossHazards.splice(i,1);
+    }
+}
+
+function drawBossHazards(){
+    bossHazards.forEach(h=>{
+        const active=h.timer>=h.warning;
+        const pulse=1+Math.sin(h.timer*.25)*.12;
+        ctx.save();
+        ctx.globalAlpha=active?0.8:0.35+(Math.sin(h.timer*.3)*.15);
+        ctx.strokeStyle=h.color; ctx.fillStyle=h.color; ctx.shadowColor=h.color; ctx.shadowBlur=active?18:8;
+        if(h.type==='lightning'){
+            ctx.fillRect(h.x-h.width/2,0,h.width,canvas.height);
+            if(!active){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(h.x-h.width/2,0,h.width,canvas.height);}
+        }else if(h.type==='ring'){
+            ctx.lineWidth=h.thickness; ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,Math.PI*2); ctx.stroke();
+        }else if(h.type==='beam'){
+            ctx.translate(h.x,h.y);ctx.rotate(h.angle);ctx.fillRect(0,-h.width/2,h.length,h.width);
+        }else if(h.type==='fire'||h.type==='slow'||h.type==='gravity'||h.type==='meteor'||h.type==='mine'||h.type==='blink'||h.type==='freeze'){
+            ctx.beginPath();ctx.arc(h.x,h.y,h.r*pulse,0,Math.PI*2);ctx.fill();
+            ctx.globalAlpha=0.55;ctx.beginPath();ctx.arc(h.x,h.y,h.r,0,Math.PI*2);ctx.stroke();
+        }else if(h.type==='sweep'){
+            const yy=h.y+h.amp*Math.sin(h.timer*h.freq);ctx.fillRect(0,yy-h.width/2,canvas.width,h.width);
+        }else if(h.type==='spikes'){
+            ctx.fillRect(h.x-h.w/2,h.y-h.h/2,h.w,h.h);
+            ctx.globalAlpha=.9;ctx.strokeRect(h.x-h.w/2,h.y-h.h/2,h.w,h.h);
+        }else if(h.type==='blade'){
+            ctx.translate(h.x,h.y);ctx.rotate(h.timer*.12);ctx.beginPath();for(let k=0;k<8;k++){const a=k*Math.PI/4;ctx.lineTo(Math.cos(a)*(k%2?h.r*.35:h.r),Math.sin(a)*(k%2?h.r*.35:h.r));}ctx.closePath();ctx.fill();
+        }else if(h.type==='wall'){
+            const hole=h.holeY??h.gap;ctx.fillRect(h.x-h.w/2,h.y-h.h/2,h.w,hole-h.h/2-70);ctx.fillRect(h.x-h.w/2,hole+70-h.h/2,h.w,h.h-(hole-h.h/2-70));
+        }else if(h.type==='shrink'){
+            const inset=h.x+Math.sin(h.timer*.05)*8;ctx.lineWidth=12;ctx.strokeRect(inset,inset,canvas.width-inset*2,canvas.height-inset*2);
+        }
+        if(!active){
+            ctx.globalAlpha=.8;ctx.fillStyle='#fff';ctx.font='bold 13px Courier New';ctx.textAlign='center';ctx.fillText('WARNING',h.x??450,Math.max(20,Math.min(680,h.y??350)));
+        }
+        ctx.restore();
+    });
+}
+
+/* =========================================================
+   40 BOSSES
 ========================================================= */
 
 const bosses=[
@@ -1904,7 +2067,72 @@ update:function(){
         }
     }
 }
+},
 
+/* 26 - 40: ONE NEW ARENA ATTACK EACH */
+{
+name:"THE THUNDER LORD",hp:980,color:"#ffff44",size:82,
+update:function(){this.x=450+Math.sin(this.timer*.02)*280;newBossAttack(this,0);}
+},
+{
+name:"THE RINGMASTER",hp:1040,color:"#ff66ff",size:78,
+update:function(){this.y=190+Math.sin(this.timer*.025)*90;newBossAttack(this,1);}
+},
+{
+name:"THE BEAM CORE",hp:1100,color:"#00ffff",size:86,
+update:function(){this.x=450+Math.cos(this.timer*.018)*250;newBossAttack(this,2);}
+},
+{
+name:"THE INFERNO",hp:1160,color:"#ff6600",size:90,
+update:function(){this.y=180+Math.sin(this.timer*.02)*80;newBossAttack(this,3);}
+},
+{
+name:"THE FROZEN ONE",hp:1220,color:"#66ccff",size:88,
+update:function(){this.x=450+Math.sin(this.timer*.017)*300;newBossAttack(this,4);}
+},
+{
+name:"THE GRAVITY WELL",hp:1280,color:"#aa44ff",size:92,
+update:function(){this.x=450+Math.cos(this.timer*.02)*220;newBossAttack(this,5);}
+},
+{
+name:"THE LASER SWEEPER",hp:1340,color:"#ff2255",size:84,
+update:function(){this.y=180+Math.cos(this.timer*.018)*70;newBossAttack(this,6);}
+},
+{
+name:"THE METEOR KING",hp:1400,color:"#ff8844",size:96,
+update:function(){this.x=450+Math.sin(this.timer*.014)*260;newBossAttack(this,7);}
+},
+{
+name:"THE SPIKE FORTRESS",hp:1460,color:"#88ff44",size:94,
+update:function(){this.y=170+Math.sin(this.timer*.016)*80;newBossAttack(this,8);}
+},
+{
+name:"THE BOOMERANG",hp:1520,color:"#ffffff",size:80,
+update:function(){this.x=450+Math.cos(this.timer*.021)*260;newBossAttack(this,9);}
+},
+{
+name:"THE CLOSER",hp:1580,color:"#00ff88",size:98,
+update:function(){this.x=450+Math.sin(this.timer*.015)*200;newBossAttack(this,10);}
+},
+{
+name:"THE MINEFIELD",hp:1640,color:"#ff66aa",size:88,
+update:function(){this.y=190+Math.cos(this.timer*.019)*85;newBossAttack(this,11);}
+},
+{
+name:"THE TRAPPER",hp:1700,color:"#9966ff",size:86,
+update:function(){this.x=450+Math.sin(this.timer*.023)*290;newBossAttack(this,12);}
+},
+{
+name:"THE TIME BREAKER",hp:1780,color:"#ffffff",size:100,
+update:function(){this.y=180+Math.sin(this.timer*.014)*75;newBossAttack(this,13);}
+},
+{
+name:"THE APOCALYPSE",hp:2100,color:"#ff0055",size:110,
+update:function(){
+    this.x=450+Math.sin(this.timer*.012)*260;
+    this.y=180+Math.cos(this.timer*.016)*90;
+    for(let i=0;i<15;i++) newBossAttack(this,i);
+}
 }
 
 ];
@@ -3397,7 +3625,7 @@ function initBoss(){
 
         alert(
             "GOD SLAYER!\n\n"+
-            "You cleared all 25 bosses!"
+            "You cleared all 40 bosses!"
         );
 
         return;
@@ -3406,6 +3634,7 @@ function initBoss(){
     bullets=[];
     enemyBullets=[];
     minions=[];
+    bossHazards=[];
 
     const template=
         bosses[currentBossIndex];
@@ -3644,6 +3873,7 @@ function update(){
                     bullets=[];
                     enemyBullets=[];
                     minions=[];
+                    bossHazards=[];
 
                     currentBossIndex++;
 
@@ -3651,7 +3881,7 @@ function update(){
                         gameActive=false;
                         alert(
                             "GOD SLAYER!\n\n"+
-                            "You cleared all 25 bosses!"
+                            "You cleared all 40 bosses!"
                         );
                         return;
                     }
@@ -3663,6 +3893,12 @@ function update(){
         }
     }
 
+
+    /* =====================================================
+       NEW BOSS ARENA HAZARDS
+    ===================================================== */
+
+    updateBossHazards();
 
     /* =====================================================
        MINIONS
@@ -4101,6 +4337,8 @@ function draw(){
     });
 
 
+    drawBossHazards();
+
     /* =====================================================
        ENEMY PROJECTILES
     ===================================================== */
@@ -4178,6 +4416,7 @@ function showMainMenuOnStartup(){
     bullets=[];
     enemyBullets=[];
     minions=[];
+    bossHazards=[];
 }
 
 mainMenu.addEventListener("pointerdown",()=>{
