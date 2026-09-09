@@ -804,6 +804,10 @@ function hazardHit(h,px=player.x,py=player.y){
     if(h.type==='blink') return Math.hypot(px-h.x,py-h.y)<h.r;
     if(h.type==='freeze') return Math.hypot(px-h.x,py-h.y)<h.r;
     if(h.type==='shrink') return px<h.x || px>canvas.width-h.x || py<h.x || py>canvas.height-h.x;
+    if(h.type==='crossbeam'){
+        const a=h.angle, c=Math.cos(a), ss=Math.sin(a), dx=px-h.x,dy=py-h.y;
+        return Math.abs(dx*ss-dy*c)<18 || Math.abs(dx*c+dy*ss)<18;
+    }
     return false;
 }
 
@@ -818,57 +822,83 @@ function spawnHazard(type,opts={}){
 function newBossAttack(boss,index){
     const t=boss.timer;
     switch(index){
-        case 0: // LIGHTNING STRIKES
-            if(t%100===20) for(let i=0;i<3;i++) spawnHazard('lightning',{x:100+Math.random()*700,y:350,width:42,height:700,warning:55,life:75,damage:12,color:'#ffff44'});
+        /* Each boss gets three distinct arena attacks. Every attack telegraphs
+           visually before becoming dangerous; there is intentionally no text. */
+        case 0: // THUNDER LORD
+            if(t%120===20) for(let i=0;i<3;i++) spawnHazard('lightning',{x:100+Math.random()*700,y:350,width:42,height:700,warning:55,life:75,damage:12,color:'#ffff44'});
+            if(t%170===70) for(let i=0;i<5;i++) spawnHazard('lightning',{x:80+i*185,y:350,width:24,height:700,warning:45,life:65,damage:9,color:'#ffffff'});
+            if(t%210===110) spawnHazard('ring',{x:boss.x,y:boss.y,r:30,thickness:10,warning:30,life:120,damage:11,color:'#ffff44'});
             break;
-        case 1: // SHOCKWAVE RINGS
-            if(t%110===0) spawnHazard('ring',{x:450,y:350,r:35,thickness:13,warning:20,life:125,damage:10,color:'#ff66ff'});
+        case 1: // RINGMASTER
+            if(t%110===0) spawnHazard('ring',{x:450,y:350,r:35,thickness:13,warning:25,life:125,damage:10,color:'#ff66ff'});
+            if(t%170===40) spawnHazard('ring',{x:player.x,y:player.y,r:20,thickness:9,warning:35,life:105,damage:12,color:'#ffffff'});
+            if(t%220===100) for(let i=0;i<4;i++) spawnHazard('ring',{x:450,y:350,r:45+i*55,thickness:7,warning:35,life:105,damage:8,color:'#ff22aa'});
             break;
-        case 2: // ROTATING BEAM
-            if(t%150===0) spawnHazard('beam',{x:450,y:350,angle:0,width:20,length:850,warning:45,life:150,damage:10,color:'#00ffff',spin:.045});
+        case 2: // BEAM CORE
+            if(t%150===0) spawnHazard('beam',{x:450,y:350,angle:0,width:20,length:850,warning:50,life:150,damage:10,color:'#00ffff',spin:.045});
+            if(t%190===80) spawnHazard('beam',{x:450,y:350,angle:Math.PI/2,width:30,length:850,warning:40,life:120,damage:12,color:'#ffffff',spin:-.025});
+            if(t%230===140) spawnHazard('beam',{x:boss.x,y:boss.y,angle:t*.03,width:14,length:700,warning:35,life:100,damage:13,color:'#00aaff',spin:.11});
             break;
-        case 3: // FIRE ZONES
-            if(t%90===0) spawnHazard('fire',{x:100+Math.random()*700,y:100+Math.random()*500,r:75,warning:40,life:180,damage:7,color:'#ff6600'});
+        case 3: // INFERNO
+            if(t%90===0) spawnHazard('fire',{x:100+Math.random()*700,y:100+Math.random()*500,r:75,warning:45,life:180,damage:7,color:'#ff6600'});
+            if(t%160===50) for(let i=0;i<4;i++) spawnHazard('fire',{x:130+i*210,y:350+Math.sin(t*.03+i)*180,r:48,warning:35,life:125,damage:10,color:'#ffcc22'});
+            if(t%230===120) spawnHazard('sweep',{y:350,width:48,amp:220,freq:.035,warning:50,life:145,damage:12,color:'#ff3300'});
             break;
-        case 4: // ICE / SLOW FIELDS
-            if(t%130===0) spawnHazard('slow',{x:100+Math.random()*700,y:100+Math.random()*500,r:95,warning:35,life:190,damage:5,color:'#66ccff'});
+        case 4: // FROZEN ONE
+            if(t%130===0) spawnHazard('slow',{x:100+Math.random()*700,y:100+Math.random()*500,r:95,warning:40,life:190,damage:5,color:'#66ccff'});
+            if(t%190===70) spawnHazard('ring',{x:boss.x,y:boss.y,r:60,thickness:16,warning:35,life:130,damage:8,color:'#aaffff'});
+            if(t%240===130) for(let i=0;i<5;i++) spawnHazard('slow',{x:100+i*175,y:350,r:55,warning:30,life:115,damage:8,color:'#ffffff'});
             break;
-        case 5: // GRAVITY VORTEX
-            if(t%145===0) spawnHazard('gravity',{x:450+Math.sin(t*.02)*250,y:350+Math.cos(t*.025)*170,r:135,warning:45,life:170,damage:6,color:'#aa44ff'});
+        case 5: // GRAVITY WELL
+            if(t%145===0) spawnHazard('gravity',{x:450+Math.sin(t*.02)*250,y:350+Math.cos(t*.025)*170,r:135,warning:50,life:170,damage:6,color:'#aa44ff'});
+            if(t%210===80) spawnHazard('gravity',{x:player.x,y:player.y,r:85,warning:35,life:115,damage:10,color:'#dd88ff'});
+            if(t%260===150) spawnHazard('ring',{x:450,y:350,r:120,thickness:12,warning:30,life:150,damage:9,color:'#7722ff'});
             break;
-        case 6: // MOVING LASER SWEEP
-            if(t%135===0) spawnHazard('sweep',{y:350,width:30,amp:280,freq:.055,warning:40,life:180,damage:11,color:'#ff2255'});
+        case 6: // LASER SWEEPER
+            if(t%135===0) spawnHazard('sweep',{y:350,width:30,amp:280,freq:.055,warning:45,life:180,damage:11,color:'#ff2255'});
+            if(t%190===55) spawnHazard('sweep',{y:350,width:22,amp:310,freq:-.045,warning:45,life:160,damage:10,color:'#ff88aa'});
+            if(t%240===120) spawnHazard('beam',{x:450,y:350,angle:Math.PI/2,width:18,length:850,warning:40,life:120,damage:13,color:'#ff0055',spin:.075});
             break;
-        case 7: // METEOR IMPACTS
-            if(t%95===0) for(let i=0;i<3;i++) spawnHazard('meteor',{x:90+Math.random()*720,y:90+Math.random()*520,r:38,warning:60,life:82,damage:14,color:'#ff8844'});
+        case 7: // METEOR KING
+            if(t%95===0) for(let i=0;i<3;i++) spawnHazard('meteor',{x:90+Math.random()*720,y:90+Math.random()*520,r:38,warning:65,life:88,damage:14,color:'#ff8844'});
+            if(t%175===45) for(let i=0;i<6;i++) spawnHazard('meteor',{x:90+i*145,y:120+Math.random()*460,r:25,warning:45,life:70,damage:10,color:'#ffbb55'});
+            if(t%230===110) spawnHazard('sweep',{y:350,width:34,amp:250,freq:.04,warning:45,life:140,damage:12,color:'#ff4400'});
             break;
-        case 8: // SPIKE ROWS
-            if(t%120===0){
-                const horizontal=t%240===0;
-                spawnHazard('spikes',{x:450,y:horizontal?350:350,w:horizontal?820:90,h:horizontal?90:620,warning:45,life:115,damage:12,color:'#88ff44'});
+        case 8: // SPIKE FORTRESS
+            if(t%120===0) spawnHazard('spikes',{x:450,y:350,w:90,h:620,warning:50,life:120,damage:12,color:'#88ff44'});
+            if(t%180===60) spawnHazard('spikes',{x:450,y:350,w:820,h:80,warning:50,life:120,damage:12,color:'#aaff66'});
+            if(t%240===130) { spawnHazard('spikes',{x:225,y:350,w:90,h:620,warning:45,life:100,damage:10,color:'#44dd22'}); spawnHazard('spikes',{x:675,y:350,w:90,h:620,warning:45,life:100,damage:10,color:'#44dd22'}); }
+            break;
+        case 9: // BOOMERANG
+            if(t%100===0) spawnHazard('blade',{x:450,y:150,r:28,warning:25,life:230,damage:12,vx:5,vy:2,color:'#ffffff'});
+            if(t%170===50) { spawnHazard('blade',{x:100,y:350,r:24,warning:25,life:200,damage:11,vx:5,vy:-2,color:'#ffddff'}); spawnHazard('blade',{x:800,y:350,r:24,warning:25,life:200,damage:11,vx:-5,vy:2,color:'#ffddff'}); }
+            if(t%230===120) spawnHazard('blade',{x:450,y:350,r:42,warning:35,life:160,damage:14,vx:3,vy:-4,color:'#ff44ff'});
+            break;
+        case 10: // CLOSER
+            if(t%180===0){ const gap=120+Math.random()*460; spawnHazard('wall',{x:-40,y:350,w:70,h:700,warning:45,life:190,damage:10,vx:4,color:'#00ff88',gap}); spawnHazard('wall',{x:940,y:350,w:70,h:700,warning:45,life:190,damage:10,vx:-4,color:'#00ff88',gap}); }
+            if(t%240===80){ const gap=140+Math.random()*420; spawnHazard('wall',{x:450,y:-40,w:900,h:70,warning:40,life:170,damage:11,vy:4,color:'#66ffbb',gap}); spawnHazard('wall',{x:450,y:740,w:900,h:70,warning:40,life:170,damage:11,vy:-4,color:'#66ffbb',gap}); }
+            if(t%300===160) spawnHazard('shrink',{x:70,warning:45,life:210,damage:13,color:'#00ff88'});
+            break;
+        case 11: // MINEFIELD
+            if(t%155===0) for(let i=0;i<7;i++) spawnHazard('mine',{x:80+Math.random()*740,y:100+Math.random()*500,r:25,warning:60,life:150,damage:15,color:'#ff66aa'});
+            if(t%220===70) for(let i=0;i<5;i++) spawnHazard('mine',{x:150+i*150,y:350,r:34,warning:45,life:130,damage:13,color:'#ff22aa'});
+            if(t%280===140) spawnHazard('ring',{x:450,y:350,r:170,thickness:15,warning:45,life:140,damage:10,color:'#ff6699'});
+            break;
+        case 12: // TRAPPER
+            if(t%105===0) spawnHazard('blink',{x:player.x,y:player.y,r:58,warning:55,life:105,damage:16,color:'#9966ff'});
+            if(t%170===45) { spawnHazard('blink',{x:120+Math.random()*660,y:100+Math.random()*500,r:42,warning:40,life:110,damage:13,color:'#cc88ff'}); spawnHazard('blink',{x:120+Math.random()*660,y:100+Math.random()*500,r:42,warning:40,life:110,damage:13,color:'#cc88ff'}); }
+            if(t%240===120) spawnHazard('gravity',{x:player.x,y:player.y,r:70,warning:35,life:100,damage:11,color:'#6633cc'});
+            break;
+        case 13: // TIME BREAKER
+            if(t%160===0) spawnHazard('freeze',{x:450,y:350,r:115,warning:55,life:125,damage:9,color:'#ffffff'});
+            if(t%210===70) spawnHazard('freeze',{x:player.x,y:player.y,r:80,warning:45,life:110,damage:12,color:'#88ddff'});
+            if(t%270===150) spawnHazard('ring',{x:450,y:350,r:90,thickness:20,warning:50,life:145,damage:11,color:'#bbffff'});
+            break;
+        case 14: // APOCALYPSE: all 15 previous attack families + a new ultimate
+            for(let i=0;i<15;i++) newBossAttack(boss,i);
+            if(t%300===40){
+                spawnHazard('crossbeam',{x:450,y:350,warning:60,life:170,damage:16,color:'#ff0055',spin:.025});
             }
-            break;
-        case 9: // BOOMERANG BLADE
-            if(t%100===0) spawnHazard('blade',{x:450,y:150,r:28,warning:15,life:230,damage:12,vx:5,vy:2,color:'#ffffff'});
-            break;
-        case 10: // CLOSING WALLS WITH GAP
-            if(t%180===0){
-                const gap=120+Math.random()*460;
-                spawnHazard('wall',{x:-40,y:350,w:70,h:700,warning:35,life:190,damage:10,vx:4,color:'#00ff88',gap});
-                spawnHazard('wall',{x:940,y:350,w:70,h:700,warning:35,life:190,damage:10,vx:-4,color:'#00ff88',gap});
-            }
-            break;
-        case 11: // DELAYED MINEFIELD
-            if(t%155===0) for(let i=0;i<7;i++) spawnHazard('mine',{x:80+Math.random()*740,y:100+Math.random()*500,r:25,warning:55,life:150,damage:15,color:'#ff66aa'});
-            break;
-        case 12: // BLINK TRAPS
-            if(t%105===0) spawnHazard('blink',{x:player.x,y:player.y,r:58,warning:50,life:95,damage:16,color:'#9966ff'});
-            break;
-        case 13: // FREEZE PULSES
-            if(t%160===0) spawnHazard('freeze',{x:450,y:350,r:115,warning:50,life:125,damage:9,color:'#ffffff'});
-            break;
-        case 14: // ARENA SHRINK
-            if(t%240===0) spawnHazard('shrink',{x:70,warning:45,life:210,damage:13,color:'#ff0055'});
             break;
     }
 }
@@ -926,10 +956,10 @@ function drawBossHazards(){
             const hole=h.holeY??h.gap;ctx.fillRect(h.x-h.w/2,h.y-h.h/2,h.w,hole-h.h/2-70);ctx.fillRect(h.x-h.w/2,hole+70-h.h/2,h.w,h.h-(hole-h.h/2-70));
         }else if(h.type==='shrink'){
             const inset=h.x+Math.sin(h.timer*.05)*8;ctx.lineWidth=12;ctx.strokeRect(inset,inset,canvas.width-inset*2,canvas.height-inset*2);
+        }else if(h.type==='crossbeam'){
+            ctx.translate(h.x,h.y);ctx.rotate(h.angle);ctx.fillRect(-450,-18,900,36);ctx.rotate(Math.PI/2);ctx.fillRect(-450,-18,900,36);
         }
-        if(!active){
-            ctx.globalAlpha=.8;ctx.fillStyle='#fff';ctx.font='bold 13px Courier New';ctx.textAlign='center';ctx.fillText('WARNING',h.x??450,Math.max(20,Math.min(680,h.y??350)));
-        }
+        // Visual warning only: no warning text.
         ctx.restore();
     });
 }
