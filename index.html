@@ -571,7 +571,7 @@ function startMusic(theme,key){
     stopMusic();currentMusicKey=key;musicStep=0;
     musicBus=audioCtx.createGain();
     musicBus.gain.setValueAtTime(.0001,audioCtx.currentTime);
-    musicBus.gain.exponentialRampToValueAtTime(.16,audioCtx.currentTime+.045);
+    musicBus.gain.exponentialRampToValueAtTime(.32,audioCtx.currentTime+.045);
     musicBus.connect(audioCtx.destination);
     const gen=musicGeneration;
     const [bpm,root,scale,melody]=theme;
@@ -1731,33 +1731,64 @@ size:75,
 
 update:function(){
 
-    if(this.timer%75===0){
+    /* TIDAL SURGE: alternating walls with a moving safe gap */
+    if(this.timer%105===0){
+
+        const gap=Math.floor((this.timer/105)%9);
+        const fromLeft=Math.floor(this.timer/105)%2===0;
 
         for(let i=0;i<9;i++){
+            if(i===gap) continue;
 
+            const y=i*80+40;
             fireBullet(
-                0,
-                i*80,
-                0,
-                5.5,
+                fromLeft ? -10 : 910,
+                y,
+                fromLeft ? 0 : Math.PI,
+                5.8,
                 "#09f",
-                8
+                8,
+                0,
+                7
             );
         }
     }
 
-    if(this.timer%130===0){
+    /* The gap shifts again, so staying in one place is dangerous */
+    if(this.timer%105===52){
+
+        const gap=8-Math.floor((this.timer/105)%9);
+        const fromLeft=Math.floor(this.timer/105)%2===1;
 
         for(let i=0;i<9;i++){
+            if(i===gap) continue;
 
+            const y=i*80+40;
             fireBullet(
-                900,
-                i*80,
-                Math.PI,
-                4.5,
+                fromLeft ? -10 : 910,
+                y,
+                fromLeft ? 0 : Math.PI,
+                6.2,
                 "#55bbff",
+                8,
+                0,
                 7
             );
+        }
+    }
+
+    /* Homing spray between the waves */
+    if(this.timer%70===0){
+        const a=getAngleToPlayer(this);
+        aimSpread(this,7,.16,7,"#b9ecff",5);
+        fireBullet(this.x,this.y,a,6.5,"#ffffff",7,0,6);
+    }
+
+    /* A pulsing vertical breaker makes the center unsafe too */
+    if(this.timer%160===0){
+        const x=100+((this.timer/160)%7)*100;
+        for(let j=0;j<6;j++){
+            fireBullet(x,j*120+20,Math.PI/2,4.8,"#00ccff",7,0,6);
         }
     }
 }
