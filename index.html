@@ -36,10 +36,9 @@ canvas{
     cursor:crosshair;
     border:4px solid #222;
     box-shadow:0 0 20px rgba(0,255,0,.1);
-    width:min(900px, calc(100vw - 8px), 128.5714vh);
-    height:auto;
-    aspect-ratio:900 / 700;
-    box-sizing:content-box;
+    width:900px;
+    height:700px;
+    box-sizing:border-box;
 }
 
 #ui{
@@ -654,11 +653,13 @@ canvas.height=700;
 // The canvas keeps its 900x700 internal game resolution, but automatically
 // scales to the detected screen width/height without stretching.
 function fitCanvasToScreen(){
+    // Fit the complete canvas (including its border) inside the viewport
+    // while preserving the exact 900:700 game aspect ratio.
     const maxW=Math.max(1,window.innerWidth-8);
     const maxH=Math.max(1,window.innerHeight-8);
     const scale=Math.min(1,maxW/900,maxH/700);
-    canvas.style.width=(900*scale)+"px";
-    canvas.style.height=(700*scale)+"px";
+    canvas.style.width=Math.floor(900*scale)+"px";
+    canvas.style.height=Math.floor(700*scale)+"px";
 }
 window.addEventListener("resize",fitCanvasToScreen);
 window.addEventListener("orientationchange",()=>setTimeout(fitCanvasToScreen,50));
