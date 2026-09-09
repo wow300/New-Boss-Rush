@@ -388,7 +388,7 @@ body.menuOpen #mobileControls{
 
     <p>
         <span class="label">Tier:</span>
-        <span id="bossNum">1</span>/25 |
+        <span id="bossNum">1</span>/40 |
         <span class="label">Shields:</span>
         <span id="bhp" class="stat">100</span>
     </p>
@@ -795,7 +795,7 @@ function hazardHit(h,px=player.x,py=player.y){
     if(h.type==='fire') return Math.hypot(px-h.x,py-h.y)<h.r;
     if(h.type==='slow') return Math.hypot(px-h.x,py-h.y)<h.r;
     if(h.type==='gravity') return Math.hypot(px-h.x,py-h.y)<h.r;
-    if(h.type==='sweep') return Math.abs(py-(h.y+h.amp*Math.sin(h.timer*h.freq)))<h.width/2;
+    if(h.type==='sweep') { const pos=h.center+(h.amp*Math.sin(h.timer*h.freq)); return h.axis==='v' ? Math.abs(px-pos)<h.width/2 : Math.abs(py-pos)<h.width/2; }
     if(h.type==='meteor') return Math.hypot(px-h.x,py-h.y)<h.r;
     if(h.type==='spikes') return px>h.x-h.w/2 && px<h.x+h.w/2 && py>h.y-h.h/2 && py<h.y+h.h/2;
     if(h.type==='blade') return Math.hypot(px-h.x,py-h.y)<h.r;
@@ -815,7 +815,7 @@ function spawnHazard(type,opts={}){
     bossHazards.push({type,timer:0,life:opts.life??120,warning:opts.warning??45,damage:opts.damage??8,
         x:opts.x??player.x,y:opts.y??player.y,r:opts.r??45,width:opts.width??24,height:opts.height??700,
         w:opts.w??40,h:opts.h??40,thickness:opts.thickness??8,length:opts.length??900,
-        angle:opts.angle??0,amp:opts.amp??180,freq:opts.freq??.08,vx:opts.vx??0,vy:opts.vy??0,
+        angle:opts.angle??0,amp:opts.amp??180,freq:opts.freq??.08,axis:opts.axis??'h',center:opts.center??(opts.axis==='v'?450:350),vx:opts.vx??0,vy:opts.vy??0,
         color:opts.color??'#fff',gap:opts.gap??120,hitCooldown:0,spin:opts.spin??0});
 }
 
@@ -855,9 +855,14 @@ function newBossAttack(boss,index){
             if(t%260===150) spawnHazard('ring',{x:450,y:350,r:120,thickness:12,warning:30,life:150,damage:9,color:'#7722ff'});
             break;
         case 6: // LASER SWEEPER
-            if(t%135===0) spawnHazard('sweep',{y:350,width:30,amp:280,freq:.055,warning:45,life:180,damage:11,color:'#ff2255'});
-            if(t%190===55) spawnHazard('sweep',{y:350,width:22,amp:310,freq:-.045,warning:45,life:160,damage:10,color:'#ff88aa'});
-            if(t%240===120) spawnHazard('beam',{x:450,y:350,angle:Math.PI/2,width:18,length:850,warning:40,life:120,damage:13,color:'#ff0055',spin:.075});
+            // Full-map laser sweeps: the beam always spans the entire arena,
+            // while its position sweeps rapidly from edge to edge.
+            if(t%135===0) spawnHazard('sweep',{axis:'h',center:350,width:58,amp:335,freq:.085,warning:55,life:175,damage:14,color:'#ff2255'});
+            if(t%190===55) spawnHazard('sweep',{axis:'v',center:450,width:58,amp:435,freq:-.072,warning:50,life:165,damage:13,color:'#ff88aa'});
+            if(t%240===120){
+                spawnHazard('sweep',{axis:'h',center:350,width:42,amp:335,freq:-.11,warning:45,life:135,damage:15,color:'#ff0055'});
+                spawnHazard('sweep',{axis:'v',center:450,width:42,amp:435,freq:.095,warning:45,life:135,damage:15,color:'#ff0055'});
+            }
             break;
         case 7: // METEOR KING
             if(t%95===0) for(let i=0;i<3;i++) spawnHazard('meteor',{x:90+Math.random()*720,y:90+Math.random()*520,r:38,warning:65,life:88,damage:14,color:'#ff8844'});
@@ -894,8 +899,7 @@ function newBossAttack(boss,index){
             if(t%210===70) spawnHazard('freeze',{x:player.x,y:player.y,r:80,warning:45,life:110,damage:12,color:'#88ddff'});
             if(t%270===150) spawnHazard('ring',{x:450,y:350,r:90,thickness:20,warning:50,life:145,damage:11,color:'#bbffff'});
             break;
-        case 14: // APOCALYPSE: all 15 previous attack families + a new ultimate
-            for(let i=0;i<15;i++) newBossAttack(boss,i);
+        case 14: // APOCALYPSE UNIQUE ULTIMATE
             if(t%300===40){
                 spawnHazard('crossbeam',{x:450,y:350,warning:60,life:170,damage:16,color:'#ff0055',spin:.025});
             }
@@ -946,7 +950,9 @@ function drawBossHazards(){
             ctx.beginPath();ctx.arc(h.x,h.y,h.r*pulse,0,Math.PI*2);ctx.fill();
             ctx.globalAlpha=0.55;ctx.beginPath();ctx.arc(h.x,h.y,h.r,0,Math.PI*2);ctx.stroke();
         }else if(h.type==='sweep'){
-            const yy=h.y+h.amp*Math.sin(h.timer*h.freq);ctx.fillRect(0,yy-h.width/2,canvas.width,h.width);
+            const pos=h.center+h.amp*Math.sin(h.timer*h.freq);
+            if(h.axis==='v') ctx.fillRect(pos-h.width/2,0,h.width,canvas.height);
+            else ctx.fillRect(0,pos-h.width/2,canvas.width,h.width);
         }else if(h.type==='spikes'){
             ctx.fillRect(h.x-h.w/2,h.y-h.h/2,h.w,h.h);
             ctx.globalAlpha=.9;ctx.strokeRect(h.x-h.w/2,h.y-h.h/2,h.w,h.h);
@@ -2157,11 +2163,12 @@ name:"THE TIME BREAKER",hp:1780,color:"#ffffff",size:100,
 update:function(){this.y=180+Math.sin(this.timer*.014)*75;newBossAttack(this,13);}
 },
 {
-name:"THE APOCALYPSE",hp:2100,color:"#ff0055",size:110,
+name:"THE APOCALYPSE",hp:6500,color:"#ff0055",size:110,
 update:function(){
     this.x=450+Math.sin(this.timer*.012)*260;
     this.y=180+Math.cos(this.timer*.016)*90;
-    for(let i=0;i<15;i++) newBossAttack(this,i);
+    for(let i=0;i<14;i++) newBossAttack(this,i);
+    newBossAttack(this,14);
 }
 }
 
@@ -2397,7 +2404,24 @@ color:"#ff0055",
 size:25,
 hp:55,
 speed:2.2
-}
+},
+
+/* 26-40: boss-specific drones */
+{name:"THUNDER DRONE",kind:"newDrone",variant:0,color:"#ffff44",size:18,hp:32,speed:2.0},
+{name:"RING DRONE",kind:"newDrone",variant:1,color:"#ff66ff",size:18,hp:34,speed:1.8},
+{name:"BEAM DRONE",kind:"newDrone",variant:2,color:"#00ffff",size:19,hp:36,speed:1.9},
+{name:"EMBER DRONE",kind:"newDrone",variant:3,color:"#ff6600",size:18,hp:35,speed:2.1},
+{name:"FROST DRONE",kind:"newDrone",variant:4,color:"#66ccff",size:19,hp:38,speed:1.7},
+{name:"GRAVITY DRONE",kind:"newDrone",variant:5,color:"#aa44ff",size:20,hp:40,speed:1.5},
+{name:"SWEEPER DRONE",kind:"newDrone",variant:6,color:"#ff2255",size:18,hp:34,speed:2.2},
+{name:"METEOR DRONE",kind:"newDrone",variant:7,color:"#ff8844",size:20,hp:42,speed:1.6},
+{name:"SPIKE DRONE",kind:"newDrone",variant:8,color:"#88ff44",size:19,hp:40,speed:1.9},
+{name:"BOOMER DRONE",kind:"newDrone",variant:9,color:"#ffffff",size:18,hp:35,speed:2.4},
+{name:"CLOSER DRONE",kind:"newDrone",variant:10,color:"#00ff88",size:20,hp:44,speed:1.5},
+{name:"MINE DRONE",kind:"newDrone",variant:11,color:"#ff66aa",size:19,hp:42,speed:1.8},
+{name:"TRAP DRONE",kind:"newDrone",variant:12,color:"#9966ff",size:18,hp:36,speed:2.0},
+{name:"TIME DRONE",kind:"newDrone",variant:13,color:"#bbffff",size:20,hp:46,speed:1.5},
+{name:"APOCALYPSE DRONE",kind:"newDrone",variant:14,color:"#ff0055",size:22,hp:65,speed:2.2}
 
 ];
 
@@ -2504,6 +2528,28 @@ function updateMinion(m){
     if(m.contactCooldown>0)
         m.contactCooldown--;
 
+
+    /* 26-40: each new boss has its own drone behavior */
+    if(m.kind==="newDrone"){
+        const v=m.variant||0;
+        const a=Math.atan2(player.y-m.y,player.x-m.x);
+        if(v===0){ m.x+=Math.cos(a)*.7; if(m.timer%95===0) for(let i=-1;i<=1;i++) fireBullet(m.x,m.y,a+i*.18,6,m.color,5,0,6); }
+        else if(v===1){ m.angle+=.05; m.x+=Math.cos(m.angle)*.9; m.y+=Math.sin(m.angle)*.9; if(m.timer%110===0) spawnHazard('ring',{x:m.x,y:m.y,r:28,thickness:8,warning:30,life:80,damage:7,color:m.color}); }
+        else if(v===2){ m.x+=Math.cos(a)*.5; m.y+=Math.sin(a)*.5; if(m.timer%120===0) spawnHazard('beam',{x:m.x,y:m.y,angle:a,width:10,length:500,warning:35,life:70,damage:8,color:m.color}); }
+        else if(v===3){ m.x+=Math.cos(a)*.55; m.y+=Math.sin(a)*.55; if(m.timer%100===0) spawnHazard('fire',{x:m.x,y:m.y,r:32,warning:30,life:80,damage:6,color:m.color}); }
+        else if(v===4){ m.x+=Math.cos(a)*.45; m.y+=Math.sin(a)*.45; if(m.timer%105===0) spawnHazard('slow',{x:player.x,y:player.y,r:48,warning:35,life:90,damage:5,color:m.color}); }
+        else if(v===5){ m.angle+=.035; m.x=450+Math.cos(m.angle)*340; m.y=350+Math.sin(m.angle)*230; if(m.timer%120===0) spawnHazard('gravity',{x:m.x,y:m.y,r:55,warning:35,life:85,damage:6,color:m.color}); }
+        else if(v===6){ m.angle+=.045; m.x=450+Math.cos(m.angle)*380; m.y=350+Math.sin(m.angle)*250; if(m.timer%115===0) spawnHazard('sweep',{axis:(m.timer%230===0?'h':'v'),center:(m.timer%230===0?350:450),width:18,amp:(m.timer%230===0?330:430),freq:.06,warning:35,life:80,damage:7,color:m.color}); }
+        else if(v===7){ if(m.timer%120===0) spawnHazard('meteor',{x:player.x,y:player.y,r:28,warning:50,life:65,damage:8,color:m.color}); m.x+=Math.cos(a)*.35; m.y+=Math.sin(a)*.35; }
+        else if(v===8){ m.x+=Math.cos(a)*.5; m.y+=Math.sin(a)*.5; if(m.timer%100===0) spawnHazard('spikes',{x:m.x,y:m.y,w:34,h:160,warning:35,life:75,damage:7,color:m.color}); }
+        else if(v===9){ m.angle+=.04; m.x+=Math.cos(m.angle)*1.2; m.y+=Math.sin(m.angle)*1.2; if(m.timer%90===0) spawnHazard('blade',{x:m.x,y:m.y,r:18,warning:25,life:110,damage:8,vx:3*Math.cos(a),vy:3*Math.sin(a),color:m.color}); }
+        else if(v===10){ m.x+=Math.cos(a)*.65; m.y+=Math.sin(a)*.65; if(m.timer%140===0) spawnHazard('wall',{x:m.x,y:350,w:35,h:700,warning:35,life:100,damage:7,vx:3,color:m.color,gap:100+Math.random()*500}); }
+        else if(v===11){ m.x+=Math.cos(a)*.4; m.y+=Math.sin(a)*.4; if(m.timer%100===0) spawnHazard('mine',{x:m.x,y:m.y,r:22,warning:45,life:120,damage:9,color:m.color}); }
+        else if(v===12){ m.angle+=.06; m.x+=Math.cos(m.angle)*1.0; m.y+=Math.sin(m.angle)*1.0; if(m.timer%110===0) spawnHazard('blink',{x:player.x,y:player.y,r:34,warning:35,life:80,damage:9,color:m.color}); }
+        else if(v===13){ m.x+=Math.cos(a)*.4; m.y+=Math.sin(a)*.4; if(m.timer%130===0) spawnHazard('freeze',{x:player.x,y:player.y,r:52,warning:45,life:85,damage:7,color:m.color}); }
+        else { m.angle+=.05; m.x=450+Math.cos(m.angle)*300; m.y=350+Math.sin(m.angle)*190; if(m.timer%75===0){ spawnHazard('ring',{x:450,y:350,r:70,thickness:9,warning:35,life:80,damage:7,color:m.color}); spawnHazard('beam',{x:m.x,y:m.y,angle:a,width:10,length:700,warning:35,life:65,damage:8,color:m.color}); } }
+        return;
+    }
 
     /* 1 - SNIPER */
 
@@ -3865,8 +3911,8 @@ function update(){
 
         /* RANDOM MINION SPAWNING */
 
-        const spawnInterval=currentBossIndex<15?240:185;
-        const maxMinions=currentBossIndex<15?3:4;
+        const spawnInterval=currentBossIndex<15?240:200;
+        const maxMinions=currentBossIndex<15?3:2;
         const unlimitedMinions=currentBossIndex===0;
 
         if(
@@ -3874,7 +3920,7 @@ function update(){
             boss.timer%spawnInterval===0 &&
             (unlimitedMinions || minions.length<maxMinions)
         ){
-            spawnMinion();
+            spawnMinion(currentBossIndex);
         }
 
         /* BOSS COLLISION */
