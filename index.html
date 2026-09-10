@@ -1220,8 +1220,6 @@ let lastMouseY=600;
 
 /* =========================================================
    BOSS MAP PERMANENT UPGRADE STATE
-   Reward node unlock requires clearing Level 6 (id 6).
-   Only ONE permanent upgrade can be selected. Stored in localStorage.
 ========================================================= */
 const REWARD_SAVE_KEY="bossRushPermanentUpgrade_v1";
 let permanentUpgradeId=null;
@@ -3570,9 +3568,7 @@ function playerDefeated(){
 
 
 /* =========================================================
-   Powerup definitions
-   For map reward picking, we only apply the permanent upgrade
-   at the start of a map level via applyPermanentUpgradeToPlayer().
+   Powerups
 ========================================================= */
 const powerups=[
 
@@ -3656,8 +3652,6 @@ function getPowerupById(id){
     return powerups.find(p=>p.id===id) || null;
 }
 
-/* Apply the saved permanent upgrade to the player at the start of a map level.
-   Only applies when mapMode is true. Safe to call multiple times. */
 function applyPermanentUpgradeToPlayer(){
     if(!permanentUpgradeId) return;
     const up=getPowerupById(permanentUpgradeId);
@@ -3666,7 +3660,7 @@ function applyPermanentUpgradeToPlayer(){
 }
 
 /* =========================================================
-   BOSS MAP PERMANENT UPGRADE PICKER
+   Reward Picker
 ========================================================= */
 const rewardScreen=document.getElementById("rewardScreen");
 const rewardChoices=document.getElementById("rewardChoices");
@@ -3674,7 +3668,6 @@ const rewardBackButton=document.getElementById("rewardBackButton");
 const rewardScreenText=document.getElementById("rewardScreenText");
 
 function openRewardPicker(){
-    /* If already claimed, do nothing. */
     if(permanentUpgradeId) return;
 
     const picks=[...powerups].sort(()=>Math.random()-.5).slice(0,3);
@@ -4010,6 +4003,9 @@ function update(){
             }
         }
 
+        /* =====================================================
+           MAP MODE: ENEMY BULLETS (with full bomb behavior)
+        ===================================================== */
         for(let i=enemyBullets.length-1;i>=0;i--){
 
             const b=enemyBullets[i];
@@ -4068,7 +4064,37 @@ function update(){
                 if(b.age>b.life){ enemyBullets.splice(i,1); continue; }
             }
 
+            if(b.kind && b.kind.includes('mine') && b.speed===0 && b.age>=b.life){
+                enemyBullets.splice(i,1);
+                continue;
+            }
+
             if(b.speed===0){
+                if(b.bomb){
+                    b.timer++;
+                    const d=Math.hypot(b.x-player.x,b.y-player.y);
+
+                    if(d<player.size/2+b.size){
+                        if(player.shield>0) player.shield--;
+                        else player.hp-=b.damage;
+                        enemyBullets.splice(i,1);
+                        updateUI();
+                        if(player.hp<=0) playerDefeated();
+                        continue;
+                    }
+
+                    if(b.timer>=b.fuse){
+                        if(d<=b.blastRadius){
+                            if(player.shield>0) player.shield--;
+                            else player.hp-=b.damage;
+                            updateUI();
+                            if(player.hp<=0) playerDefeated();
+                        }
+                        enemyBullets.splice(i,1);
+                    }
+                    continue;
+                }
+
                 if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size){
                     if(player.shield>0) player.shield--;
                     else player.hp-=b.damage;
@@ -4572,7 +4598,6 @@ const mapLevels=[
     { id:6, name:"2\u00d7 NEON GHOST + V-TWIN", tag:"", requires:5, slot:5, rowY:0.55 }
 ];
 
-/* The reward node belongs to a specific level (its "owner"). */
 const REWARD_OWNER_LEVEL_ID = 6;
 
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -4687,7 +4712,6 @@ function renderMapNodes(){
         node.appendChild(label);
         mapNodesLayer.appendChild(node);
 
-        /* Render the reward node attached to the owner level. */
         if(level.id===REWARD_OWNER_LEVEL_ID){
             const rewardUnlocked = cleared;
             const rewardClaimed = !!permanentUpgradeId;
