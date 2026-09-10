@@ -349,7 +349,7 @@ body.menuOpen #mobileControls{
 }
 
 /* =========================================================
-   BOSS MAP
+   BOSS MAP (with horizontal scroll)
 ========================================================= */
 #bossMap{
     display:none;
@@ -357,11 +357,58 @@ body.menuOpen #mobileControls{
     inset:0;
     z-index:9000;
     flex-direction:column;
-    align-items:center;
-    justify-content:flex-start;
+    align-items:stretch;
     background:
         radial-gradient(circle at 30% 20%, #1b4d1b 0%, #0c2b0c 45%, #051705 100%);
     overflow:hidden;
+}
+#mapScroll{
+    position:absolute;
+    inset:0;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-color:#4f8f4f #0c2b0c;
+}
+#mapScroll::-webkit-scrollbar{
+    height:14px;
+}
+#mapScroll::-webkit-scrollbar-track{
+    background:#0c2b0c;
+    border-top:2px solid #1a4a1a;
+}
+#mapScroll::-webkit-scrollbar-thumb{
+    background:#4f8f4f;
+    border:2px solid #0c2b0c;
+    border-radius:8px;
+}
+#mapScroll::-webkit-scrollbar-thumb:hover{
+    background:#8fff8f;
+}
+#mapTrack{
+    position:relative;
+    height:100%;
+    min-width:100%;
+    /* Width is set dynamically by JS based on node count. */
+}
+#mapCanvas{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    display:block;
+}
+#mapOverlay{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    pointer-events:none;
 }
 #bossMap .mapTitle{
     margin-top:26px;
@@ -379,28 +426,11 @@ body.menuOpen #mobileControls{
     text-shadow:1px 1px #000;
     pointer-events:none;
 }
-#mapCanvas{
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
-    display:block;
-}
-#mapOverlay{
-    position:relative;
-    z-index:2;
-    width:100%;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    pointer-events:none;
-}
 #mapBackButton{
-    position:absolute;
+    position:fixed;
     top:16px;
     left:16px;
-    z-index:3;
+    z-index:9100;
     padding:10px 14px;
     background:#0c2b0c;
     color:#dfffdf;
@@ -421,6 +451,7 @@ body.menuOpen #mobileControls{
     flex-direction:column;
     align-items:center;
     pointer-events:auto;
+    width:220px;
 }
 .mapLevelCircle{
     width:90px;
@@ -466,16 +497,33 @@ body.menuOpen #mobileControls{
 .mapLevelNode.locked .mapLevelLabel .lvTag{ color:#4a4a4a; }
 
 .mapLevelLabel{
-    margin-top:10px;
+    margin-top:12px;
     color:#eaffea;
     font:bold 13px 'Courier New',monospace;
     letter-spacing:2px;
     text-shadow:1px 1px #000;
+    text-align:center;
+    line-height:1.3;
 }
 .mapLevelLabel .lvTag{ color:#9fd89f; font-size:11px; display:block; letter-spacing:1px; }
-.mapLevelLabel .lvName{ color:#ffffff; font-size:13px; }
+.mapLevelLabel .lvName{ color:#ffffff; font-size:13px; display:block; }
 .mapLevelNode.cleared .mapLevelLabel .lvName{ color:#bfffc1; }
 .mapLevelNode.cleared .mapLevelLabel .lvTag{ color:#7fd07f; }
+
+/* Wider scroll hint at the bottom */
+#mapScrollHint{
+    position:absolute;
+    bottom:10px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:4;
+    color:#8fc78f;
+    font:bold 12px 'Courier New',monospace;
+    letter-spacing:2px;
+    text-shadow:1px 1px #000;
+    pointer-events:none;
+    opacity:.85;
+}
 
 #levelStartScreen{
     display:none;
@@ -505,6 +553,7 @@ body.menuOpen #mobileControls{
     font-size:20px;
     letter-spacing:3px;
     text-shadow:0 0 10px rgba(255,80,80,.6), 2px 2px #000;
+    text-align:center;
 }
 .levelCard .x2Text{
     color:#ffe14d;
@@ -574,13 +623,18 @@ body.menuOpen #mobileControls{
 </div>
 
 <div id="bossMap">
-    <canvas id="mapCanvas"></canvas>
-    <div id="mapOverlay">
-        <div class="mapTitle">WORLD 1</div>
-        <div class="mapSub">THE GRASSY PLAINS</div>
+    <div id="mapScroll">
+        <div id="mapTrack">
+            <canvas id="mapCanvas"></canvas>
+            <div id="mapOverlay">
+                <div class="mapTitle">WORLD 1</div>
+                <div class="mapSub">THE GRASSY PLAINS</div>
+            </div>
+            <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:2;pointer-events:none;"></div>
+            <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
+        </div>
     </div>
     <button id="mapBackButton">&#8592; MAIN MENU</button>
-    <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:2;pointer-events:none;"></div>
 </div>
 
 <div id="levelStartScreen">
@@ -1199,7 +1253,7 @@ function bossChase(b){
     const dx=player.x-b.x, dy=player.y-b.y;
     const d=Math.hypot(dx,dy)||1;
     let speed=(b.name==="THE APOCALYPSE")?0.62:Math.max(0.75,Math.min(2.8,3.25-b.size*0.022));
-    if(b.name==="PULSAR CORE") speed*=0.35; /* Pulsar Core is slower than a normal Pulsar. */
+    if(b.name==="PULSAR CORE") speed*=0.35;
     if(d>2){
         b.x += dx/d*speed;
         b.y += dy/d*speed;
@@ -1239,15 +1293,7 @@ function separateBosses(list){
     }
 }
 
-/* =========================================================
-   PULSAR CORE — custom update
-   Same shape as THE PULSAR's attacks (rotating stream + aimed
-   spread) but with many more bullets per trigger and a slower
-   overall cadence.
-========================================================= */
 function pulsarCoreUpdate(){
-    /* Continuous stream: Pulsar fires 1 bullet every 8 ticks.
-       Pulsar Core fires 4 bullets every 16 ticks in a fan. */
     if(this.timer%16===0){
         const baseA=this.timer*.10;
         for(let i=0;i<4;i++){
@@ -1261,13 +1307,10 @@ function pulsarCoreUpdate(){
         }
     }
 
-    /* Aimed spread: Pulsar fires 5 bullets every 100 ticks.
-       Pulsar Core fires 12 bullets with a wider arc every 140 ticks. */
     if(this.timer%140===0){
         aimSpread(this,12,.14,5.5,"#d080ff",5);
     }
 
-    /* Extra ring every 220 ticks for even more density. */
     if(this.timer%220===0){
         for(let i=0;i<16;i++){
             fireBullet(
@@ -2681,7 +2724,6 @@ name:"THE APOCALYPSE",hp:4200,color:"#ff0055",size:110,
 update:function(){ newBossAttack(this,39); }
 },
 {
-/* Custom boss for Level 4 — see pulsarCoreUpdate() */
 name:"PULSAR CORE",
 hp:380,
 color:"#aa44ff",
@@ -4321,6 +4363,8 @@ const mobileAim=document.getElementById("mobileAim");
 const mobileAimStick=document.getElementById("mobileAimStick");
 const mobileDashButton=document.getElementById("mobileDashButton");
 const bossMap=document.getElementById("bossMap");
+const mapScroll=document.getElementById("mapScroll");
+const mapTrack=document.getElementById("mapTrack");
 const mapCanvas=document.getElementById("mapCanvas");
 const mapNodesLayer=document.getElementById("mapNodesLayer");
 const mapBackButton=document.getElementById("mapBackButton");
@@ -4336,38 +4380,43 @@ let mobileMoveX=0;
 let mobileMoveY=0;
 let mobileFireDown=false;
 
+/* Map node positions are now given in "slots" (index along the world track).
+   Each slot is SCROLL_SLOT_PX wide. The track width grows with the level count. */
+const SCROLL_SLOT_PX = 260;
+const SCROLL_PADDING_PX = 120;
+
 const mapLevels=[
     {
         id:1,
         name:"THE SNIPER",
         tag:"\u00d72",
         requires:null,
-        nodeX:0.2,
-        nodeY:0.55
+        slot:0,
+        rowY:0.55
     },
     {
         id:2,
         name:"THE SNIPER",
         tag:"2\u00d7 HEALTH",
         requires:1,
-        nodeX:0.4,
-        nodeY:0.55
+        slot:1,
+        rowY:0.55
     },
     {
         id:3,
         name:"THE SNIPER & THE PULSAR",
         tag:"TAG TEAM",
         requires:2,
-        nodeX:0.6,
-        nodeY:0.55
+        slot:2,
+        rowY:0.55
     },
     {
         id:4,
         name:"PULSAR CORE",
-        tag:"3\u00d7 SIZE \u00b7 2\u00d7 HP",
+        tag:"",
         requires:3,
-        nodeX:0.8,
-        nodeY:0.55
+        slot:3,
+        rowY:0.55
     }
 ];
 
@@ -4386,8 +4435,10 @@ function saveMapSave(obj){
 let mapCleared=loadMapSave();
 
 function sizeMapCanvas(){
-    mapCanvas.width=window.innerWidth;
-    mapCanvas.height=window.innerHeight;
+    const w=mapTrack.clientWidth;
+    const h=mapTrack.clientHeight;
+    mapCanvas.width=Math.max(1,w);
+    mapCanvas.height=Math.max(1,h);
     drawMapBackground();
 }
 function drawMapBackground(){
@@ -4422,20 +4473,38 @@ function drawMapBackground(){
     }
 }
 window.addEventListener("resize",()=>{
-    if(bossMap.style.display==="flex") sizeMapCanvas();
+    if(bossMap.style.display==="flex"){
+        sizeMapCanvas();
+        renderMapNodes();
+    }
 });
 
+function computeTrackWidth(){
+    const maxSlot = mapLevels.reduce((m,l)=>Math.max(m,l.slot),0);
+    const needed = (maxSlot+1)*SCROLL_SLOT_PX + SCROLL_PADDING_PX*2;
+    return Math.max(window.innerWidth, needed);
+}
+
 function renderMapNodes(){
+    /* Resize the track first so it can scroll horizontally. */
+    mapTrack.style.width = computeTrackWidth()+"px";
+    mapTrack.style.height = "100%";
+    sizeMapCanvas();
+
     mapNodesLayer.innerHTML="";
-    const w=window.innerWidth;
-    const h=window.innerHeight;
+    const trackW = mapTrack.clientWidth;
+    const trackH = mapTrack.clientHeight;
+
     mapLevels.forEach(level=>{
         const cleared=!!mapCleared[level.id];
         const unlocked = level.requires===null || !!mapCleared[level.requires];
         const node=document.createElement("div");
         node.className="mapLevelNode"+(cleared?" cleared":"")+(unlocked?"":" locked");
-        node.style.left=(level.nodeX*w)+"px";
-        node.style.top=(level.nodeY*h)+"px";
+        /* Position based on slot index, offset from the left with padding. */
+        const x = SCROLL_PADDING_PX + level.slot*SCROLL_SLOT_PX + SCROLL_SLOT_PX/2;
+        const y = level.rowY * trackH;
+        node.style.left = x+"px";
+        node.style.top  = y+"px";
 
         const circle=document.createElement("button");
         circle.className="mapLevelCircle";
@@ -4453,12 +4522,23 @@ function renderMapNodes(){
         label.className="mapLevelLabel";
         label.innerHTML=
             "<span class='lvTag'>LEVEL "+level.id+"</span>"+
-            "<span class='lvName'>"+level.name+(level.tag?" "+level.tag:"")+"</span>";
+            "<span class='lvName'>"+level.name+"</span>"+
+            (level.tag?("<span class='lvTag' style='margin-top:2px;color:#ffe14d'>"+level.tag+"</span>"):"");
 
         node.appendChild(circle);
         node.appendChild(label);
         mapNodesLayer.appendChild(node);
     });
+
+    /* Make sure track is wide enough for the last node's label too. */
+    const lastNode = mapNodesLayer.lastElementChild;
+    if(lastNode){
+        const requiredRight = (SCROLL_PADDING_PX + (mapLevels.length-1)*SCROLL_SLOT_PX + SCROLL_SLOT_PX/2) + 140;
+        if(requiredRight > mapTrack.clientWidth){
+            mapTrack.style.width = requiredRight+"px";
+            sizeMapCanvas();
+        }
+    }
 }
 
 function openBossMap(){
@@ -4475,8 +4555,9 @@ function openBossMap(){
     sandboxMode=false;
     noUpgradeMode=false;
     mapMode=false;
-    sizeMapCanvas();
     renderMapNodes();
+    /* Reset scroll to the start each time we open the map. */
+    mapScroll.scrollLeft = 0;
     startMenuMusic();
 }
 function closeBossMapToMenu(){
@@ -4570,7 +4651,6 @@ function startMapLevel(level){
         if(mapSniperBosses[0]){ mapSniperBosses[0].x=340; mapSniperBosses[0].y=200; }
         if(mapSniperBosses[1]){ mapSniperBosses[1].x=560; mapSniperBosses[1].y=200; }
     }else if(level.id===4){
-        /* PULSAR CORE — index 40 in the bosses array. */
         sandboxBossSelect.value="40";
         currentBossIndex=40;
         spawnSandboxBoss();
@@ -4629,8 +4709,12 @@ function exitMapLevelToMap(){
     mainMenu.style.display="none";
     sandboxMenu.style.display="none";
     powerupScreen.style.display="none";
-    sizeMapCanvas();
     renderMapNodes();
+    /* Try to keep the just-cleared level roughly centered. */
+    if(activeMapLevel){
+        const x = SCROLL_PADDING_PX + activeMapLevel.slot*SCROLL_SLOT_PX + SCROLL_SLOT_PX/2;
+        mapScroll.scrollLeft = Math.max(0, x - mapScroll.clientWidth/2);
+    }
     startMenuMusic();
     updateUI();
 }
