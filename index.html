@@ -452,7 +452,6 @@ body.menuOpen #mobileControls{
     0%,100%{ box-shadow:0 0 30px rgba(80,255,80,.75), inset 0 0 16px rgba(0,0,0,.5); }
     50%    { box-shadow:0 0 46px rgba(140,255,140,1), 0 0 78px rgba(80,255,80,.55), inset 0 0 16px rgba(0,0,0,.5); }
 }
-/* Locked level node */
 .mapLevelNode.locked .mapLevelCircle{
     border-color:#3a3a3a;
     background:radial-gradient(circle at 35% 30%, #2a2a2a 0%, #141414 80%);
@@ -1062,6 +1061,10 @@ let activeMapLevel=null;
 let mapSniperBosses=[];
 let levelCompletePending=false;
 
+/* Scaling applied to ALL bullets fired by map bosses this frame. */
+let mapBulletScale = { size:1, damage:1 };
+let activeFiringBoss = null;
+
 let lastMouseX=450;
 let mobileAimAngle=-Math.PI/2;
 let lastMouseY=600;
@@ -1081,6 +1084,10 @@ function getAngleToPlayer(origin,leadFactor=0){
 function fireBullet(
     x,y,angle,speed,color,size=4,bounce=0,damage=5
 ){
+    if(activeFiringBoss && activeFiringBoss.__bulletScale){
+        size  = size  * (activeFiringBoss.__bulletScale.size||1);
+        damage= damage* (activeFiringBoss.__bulletScale.damage||1);
+    }
     enemyBullets.push({
         x,y,
         dx:Math.cos(angle),
@@ -1170,6 +1177,10 @@ function spawnHazard(type,opts={}){
 }
 
 function fireUniqueBullet(x,y,angle,speed,color,size,damage,kind,extra={}){
+    if(activeFiringBoss && activeFiringBoss.__bulletScale){
+        size  = size  * (activeFiringBoss.__bulletScale.size||1);
+        damage= damage* (activeFiringBoss.__bulletScale.damage||1);
+    }
     enemyBullets.push({x,y,dx:Math.cos(angle),dy:Math.sin(angle),speed,color,size,bounce:extra.bounce||0,damage,kind,age:0,life:extra.life||900,originX:x,originY:y,baseAngle:angle,turn:extra.turn||0,split:extra.split||false,armed:false,phase:Math.random()*Math.PI*2,...extra});
 }
 
@@ -3668,13 +3679,17 @@ function update(){
         for(let si=mapSniperBosses.length-1;si>=0;si--){
             const sb=mapSniperBosses[si];
             sb.timer++;
+
+            /* Set active firing boss so fireBullet/fireUniqueBullet can
+               apply per-boss scaling (e.g. Level 2's 2× size/damage). */
+            activeFiringBoss=sb;
             sb.update();
+            activeFiringBoss=null;
+
             bossChase(sb);
 
-            /* Level 2 uses a slower fire rate via the boss's own timer,
-               so no per-level overrides needed here. */
-            const spawnInterval = 240;
-            const maxMinions = 3;
+            const spawnInterval=240;
+            const maxMinions=3;
             if(
                 sb.timer>100 &&
                 sb.timer%spawnInterval===0 &&
@@ -3832,7 +3847,9 @@ function update(){
         for(let si=sandboxBosses.length-1;si>=0;si--){
             const sb=sandboxBosses[si];
             sb.timer++;
+            activeFiringBoss=sb;
             sb.update();
+            activeFiringBoss=null;
             bossChase(sb);
             for(let bi=bullets.length-1;bi>=0;bi--){
                 const b=bullets[bi];
@@ -3853,7 +3870,9 @@ function update(){
         updateUI();
     }else if(boss){
         boss.timer++;
+        activeFiringBoss=boss;
         boss.update();
+        activeFiringBoss=null;
         bossChase(boss);
 
         const spawnInterval=currentBossIndex<15?240:220;
@@ -4276,7 +4295,7 @@ const mapLevels=[
         name:"THE SNIPER",
         tag:"\u00d72",
         requires:null,
-        nodeX:0.35,
+        nodeX:0.25,
         nodeY:0.55
     },
     {
@@ -4284,7 +4303,15 @@ const mapLevels=[
         name:"THE SNIPER",
         tag:"2\u00d7 HEALTH",
         requires:1,
-        nodeX:0.65,
+        nodeX:0.5,
+        nodeY:0.55
+    },
+    {
+        id:3,
+        name:"THE SNIPER & THE PULSAR",
+        tag:"TAG TEAM",
+        requires:2,
+        nodeX:0.75,
         nodeY:0.55
     }
 ];
@@ -4363,7 +4390,7 @@ function renderMapNodes(){
         if(unlocked){
             circle.onclick=()=>openLevelStart(level);
         }else{
-            circle.onclick=()=>{ /* locked: do nothing */ };
+            circle.onclick=()=>{};
             circle.disabled=true;
         }
 
@@ -4456,13 +4483,11 @@ function startMapLevel(level){
     currentBossIndex=0;
 
     if(level.id===1){
-        /* Two normal Snipers spawned via Sandbox's exact function. */
         spawnSandboxBoss();
         spawnSandboxBoss();
         if(mapSniperBosses[0]){ mapSniperBosses[0].x=340; mapSniperBosses[0].y=180; }
         if(mapSniperBosses[1]){ mapSniperBosses[1].x=560; mapSniperBosses[1].y=180; }
     }else if(level.id===2){
-        /* One giant Sniper: 2x HP, 2x size, 2x bullet size, 2x damage, fires less often. */
         spawnSandboxBoss();
         const b=mapSniperBosses[0];
         if(b){
@@ -4472,32 +4497,34 @@ function startMapLevel(level){
             b.x=450;
             b.y=200;
 
-            /* Wrap update(): interleave a "cooldown" so it fires less often.
-               Its original cadence is every 75 ticks for the aimed shot and
-               every 130 for the side shots. We make it fire roughly every
-               150 / 260 ticks by only running the original update on even
-               half-periods. */
+            b.__bulletScale = { size:2, damage:2 };
+
             const origUpdate=b.update.bind(b);
             b.update=function(){
                 if(this.timer%2===0){
                     origUpdate();
                 }
             };
-
-            /* Double bullet size + double damage for anything the Sniper fires.
-               We wrap fireBullet's call site by monkey-patching the boss's
-               own bullets via a helper: easiest is to intercept on a per-boss
-               basis by temporarily overriding fireBullet while its update runs.
-               Since update() is called from the main loop with the global
-               fireBullet, we instead scale by checking a boss flag below. */
-            b.__sniperDoubleBullets = true;
         }
+    }else if(level.id===3){
+        /* Level 3: The Sniper + The Pulsar, both at normal stats. */
+        /* Spawn The Sniper (index 0). */
+        sandboxBossSelect.value="0";
+        currentBossIndex=0;
+        spawnSandboxBoss();
+        /* Spawn The Pulsar (index 1). */
+        sandboxBossSelect.value="1";
+        currentBossIndex=1;
+        spawnSandboxBoss();
+
+        if(mapSniperBosses[0]){ mapSniperBosses[0].x=340; mapSniperBosses[0].y=200; }
+        if(mapSniperBosses[1]){ mapSniperBosses[1].x=560; mapSniperBosses[1].y=200; }
     }
 
     sandboxBosses=savedSandboxBosses;
 
     uiBoss.textContent="MAP LEVEL: "+level.id;
-    uiName.textContent=level.name+(level.tag?" "+level.tag:"");
+    uiName.textContent=level.name;
 
     startGrassyMusic();
 
@@ -4911,4 +4938,4 @@ gameLoop();
 
 </script>
 </body>
-</html>
+    </html>
