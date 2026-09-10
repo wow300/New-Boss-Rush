@@ -174,11 +174,28 @@ body.menuOpen #mobileControls{
     color:#fff;
     font:20px 'Courier New',monospace;
     cursor:pointer;
+    transition: border-color 0.3s, background 0.3s, color 0.3s;
 }
 
 .menuButton:hover{
     border-color:#0f0;
     background:#182018;
+}
+
+.menuButton.completed {
+    border-color: #0f0;
+    background: #0a1a0a;
+    color: #0f0;
+    box-shadow: 0 0 12px rgba(0,255,0,0.3);
+}
+
+.menuButton.completed::after {
+    content: " ✔ COMPLETED!";
+    font-size: 0.75em;
+    color: #0f0;
+    display: block;
+    margin-top: 4px;
+    letter-spacing: 2px;
 }
 
 #sandboxMenu{
@@ -1217,6 +1234,58 @@ let activeFiringBoss = null;
 let lastMouseX=450;
 let mobileAimAngle=-Math.PI/2;
 let lastMouseY=600;
+
+/* =========================================================
+   COMPLETION TRACKING
+========================================================= */
+const COMPLETION_SAVE_KEY = "bossRushCompletion_v1";
+
+function loadCompletionState(){
+    try{
+        const raw = localStorage.getItem(COMPLETION_SAVE_KEY);
+        if(!raw) return { normal:false, noUpgrade:false };
+        const obj = JSON.parse(raw);
+        return {
+            normal: !!obj.normal,
+            noUpgrade: !!obj.noUpgrade
+        };
+    }catch(e){
+        return { normal:false, noUpgrade:false };
+    }
+}
+
+function saveCompletionState(state){
+    try{
+        localStorage.setItem(COMPLETION_SAVE_KEY, JSON.stringify(state));
+    }catch(e){}
+}
+
+let completionState = loadCompletionState();
+
+function updateMenuButtonStates(){
+    const startBtn = document.getElementById("startGameButton");
+    const noUpBtn = document.getElementById("startNoUpgradeButton");
+    if(completionState.normal){
+        startBtn.classList.add("completed");
+    }else{
+        startBtn.classList.remove("completed");
+    }
+    if(completionState.noUpgrade){
+        noUpBtn.classList.add("completed");
+    }else{
+        noUpBtn.classList.remove("completed");
+    }
+}
+
+function markCompleted(mode){
+    if(mode === "normal"){
+        completionState.normal = true;
+    }else if(mode === "noUpgrade"){
+        completionState.noUpgrade = true;
+    }
+    saveCompletionState(completionState);
+    updateMenuButtonStates();
+}
 
 /* =========================================================
    BOSS MAP PERMANENT UPGRADE STATE
@@ -4196,7 +4265,13 @@ function update(){
                     currentBossIndex++;
                     if(currentBossIndex>=bosses.length){
                         gameActive=false;
+                        if(!mapMode && !noUpgradeMode){
+                            markCompleted("normal");
+                        }else if(!mapMode && noUpgradeMode){
+                            markCompleted("noUpgrade");
+                        }
                         alert("GOD SLAYER!\n\nYou cleared all 40 bosses!");
+                        exitToMainMenu();
                         return;
                     }
                     choosePowerups();
@@ -5011,6 +5086,7 @@ function showMainMenuOnStartup(){
     enemyBullets=[];
     minions=[];
     bossHazards=[];
+    updateMenuButtonStates();
 }
 
 mainMenu.addEventListener("pointerdown",()=>{
@@ -5296,6 +5372,7 @@ function exitToMainMenu(){
     levelCompleteScreen.style.display="none";
     rewardScreen.style.display="none";
     mainMenu.style.display="flex";
+    updateMenuButtonStates();
     updateUI();
 }
 
