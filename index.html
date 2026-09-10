@@ -3774,10 +3774,11 @@ function update(){
             bossChase(sb);
 
             const spawnInterval=240;
-            const maxMinions=3;
+            const maxMinions=4;
             let minionTypeForBoss = 0;
             if(sb.name==="THE PULSAR" || sb.name==="PULSAR CORE") minionTypeForBoss = 1;
             else if(sb.name==="NEON GHOST") minionTypeForBoss = 2;
+            else if(sb.name==="V-TWIN REVENANT") minionTypeForBoss = 3;
             if(
                 sb.timer>100 &&
                 sb.timer%spawnInterval===0 &&
@@ -4422,6 +4423,14 @@ const mapLevels=[
         requires:4,
         slot:4,
         rowY:0.55
+    },
+    {
+        id:6,
+        name:"2\u00d7 NEON GHOST + V-TWIN",
+        tag:"",
+        requires:5,
+        slot:5,
+        rowY:0.55
     }
 ];
 
@@ -4668,6 +4677,19 @@ function startMapLevel(level){
             b.x=450;
             b.y=200;
         }
+    }else if(level.id===6){
+        /* Two Neon Ghosts (index 2) and one V-Twin Revenant (index 3). */
+        sandboxBossSelect.value="2";
+        currentBossIndex=2;
+        spawnSandboxBoss();
+        spawnSandboxBoss();
+        sandboxBossSelect.value="3";
+        currentBossIndex=3;
+        spawnSandboxBoss();
+
+        if(mapSniperBosses[0]){ mapSniperBosses[0].x=250; mapSniperBosses[0].y=180; }
+        if(mapSniperBosses[1]){ mapSniperBosses[1].x=650; mapSniperBosses[1].y=180; }
+        if(mapSniperBosses[2]){ mapSniperBosses[2].x=450; mapSniperBosses[2].y=250; }
     }
 
     sandboxBosses=savedSandboxBosses;
