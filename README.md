@@ -1,1 +1,1 @@
-The latest update added Pulsar Core.
+The latest update added Level 6 to the Boss Map!
