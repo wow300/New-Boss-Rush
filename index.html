@@ -370,21 +370,10 @@ body.menuOpen #mobileControls{
     -webkit-overflow-scrolling:touch;
     scrollbar-color:#4f8f4f #0c2b0c;
 }
-#mapScroll::-webkit-scrollbar{
-    height:14px;
-}
-#mapScroll::-webkit-scrollbar-track{
-    background:#0c2b0c;
-    border-top:2px solid #1a4a1a;
-}
-#mapScroll::-webkit-scrollbar-thumb{
-    background:#4f8f4f;
-    border:2px solid #0c2b0c;
-    border-radius:8px;
-}
-#mapScroll::-webkit-scrollbar-thumb:hover{
-    background:#8fff8f;
-}
+#mapScroll::-webkit-scrollbar{ height:14px; }
+#mapScroll::-webkit-scrollbar-track{ background:#0c2b0c; border-top:2px solid #1a4a1a; }
+#mapScroll::-webkit-scrollbar-thumb{ background:#4f8f4f; border:2px solid #0c2b0c; border-radius:8px; }
+#mapScroll::-webkit-scrollbar-thumb:hover{ background:#8fff8f; }
 #mapTrack{
     position:relative;
     height:100%;
@@ -438,10 +427,7 @@ body.menuOpen #mobileControls{
     cursor:pointer;
     pointer-events:auto;
 }
-#mapBackButton:hover{
-    border-color:#8fff8f;
-    background:#14401a;
-}
+#mapBackButton:hover{ border-color:#8fff8f; background:#14401a; }
 .mapLevelNode{
     position:absolute;
     transform:translate(-50%,-50%);
@@ -468,9 +454,7 @@ body.menuOpen #mobileControls{
     transition:transform .12s, box-shadow .2s, border-color .2s;
     padding:0;
 }
-.mapLevelCircle:hover{
-    transform:scale(1.06);
-}
+.mapLevelCircle:hover{ transform:scale(1.06); }
 .mapLevelNode.cleared .mapLevelCircle{
     border-color:#4dff4d;
     background:radial-gradient(circle at 35% 30%, #2a8f2a 0%, #0d3d0d 80%);
@@ -489,9 +473,7 @@ body.menuOpen #mobileControls{
     color:#666;
     cursor:not-allowed;
 }
-.mapLevelNode.locked .mapLevelCircle:hover{
-    transform:none;
-}
+.mapLevelNode.locked .mapLevelCircle:hover{ transform:none; }
 .mapLevelNode.locked .mapLevelLabel .lvName{ color:#666; }
 .mapLevelNode.locked .mapLevelLabel .lvTag{ color:#4a4a4a; }
 
@@ -508,6 +490,63 @@ body.menuOpen #mobileControls{
 .mapLevelLabel .lvName{ color:#ffffff; font-size:13px; display:block; }
 .mapLevelNode.cleared .mapLevelLabel .lvName{ color:#bfffc1; }
 .mapLevelNode.cleared .mapLevelLabel .lvTag{ color:#7fd07f; }
+
+/* Small reward node (top-right of a level's circle) */
+.mapRewardNode{
+    position:absolute;
+    transform:translate(-50%,-50%);
+    z-index:4;
+    pointer-events:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+.mapRewardCircle{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    border:3px solid #555;
+    background:radial-gradient(circle at 35% 30%, #2a2a2a 0%, #141414 80%);
+    box-shadow:0 0 10px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.8);
+    color:#888;
+    font:bold 20px 'Courier New',monospace;
+    cursor:not-allowed;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    transition:transform .12s, box-shadow .2s, border-color .2s, background .2s;
+}
+.mapRewardNode.unlocked .mapRewardCircle{
+    border-color:#ffd24d;
+    background:radial-gradient(circle at 35% 30%, #6a4f10 0%, #2c1f05 80%);
+    box-shadow:0 0 22px rgba(255,210,80,.85), 0 0 40px rgba(255,210,80,.4), inset 0 0 12px rgba(0,0,0,.6);
+    color:#fff2b3;
+    cursor:pointer;
+    animation:rewardPulse 1.6s ease-in-out infinite;
+}
+.mapRewardNode.unlocked .mapRewardCircle:hover{ transform:scale(1.08); }
+.mapRewardNode.claimed .mapRewardCircle{
+    border-color:#4dff4d;
+    background:radial-gradient(circle at 35% 30%, #2a8f2a 0%, #0d3d0d 80%);
+    box-shadow:0 0 22px rgba(80,255,80,.85), inset 0 0 12px rgba(0,0,0,.5);
+    color:#eaffea;
+    cursor:pointer;
+    animation:none;
+}
+@keyframes rewardPulse{
+    0%,100%{ box-shadow:0 0 18px rgba(255,210,80,.75), inset 0 0 12px rgba(0,0,0,.6); }
+    50%    { box-shadow:0 0 30px rgba(255,230,140,1), 0 0 52px rgba(255,210,80,.55), inset 0 0 12px rgba(0,0,0,.6); }
+}
+.mapRewardNode .rewardTag{
+    margin-top:6px;
+    color:#ffe14d;
+    font:bold 10px 'Courier New',monospace;
+    letter-spacing:1px;
+    text-shadow:1px 1px #000;
+    display:none;
+}
+.mapRewardNode.unlocked .rewardTag{ display:block; }
 
 #mapScrollHint{
     position:absolute;
@@ -573,10 +612,7 @@ body.menuOpen #mobileControls{
     cursor:pointer;
     letter-spacing:2px;
 }
-.levelCard button:hover{
-    border-color:#0f0;
-    background:#182018;
-}
+.levelCard button:hover{ border-color:#0f0; background:#182018; }
 .levelCard .startBtn{ border-color:#7fff7f; }
 .levelCard .startBtn:hover{ background:#0e2a0e; }
 
@@ -606,6 +642,52 @@ body.menuOpen #mobileControls{
     0%{ transform:scale(.7); opacity:0; }
     100%{ transform:scale(1); opacity:1; }
 }
+
+/* Reward selection modal (reuses powerupScreen look) */
+#rewardScreen{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:9650;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.9);
+    flex-direction:column;
+    gap:16px;
+}
+#rewardScreen h2{
+    color:#ffd24d;
+    font-size:30px;
+    margin:0;
+    text-shadow:0 0 12px rgba(255,210,80,.6), 2px 2px #000;
+    letter-spacing:3px;
+}
+#rewardScreen p{
+    color:#c9b06a;
+    margin:0;
+    max-width:640px;
+    text-align:center;
+    font-size:14px;
+    line-height:1.5;
+}
+#rewardChoices{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    justify-content:center;
+    max-width:850px;
+}
+.rewardBack{
+    margin-top:6px;
+    padding:10px 18px;
+    background:#111;
+    color:#fff;
+    border:2px solid #555;
+    font:bold 14px 'Courier New',monospace;
+    cursor:pointer;
+    letter-spacing:2px;
+}
+.rewardBack:hover{ border-color:#0f0; background:#182018; }
 </style>
 </head>
 
@@ -629,6 +711,7 @@ body.menuOpen #mobileControls{
                 <div class="mapSub">THE GRASSY PLAINS</div>
             </div>
             <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:2;pointer-events:none;"></div>
+            <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:4;pointer-events:none;"></div>
             <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
         </div>
     </div>
@@ -648,6 +731,13 @@ body.menuOpen #mobileControls{
 
 <div id="levelCompleteScreen">
     <div class="completeInner" id="levelCompleteText">LEVEL 1 COMPLETED!</div>
+</div>
+
+<div id="rewardScreen">
+    <h2>PERMANENT UPGRADE</h2>
+    <p id="rewardScreenText">Choose one upgrade to keep forever. It only applies while you play the Boss Map.</p>
+    <div id="rewardChoices"></div>
+    <button class="rewardBack" id="rewardBackButton">BACK</button>
 </div>
 
 <div id="sandboxMenu">
@@ -1118,6 +1208,26 @@ let lastMouseX=450;
 let mobileAimAngle=-Math.PI/2;
 let lastMouseY=600;
 
+/* =========================================================
+   BOSS MAP PERMANENT UPGRADE STATE
+   Reward node unlock requires clearing Level 6 (id 6).
+   Only ONE permanent upgrade can be selected. Stored in localStorage.
+========================================================= */
+const REWARD_SAVE_KEY="bossRushPermanentUpgrade_v1";
+let permanentUpgradeId=null;
+
+function loadPermanentUpgrade(){
+    try{
+        const raw=localStorage.getItem(REWARD_SAVE_KEY);
+        if(!raw) return null;
+        return raw;
+    }catch(e){ return null; }
+}
+function savePermanentUpgrade(id){
+    try{ localStorage.setItem(REWARD_SAVE_KEY,id); }catch(e){}
+}
+permanentUpgradeId = loadPermanentUpgrade();
+
 
 function getAngleToPlayer(origin,leadFactor=0){
 
@@ -1135,7 +1245,7 @@ function fireBullet(
 ){
     if(activeFiringBoss && activeFiringBoss.__bulletScale){
         size  = size  * (activeFiringBoss.__bulletScale.size||1);
-        damage= damage* (activeFiringBoss.__bulletScale.damage||1);
+        damage= damage * (activeFiringBoss.__bulletScale.damage||1);
     }
     enemyBullets.push({
         x,y,
@@ -1228,7 +1338,7 @@ function spawnHazard(type,opts={}){
 function fireUniqueBullet(x,y,angle,speed,color,size,damage,kind,extra={}){
     if(activeFiringBoss && activeFiringBoss.__bulletScale){
         size  = size  * (activeFiringBoss.__bulletScale.size||1);
-        damage= damage* (activeFiringBoss.__bulletScale.damage||1);
+        damage= damage * (activeFiringBoss.__bulletScale.damage||1);
     }
     enemyBullets.push({x,y,dx:Math.cos(angle),dy:Math.sin(angle),speed,color,size,bounce:extra.bounce||0,damage,kind,age:0,life:extra.life||900,originX:x,originY:y,baseAngle:angle,turn:extra.turn||0,split:extra.split||false,armed:false,phase:Math.random()*Math.PI*2,...extra});
 }
@@ -3449,9 +3559,18 @@ function playerDefeated(){
 }
 
 
+/* =========================================================
+   Powerup definitions
+   The "apply" functions now check whether we are in a map run
+   BEFORE applying, so they can be reused for the permanent
+   reward picker without immediately altering the player.
+   For map level start we apply the permanent upgrade through
+   applyPermanentUpgradeToPlayer().
+========================================================= */
 const powerups=[
 
 {
+id:"rapid_fire",
 name:"RAPID FIRE",
 description:"Shoot 12% faster. Maximum effect is limited.",
 apply:()=>{
@@ -3459,6 +3578,7 @@ apply:()=>{
 }
 },
 {
+id:"damage_core",
 name:"DAMAGE CORE",
 description:"Shots deal +2 damage.",
 apply:()=>{
@@ -3466,6 +3586,7 @@ apply:()=>{
 }
 },
 {
+id:"twin_shot",
 name:"TWIN SHOT",
 description:"Fire an extra projectile. Maximum 3 shots.",
 apply:()=>{
@@ -3473,6 +3594,7 @@ apply:()=>{
 }
 },
 {
+id:"energy_shield",
 name:"ENERGY SHIELD",
 description:"Blocks the next 2 hits.",
 apply:()=>{
@@ -3480,6 +3602,7 @@ apply:()=>{
 }
 },
 {
+id:"repair",
 name:"REPAIR",
 description:"Restore 25 Pilot Integrity.",
 apply:()=>{
@@ -3487,6 +3610,7 @@ apply:()=>{
 }
 },
 {
+id:"overdrive",
 name:"OVERDRIVE",
 description:"Movement speed +0.5.",
 apply:()=>{
@@ -3494,6 +3618,7 @@ apply:()=>{
 }
 },
 {
+id:"piercing",
 name:"PIERCING",
 description:"Shots can pass through one extra target.",
 apply:()=>{
@@ -3501,6 +3626,7 @@ apply:()=>{
 }
 },
 {
+id:"dash_engine",
 name:"DASH ENGINE",
 description:"Unlock or improve your dash.",
 apply:()=>{
@@ -3508,6 +3634,7 @@ apply:()=>{
 }
 },
 {
+id:"max_integrity",
 name:"MAX INTEGRITY",
 description:"Maximum HP +15 and restore 15 HP.",
 apply:()=>{
@@ -3517,6 +3644,51 @@ apply:()=>{
 }
 
 ];
+
+function getPowerupById(id){
+    return powerups.find(p=>p.id===id) || null;
+}
+
+/* Apply the saved permanent upgrade to the player at the start of a map level.
+   Only applies when mapMode is true. Safe to call multiple times. */
+function applyPermanentUpgradeToPlayer(){
+    if(!permanentUpgradeId) return;
+    const up=getPowerupById(permanentUpgradeId);
+    if(!up) return;
+    up.apply();
+}
+
+/* =========================================================
+   BOSS MAP PERMANENT UPGRADE PICKER
+========================================================= */
+const rewardScreen=document.getElementById("rewardScreen");
+const rewardChoices=document.getElementById("rewardChoices");
+const rewardBackButton=document.getElementById("rewardBackButton");
+const rewardScreenText=document.getElementById("rewardScreenText");
+
+function openRewardPicker(){
+    /* Show 3 random upgrades (or fewer if fewer exist). */
+    const picks=[...powerups].sort(()=>Math.random()-.5).slice(0,3);
+    rewardChoices.innerHTML="";
+    rewardScreenText.textContent = permanentUpgradeId
+        ? "You already picked: "+ (getPowerupById(permanentUpgradeId)?.name || "?") + ". Choose a new one to replace it — this only affects Boss Map runs."
+        : "Choose one upgrade to keep forever. It only applies while you play the Boss Map.";
+    picks.forEach(up=>{
+        const button=document.createElement("button");
+        button.className="powerChoice";
+        button.innerHTML="<strong>"+up.name+"</strong>"+"<span>"+up.description+"</span>";
+        button.onclick=()=>{
+            permanentUpgradeId=up.id;
+            savePermanentUpgrade(up.id);
+            playDingSound();
+            rewardScreen.style.display="none";
+            renderMapNodes();
+        };
+        rewardChoices.appendChild(button);
+    });
+    rewardScreen.style.display="flex";
+}
+rewardBackButton.onclick=()=>{ rewardScreen.style.display="none"; };
 
 
 function choosePowerups(){
@@ -4367,6 +4539,7 @@ const mapScroll=document.getElementById("mapScroll");
 const mapTrack=document.getElementById("mapTrack");
 const mapCanvas=document.getElementById("mapCanvas");
 const mapNodesLayer=document.getElementById("mapNodesLayer");
+const mapRewardLayer=document.getElementById("mapRewardLayer");
 const mapBackButton=document.getElementById("mapBackButton");
 const levelStartScreen=document.getElementById("levelStartScreen");
 const levelStartButton=document.getElementById("levelStartButton");
@@ -4384,55 +4557,16 @@ const SCROLL_SLOT_PX = 260;
 const SCROLL_PADDING_PX = 120;
 
 const mapLevels=[
-    {
-        id:1,
-        name:"THE SNIPER",
-        tag:"\u00d72",
-        requires:null,
-        slot:0,
-        rowY:0.55
-    },
-    {
-        id:2,
-        name:"THE SNIPER",
-        tag:"2\u00d7 HEALTH",
-        requires:1,
-        slot:1,
-        rowY:0.55
-    },
-    {
-        id:3,
-        name:"THE SNIPER & THE PULSAR",
-        tag:"TAG TEAM",
-        requires:2,
-        slot:2,
-        rowY:0.55
-    },
-    {
-        id:4,
-        name:"PULSAR CORE",
-        tag:"",
-        requires:3,
-        slot:3,
-        rowY:0.55
-    },
-    {
-        id:5,
-        name:"NEON GHOST",
-        tag:"",
-        requires:4,
-        slot:4,
-        rowY:0.55
-    },
-    {
-        id:6,
-        name:"2\u00d7 NEON GHOST + V-TWIN",
-        tag:"",
-        requires:5,
-        slot:5,
-        rowY:0.55
-    }
+    { id:1, name:"THE SNIPER", tag:"\u00d72", requires:null, slot:0, rowY:0.55 },
+    { id:2, name:"THE SNIPER", tag:"2\u00d7 HEALTH", requires:1, slot:1, rowY:0.55 },
+    { id:3, name:"THE SNIPER & THE PULSAR", tag:"TAG TEAM", requires:2, slot:2, rowY:0.55 },
+    { id:4, name:"PULSAR CORE", tag:"", requires:3, slot:3, rowY:0.55 },
+    { id:5, name:"NEON GHOST", tag:"", requires:4, slot:4, rowY:0.55 },
+    { id:6, name:"2\u00d7 NEON GHOST + V-TWIN", tag:"", requires:5, slot:5, rowY:0.55 }
 ];
+
+/* The reward node belongs to a specific level (its "owner"). */
+const REWARD_OWNER_LEVEL_ID = 6;
 
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
 function loadMapSave(){
@@ -4464,7 +4598,6 @@ function drawMapBackground(){
     grad.addColorStop(1,"#082808");
     g.fillStyle=grad;
     g.fillRect(0,0,w,h);
-
     for(let y=0;y<h;y+=6){
         for(let x=0;x<w;x+=6){
             const r=Math.random();
@@ -4499,23 +4632,30 @@ function computeTrackWidth(){
     return Math.max(window.innerWidth, needed);
 }
 
+function levelNodePosition(level){
+    return {
+        x: SCROLL_PADDING_PX + level.slot*SCROLL_SLOT_PX + SCROLL_SLOT_PX/2,
+        y: level.rowY * mapTrack.clientHeight
+    };
+}
+
 function renderMapNodes(){
     mapTrack.style.width = computeTrackWidth()+"px";
     mapTrack.style.height = "100%";
     sizeMapCanvas();
 
     mapNodesLayer.innerHTML="";
-    const trackH = mapTrack.clientHeight;
+    mapRewardLayer.innerHTML="";
 
     mapLevels.forEach(level=>{
         const cleared=!!mapCleared[level.id];
         const unlocked = level.requires===null || !!mapCleared[level.requires];
+        const pos=levelNodePosition(level);
+
         const node=document.createElement("div");
         node.className="mapLevelNode"+(cleared?" cleared":"")+(unlocked?"":" locked");
-        const x = SCROLL_PADDING_PX + level.slot*SCROLL_SLOT_PX + SCROLL_SLOT_PX/2;
-        const y = level.rowY * trackH;
-        node.style.left = x+"px";
-        node.style.top  = y+"px";
+        node.style.left = pos.x+"px";
+        node.style.top  = pos.y+"px";
 
         const circle=document.createElement("button");
         circle.className="mapLevelCircle";
@@ -4539,6 +4679,39 @@ function renderMapNodes(){
         node.appendChild(circle);
         node.appendChild(label);
         mapNodesLayer.appendChild(node);
+
+        /* Render the reward node attached to the owner level. */
+        if(level.id===REWARD_OWNER_LEVEL_ID){
+            const rewardUnlocked = cleared;
+            const rewardClaimed = !!permanentUpgradeId;
+            /* Top-right of the level circle: offset +45 x, -60 y relative to center. */
+            const rewardNode=document.createElement("div");
+            rewardNode.className="mapRewardNode"+
+                (rewardUnlocked?" unlocked":"")+
+                (rewardClaimed?" claimed":"");
+            rewardNode.style.left=(pos.x + 46)+"px";
+            rewardNode.style.top =(pos.y - 62)+"px";
+
+            const rcircle=document.createElement("button");
+            rcircle.className="mapRewardCircle";
+            rcircle.type="button";
+            rcircle.textContent="\u2605";
+            rcircle.setAttribute("aria-label","Permanent upgrade");
+            if(rewardUnlocked){
+                rcircle.onclick=()=>openRewardPicker();
+            }else{
+                rcircle.onclick=()=>{};
+                rcircle.disabled=true;
+            }
+
+            const rtag=document.createElement("div");
+            rtag.className="rewardTag";
+            rtag.textContent = rewardClaimed ? "CHANGE" : "REWARD";
+
+            rewardNode.appendChild(rcircle);
+            rewardNode.appendChild(rtag);
+            mapRewardLayer.appendChild(rewardNode);
+        }
     });
 
     const lastNode = mapNodesLayer.lastElementChild;
@@ -4560,6 +4733,7 @@ function openBossMap(){
     powerupScreen.style.display="none";
     levelStartScreen.style.display="none";
     levelCompleteScreen.style.display="none";
+    rewardScreen.style.display="none";
     bossMap.style.display="flex";
     gameActive=false;
     sandboxMode=false;
@@ -4605,6 +4779,7 @@ function startMapLevel(level){
     bossMap.style.display="none";
     levelStartScreen.style.display="none";
     levelCompleteScreen.style.display="none";
+    rewardScreen.style.display="none";
     document.body.classList.remove("menuOpen");
 
     mapMode=true;
@@ -4614,6 +4789,10 @@ function startMapLevel(level){
     levelCompletePending=false;
 
     resetPlayer();
+    /* Apply the saved permanent upgrade AFTER resetting the player,
+       so its effect stacks on top of the default stats. */
+    applyPermanentUpgradeToPlayer();
+
     bullets=[];
     enemyBullets=[];
     minions=[];
@@ -4656,7 +4835,6 @@ function startMapLevel(level){
         sandboxBossSelect.value="1";
         currentBossIndex=1;
         spawnSandboxBoss();
-
         if(mapSniperBosses[0]){ mapSniperBosses[0].x=340; mapSniperBosses[0].y=200; }
         if(mapSniperBosses[1]){ mapSniperBosses[1].x=560; mapSniperBosses[1].y=200; }
     }else if(level.id===4){
@@ -4664,21 +4842,14 @@ function startMapLevel(level){
         currentBossIndex=40;
         spawnSandboxBoss();
         const b=mapSniperBosses[0];
-        if(b){
-            b.x=450;
-            b.y=220;
-        }
+        if(b){ b.x=450; b.y=220; }
     }else if(level.id===5){
         sandboxBossSelect.value="2";
         currentBossIndex=2;
         spawnSandboxBoss();
         const b=mapSniperBosses[0];
-        if(b){
-            b.x=450;
-            b.y=200;
-        }
+        if(b){ b.x=450; b.y=200; }
     }else if(level.id===6){
-        /* Two Neon Ghosts (index 2) and one V-Twin Revenant (index 3). */
         sandboxBossSelect.value="2";
         currentBossIndex=2;
         spawnSandboxBoss();
@@ -4686,7 +4857,6 @@ function startMapLevel(level){
         sandboxBossSelect.value="3";
         currentBossIndex=3;
         spawnSandboxBoss();
-
         if(mapSniperBosses[0]){ mapSniperBosses[0].x=250; mapSniperBosses[0].y=180; }
         if(mapSniperBosses[1]){ mapSniperBosses[1].x=650; mapSniperBosses[1].y=180; }
         if(mapSniperBosses[2]){ mapSniperBosses[2].x=450; mapSniperBosses[2].y=250; }
@@ -4796,6 +4966,7 @@ function showMainMenuOnStartup(){
     bossMap.style.display="none";
     levelStartScreen.style.display="none";
     levelCompleteScreen.style.display="none";
+    rewardScreen.style.display="none";
     gameActive=false;
     waitingForPowerup=false;
     sandboxMode=false;
@@ -4970,6 +5141,7 @@ function startGame(){
     bossMap.style.display="none";
     levelStartScreen.style.display="none";
     levelCompleteScreen.style.display="none";
+    rewardScreen.style.display="none";
     waitingForPowerup=false;
     currentBossIndex=0;
     resetPlayer();
@@ -4994,6 +5166,7 @@ function startNoUpgradeMode(){
     bossMap.style.display="none";
     levelStartScreen.style.display="none";
     levelCompleteScreen.style.display="none";
+    rewardScreen.style.display="none";
     waitingForPowerup=false;
     currentBossIndex=0;
     resetPlayer();
@@ -5018,6 +5191,7 @@ function startSandbox(){
     bossMap.style.display="none";
     levelStartScreen.style.display="none";
     levelCompleteScreen.style.display="none";
+    rewardScreen.style.display="none";
     waitingForPowerup=false;
     boss=null;
     sandboxBosses=[];
@@ -5086,6 +5260,7 @@ function exitToMainMenu(){
     bossMap.style.display="none";
     levelStartScreen.style.display="none";
     levelCompleteScreen.style.display="none";
+    rewardScreen.style.display="none";
     mainMenu.style.display="flex";
     updateUI();
 }
