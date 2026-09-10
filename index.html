@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -527,13 +527,14 @@ body.menuOpen #mobileControls{
 }
 .mapRewardNode.unlocked .mapRewardCircle:hover{ transform:scale(1.08); }
 .mapRewardNode.claimed .mapRewardCircle{
-    border-color:#4dff4d;
-    background:radial-gradient(circle at 35% 30%, #2a8f2a 0%, #0d3d0d 80%);
-    box-shadow:0 0 22px rgba(80,255,80,.85), inset 0 0 12px rgba(0,0,0,.5);
-    color:#eaffea;
-    cursor:pointer;
+    border-color:#555;
+    background:radial-gradient(circle at 35% 30%, #2a2a2a 0%, #141414 80%);
+    box-shadow:0 0 10px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.8);
+    color:#9a9a9a;
+    cursor:default;
     animation:none;
 }
+.mapRewardNode.claimed .mapRewardCircle:hover{ transform:none; }
 @keyframes rewardPulse{
     0%,100%{ box-shadow:0 0 18px rgba(255,210,80,.75), inset 0 0 12px rgba(0,0,0,.6); }
     50%    { box-shadow:0 0 30px rgba(255,230,140,1), 0 0 52px rgba(255,210,80,.55), inset 0 0 12px rgba(0,0,0,.6); }
@@ -545,8 +546,17 @@ body.menuOpen #mobileControls{
     letter-spacing:1px;
     text-shadow:1px 1px #000;
     display:none;
+    max-width:180px;
+    text-align:center;
+    line-height:1.3;
 }
 .mapRewardNode.unlocked .rewardTag{ display:block; }
+.mapRewardNode.claimed .rewardTag{
+    display:block;
+    color:#9a9a9a;
+    max-width:180px;
+    white-space:normal;
+}
 
 #mapScrollHint{
     position:absolute;
@@ -3561,11 +3571,8 @@ function playerDefeated(){
 
 /* =========================================================
    Powerup definitions
-   The "apply" functions now check whether we are in a map run
-   BEFORE applying, so they can be reused for the permanent
-   reward picker without immediately altering the player.
-   For map level start we apply the permanent upgrade through
-   applyPermanentUpgradeToPlayer().
+   For map reward picking, we only apply the permanent upgrade
+   at the start of a map level via applyPermanentUpgradeToPlayer().
 ========================================================= */
 const powerups=[
 
@@ -3667,12 +3674,12 @@ const rewardBackButton=document.getElementById("rewardBackButton");
 const rewardScreenText=document.getElementById("rewardScreenText");
 
 function openRewardPicker(){
-    /* Show 3 random upgrades (or fewer if fewer exist). */
+    /* If already claimed, do nothing. */
+    if(permanentUpgradeId) return;
+
     const picks=[...powerups].sort(()=>Math.random()-.5).slice(0,3);
     rewardChoices.innerHTML="";
-    rewardScreenText.textContent = permanentUpgradeId
-        ? "You already picked: "+ (getPowerupById(permanentUpgradeId)?.name || "?") + ". Choose a new one to replace it — this only affects Boss Map runs."
-        : "Choose one upgrade to keep forever. It only applies while you play the Boss Map.";
+    rewardScreenText.textContent = "Choose one upgrade to keep forever. It only applies while you play the Boss Map.";
     picks.forEach(up=>{
         const button=document.createElement("button");
         button.className="powerChoice";
@@ -4684,7 +4691,6 @@ function renderMapNodes(){
         if(level.id===REWARD_OWNER_LEVEL_ID){
             const rewardUnlocked = cleared;
             const rewardClaimed = !!permanentUpgradeId;
-            /* Top-right of the level circle: offset +45 x, -60 y relative to center. */
             const rewardNode=document.createElement("div");
             rewardNode.className="mapRewardNode"+
                 (rewardUnlocked?" unlocked":"")+
@@ -4697,7 +4703,7 @@ function renderMapNodes(){
             rcircle.type="button";
             rcircle.textContent="\u2605";
             rcircle.setAttribute("aria-label","Permanent upgrade");
-            if(rewardUnlocked){
+            if(rewardUnlocked && !rewardClaimed){
                 rcircle.onclick=()=>openRewardPicker();
             }else{
                 rcircle.onclick=()=>{};
@@ -4706,7 +4712,13 @@ function renderMapNodes(){
 
             const rtag=document.createElement("div");
             rtag.className="rewardTag";
-            rtag.textContent = rewardClaimed ? "CHANGE" : "REWARD";
+            if(rewardClaimed){
+                const claimedUp = getPowerupById(permanentUpgradeId);
+                rtag.textContent = claimedUp ? claimedUp.name : "PICKED";
+                rtag.style.whiteSpace = "normal";
+            }else{
+                rtag.textContent = "REWARD";
+            }
 
             rewardNode.appendChild(rcircle);
             rewardNode.appendChild(rtag);
@@ -4789,8 +4801,6 @@ function startMapLevel(level){
     levelCompletePending=false;
 
     resetPlayer();
-    /* Apply the saved permanent upgrade AFTER resetting the player,
-       so its effect stacks on top of the default stats. */
     applyPermanentUpgradeToPlayer();
 
     bullets=[];
