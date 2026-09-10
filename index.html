@@ -813,7 +813,6 @@ function playTom(when,v=.028){if(!audioCtx)return;const o=audioCtx.createOscilla
 function playPluck(freq,when,v=.025){playTone(freq,.16,v,"square",when,.002,.09);playTone(freq*2,.10,v*.28,"triangle",when,.002,.06);}
 function playArp(freq,duration,v,when){playTone(freq,duration,v,"square",when,.003,.025,-5);playTone(freq,duration,v*.35,"sawtooth",when,.003,.025,5);}
 
-/* UI CLICK CHIME */
 function playMenuChime(){
     if(!audioCtx){
         if(!ensureAudio()) return;
@@ -854,7 +853,7 @@ function playMenuChime(){
 document.addEventListener("click",e=>{
     const t=e.target;
     if(!t) return;
-    if(t.closest && t.closest(".menuButton, #mapBackButton, #levelStartButton, #levelCancelButton, .mapLevelCircle, #spawnBossButton, #spawnEnemyButton, #clearSandboxButton, #exitSandboxButton, .powerChoice, #mobileToggle, #mobileDashButton")){
+    if(t.closest && t.closest("#startGameButton, #startNoUpgradeButton, #startBossMapButton, #startSandboxButton")){
         playMenuChime();
     }
 },true);
@@ -1061,8 +1060,6 @@ let activeMapLevel=null;
 let mapSniperBosses=[];
 let levelCompletePending=false;
 
-/* Scaling applied to ALL bullets fired by map bosses this frame. */
-let mapBulletScale = { size:1, damage:1 };
 let activeFiringBoss = null;
 
 let lastMouseX=450;
@@ -1201,7 +1198,8 @@ function aimUnique(boss,speed,color,size,damage,kind,spread=0){
 function bossChase(b){
     const dx=player.x-b.x, dy=player.y-b.y;
     const d=Math.hypot(dx,dy)||1;
-    const speed=(b.name==="THE APOCALYPSE")?0.62:Math.max(0.75,Math.min(2.8,3.25-b.size*0.022));
+    let speed=(b.name==="THE APOCALYPSE")?0.62:Math.max(0.75,Math.min(2.8,3.25-b.size*0.022));
+    if(b.name==="PULSAR CORE") speed*=0.35; /* Pulsar Core is slower than a normal Pulsar. */
     if(d>2){
         b.x += dx/d*speed;
         b.y += dy/d*speed;
@@ -1237,6 +1235,48 @@ function separateBosses(list){
                 b.x=Math.max(edgeB,Math.min(canvas.width-edgeB,b.x));
                 b.y=Math.max(edgeB,Math.min(canvas.height-edgeB,b.y));
             }
+        }
+    }
+}
+
+/* =========================================================
+   PULSAR CORE — custom update
+   Same shape as THE PULSAR's attacks (rotating stream + aimed
+   spread) but with many more bullets per trigger and a slower
+   overall cadence.
+========================================================= */
+function pulsarCoreUpdate(){
+    /* Continuous stream: Pulsar fires 1 bullet every 8 ticks.
+       Pulsar Core fires 4 bullets every 16 ticks in a fan. */
+    if(this.timer%16===0){
+        const baseA=this.timer*.10;
+        for(let i=0;i<4;i++){
+            fireBullet(
+                this.x,this.y,
+                baseA+i*Math.PI*2/4,
+                4.2,
+                "#a4f",
+                5
+            );
+        }
+    }
+
+    /* Aimed spread: Pulsar fires 5 bullets every 100 ticks.
+       Pulsar Core fires 12 bullets with a wider arc every 140 ticks. */
+    if(this.timer%140===0){
+        aimSpread(this,12,.14,5.5,"#d080ff",5);
+    }
+
+    /* Extra ring every 220 ticks for even more density. */
+    if(this.timer%220===0){
+        for(let i=0;i<16;i++){
+            fireBullet(
+                this.x,this.y,
+                i*Math.PI*2/16,
+                4.6,
+                "#b070ff",
+                5
+            );
         }
     }
 }
@@ -2640,6 +2680,14 @@ update:function(){
 name:"THE APOCALYPSE",hp:4200,color:"#ff0055",size:110,
 update:function(){ newBossAttack(this,39); }
 },
+{
+/* Custom boss for Level 4 — see pulsarCoreUpdate() */
+name:"PULSAR CORE",
+hp:380,
+color:"#aa44ff",
+size:135,
+update: pulsarCoreUpdate
+},
 ];
 
 /* =========================================================
@@ -3679,9 +3727,6 @@ function update(){
         for(let si=mapSniperBosses.length-1;si>=0;si--){
             const sb=mapSniperBosses[si];
             sb.timer++;
-
-            /* Set active firing boss so fireBullet/fireUniqueBullet can
-               apply per-boss scaling (e.g. Level 2's 2× size/damage). */
             activeFiringBoss=sb;
             sb.update();
             activeFiringBoss=null;
@@ -3690,12 +3735,14 @@ function update(){
 
             const spawnInterval=240;
             const maxMinions=3;
+            let minionTypeForBoss = 0;
+            if(sb.name==="THE PULSAR" || sb.name==="PULSAR CORE") minionTypeForBoss = 1;
             if(
                 sb.timer>100 &&
                 sb.timer%spawnInterval===0 &&
                 minions.length<maxMinions
             ){
-                spawnMinion(0);
+                spawnMinion(minionTypeForBoss);
             }
 
             for(let bi=bullets.length-1;bi>=0;bi--){
@@ -4295,7 +4342,7 @@ const mapLevels=[
         name:"THE SNIPER",
         tag:"\u00d72",
         requires:null,
-        nodeX:0.25,
+        nodeX:0.2,
         nodeY:0.55
     },
     {
@@ -4303,7 +4350,7 @@ const mapLevels=[
         name:"THE SNIPER",
         tag:"2\u00d7 HEALTH",
         requires:1,
-        nodeX:0.5,
+        nodeX:0.4,
         nodeY:0.55
     },
     {
@@ -4311,7 +4358,15 @@ const mapLevels=[
         name:"THE SNIPER & THE PULSAR",
         tag:"TAG TEAM",
         requires:2,
-        nodeX:0.75,
+        nodeX:0.6,
+        nodeY:0.55
+    },
+    {
+        id:4,
+        name:"PULSAR CORE",
+        tag:"3\u00d7 SIZE \u00b7 2\u00d7 HP",
+        requires:3,
+        nodeX:0.8,
         nodeY:0.55
     }
 ];
@@ -4496,9 +4551,7 @@ function startMapLevel(level){
             b.size=b.size*2;
             b.x=450;
             b.y=200;
-
             b.__bulletScale = { size:2, damage:2 };
-
             const origUpdate=b.update.bind(b);
             b.update=function(){
                 if(this.timer%2===0){
@@ -4507,18 +4560,25 @@ function startMapLevel(level){
             };
         }
     }else if(level.id===3){
-        /* Level 3: The Sniper + The Pulsar, both at normal stats. */
-        /* Spawn The Sniper (index 0). */
         sandboxBossSelect.value="0";
         currentBossIndex=0;
         spawnSandboxBoss();
-        /* Spawn The Pulsar (index 1). */
         sandboxBossSelect.value="1";
         currentBossIndex=1;
         spawnSandboxBoss();
 
         if(mapSniperBosses[0]){ mapSniperBosses[0].x=340; mapSniperBosses[0].y=200; }
         if(mapSniperBosses[1]){ mapSniperBosses[1].x=560; mapSniperBosses[1].y=200; }
+    }else if(level.id===4){
+        /* PULSAR CORE — index 40 in the bosses array. */
+        sandboxBossSelect.value="40";
+        currentBossIndex=40;
+        spawnSandboxBoss();
+        const b=mapSniperBosses[0];
+        if(b){
+            b.x=450;
+            b.y=220;
+        }
     }
 
     sandboxBosses=savedSandboxBosses;
