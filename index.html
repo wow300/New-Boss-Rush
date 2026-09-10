@@ -389,7 +389,6 @@ body.menuOpen #mobileControls{
     position:relative;
     height:100%;
     min-width:100%;
-    /* Width is set dynamically by JS based on node count. */
 }
 #mapCanvas{
     position:absolute;
@@ -510,7 +509,6 @@ body.menuOpen #mobileControls{
 .mapLevelNode.cleared .mapLevelLabel .lvName{ color:#bfffc1; }
 .mapLevelNode.cleared .mapLevelLabel .lvTag{ color:#7fd07f; }
 
-/* Wider scroll hint at the bottom */
 #mapScrollHint{
     position:absolute;
     bottom:10px;
@@ -3779,6 +3777,7 @@ function update(){
             const maxMinions=3;
             let minionTypeForBoss = 0;
             if(sb.name==="THE PULSAR" || sb.name==="PULSAR CORE") minionTypeForBoss = 1;
+            else if(sb.name==="NEON GHOST") minionTypeForBoss = 2;
             if(
                 sb.timer>100 &&
                 sb.timer%spawnInterval===0 &&
@@ -4380,8 +4379,6 @@ let mobileMoveX=0;
 let mobileMoveY=0;
 let mobileFireDown=false;
 
-/* Map node positions are now given in "slots" (index along the world track).
-   Each slot is SCROLL_SLOT_PX wide. The track width grows with the level count. */
 const SCROLL_SLOT_PX = 260;
 const SCROLL_PADDING_PX = 120;
 
@@ -4416,6 +4413,14 @@ const mapLevels=[
         tag:"",
         requires:3,
         slot:3,
+        rowY:0.55
+    },
+    {
+        id:5,
+        name:"NEON GHOST",
+        tag:"",
+        requires:4,
+        slot:4,
         rowY:0.55
     }
 ];
@@ -4486,13 +4491,11 @@ function computeTrackWidth(){
 }
 
 function renderMapNodes(){
-    /* Resize the track first so it can scroll horizontally. */
     mapTrack.style.width = computeTrackWidth()+"px";
     mapTrack.style.height = "100%";
     sizeMapCanvas();
 
     mapNodesLayer.innerHTML="";
-    const trackW = mapTrack.clientWidth;
     const trackH = mapTrack.clientHeight;
 
     mapLevels.forEach(level=>{
@@ -4500,7 +4503,6 @@ function renderMapNodes(){
         const unlocked = level.requires===null || !!mapCleared[level.requires];
         const node=document.createElement("div");
         node.className="mapLevelNode"+(cleared?" cleared":"")+(unlocked?"":" locked");
-        /* Position based on slot index, offset from the left with padding. */
         const x = SCROLL_PADDING_PX + level.slot*SCROLL_SLOT_PX + SCROLL_SLOT_PX/2;
         const y = level.rowY * trackH;
         node.style.left = x+"px";
@@ -4530,7 +4532,6 @@ function renderMapNodes(){
         mapNodesLayer.appendChild(node);
     });
 
-    /* Make sure track is wide enough for the last node's label too. */
     const lastNode = mapNodesLayer.lastElementChild;
     if(lastNode){
         const requiredRight = (SCROLL_PADDING_PX + (mapLevels.length-1)*SCROLL_SLOT_PX + SCROLL_SLOT_PX/2) + 140;
@@ -4556,7 +4557,6 @@ function openBossMap(){
     noUpgradeMode=false;
     mapMode=false;
     renderMapNodes();
-    /* Reset scroll to the start each time we open the map. */
     mapScroll.scrollLeft = 0;
     startMenuMusic();
 }
@@ -4659,6 +4659,15 @@ function startMapLevel(level){
             b.x=450;
             b.y=220;
         }
+    }else if(level.id===5){
+        sandboxBossSelect.value="2";
+        currentBossIndex=2;
+        spawnSandboxBoss();
+        const b=mapSniperBosses[0];
+        if(b){
+            b.x=450;
+            b.y=200;
+        }
     }
 
     sandboxBosses=savedSandboxBosses;
@@ -4710,7 +4719,6 @@ function exitMapLevelToMap(){
     sandboxMenu.style.display="none";
     powerupScreen.style.display="none";
     renderMapNodes();
-    /* Try to keep the just-cleared level roughly centered. */
     if(activeMapLevel){
         const x = SCROLL_PADDING_PX + activeMapLevel.slot*SCROLL_SLOT_PX + SCROLL_SLOT_PX/2;
         mapScroll.scrollLeft = Math.max(0, x - mapScroll.clientWidth/2);
