@@ -67,7 +67,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #mapScroll::-webkit-scrollbar-thumb{background:#4f8f4f;border:2px solid #0c2b0c;border-radius:8px;}
 #mapScroll::-webkit-scrollbar-thumb:hover{background:#8fff8f;}
 #mapTrack{position:relative;height:100%;min-width:100%;}
-#mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;}
+#mapCanvas{position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;display:block!important;margin:0!important;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;pointer-events:none!important;z-index:0!important;}
 #mapOverlay{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;pointer-events:none;}
 #bossMap .mapTitle{margin-top:26px;color:#dfffdf;font-size:30px;letter-spacing:5px;text-shadow:0 0 14px rgba(80,255,80,.5),2px 2px #000;pointer-events:none;}
 #bossMap .mapSub{color:#8fc78f;margin:4px 0 0;font-size:14px;letter-spacing:3px;text-shadow:1px 1px #000;pointer-events:none;}
@@ -1600,7 +1600,8 @@ const mapLevels=[
     {id:4,name:"PULSAR CORE",tag:"",requires:3,slot:3,rowY:0.55},
     {id:5,name:"NEON GHOST",tag:"",requires:4,slot:4,rowY:0.55},
     {id:6,name:"2\u00d7 NEON GHOST + V-TWIN",tag:"",requires:5,slot:5,rowY:0.55},
-    {id:7,name:"WALL OF SILENCE",tag:"",requires:6,slot:6,rowY:0.55}
+    {id:7,name:"WALL OF SILENCE",tag:"",requires:6,slot:6,rowY:0.55},
+    {id:8,name:"WALL OF SILENCE & NEON GHOST",tag:"TAG TEAM",requires:7,slot:7,rowY:0.55}
 ];
 const REWARD_OWNER_LEVEL_ID=6;
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -1686,6 +1687,7 @@ function startMapLevel(level){
     else if(level.id===5){sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===6){sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();spawnSandboxBoss();sandboxBossSelect.value="3";currentBossIndex=3;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=250;mapSniperBosses[0].y=180;}if(mapSniperBosses[1]){mapSniperBosses[1].x=650;mapSniperBosses[1].y=180;}if(mapSniperBosses[2]){mapSniperBosses[2].x=450;mapSniperBosses[2].y=250;}}
     else if(level.id===7){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
+    else if(level.id===8){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
     startGrassyMusic();gameActive=true;updateUI();
