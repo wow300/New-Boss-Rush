@@ -822,6 +822,58 @@ body.menuOpen #mobileControls{
 
 <script>
 
+/* =========================================================
+   [CHANGE LOG]
+
+   --- 2026-09-11 (part 1) ---
+   Request: Make START GAME and NO UPGRADES MODE buttons turn
+            green + show "Completed!" when beaten, but still
+            allow replay.
+
+   Files/Lines touched:
+     1. CSS: added `.menuButton.completed` rule (green border,
+        glow, and the ::after "✔ COMPLETED!" label).
+     2. JS: added COMPLETION_SAVE_KEY + loadCompletionState()
+        + saveCompletionState() + updateMenuButtonStates()
+        + markCompleted(mode).
+     3. JS: in update(), the boss-defeat branch
+        (currentBossIndex >= bosses.length) now calls
+        markCompleted("normal") or markCompleted("noUpgrade")
+        depending on noUpgradeMode flag, then exits to menu.
+     4. JS: exitToMainMenu() now calls updateMenuButtonStates()
+        so the buttons refresh when you come back.
+     5. JS: showMainMenuOnStartup() now calls
+        updateMenuButtonStates() so buttons are correct on load.
+
+   Notes:
+     - Completion is stored in localStorage under
+       "bossRushCompletion_v1" as { normal: bool, noUpgrade: bool }.
+     - Replay is unaffected: clicking a completed button still
+       starts a fresh run. The completion flag is never cleared
+       by replaying (so it stays green forever once earned).
+     - No changes were made to Boss Map, Sandbox, powerups, boss
+       AI, or any drawing code.
+
+   --- 2026-09-11 (part 2) ---
+   Request: Add Level 7 to Boss Map World 1: WALL OF SILENCE.
+
+   Files/Lines touched:
+     1. JS: mapLevels[] — appended new entry:
+        { id:7, name:"WALL OF SILENCE", tag:"", requires:6,
+          slot:6, rowY:0.55 }
+     2. JS: startMapLevel() — added level.id===7 branch that
+        sets sandboxBossSelect to index 4 (WALL OF SILENCE is
+        bosses[4]) and spawns a single instance centered.
+
+   Notes:
+     - WALL OF SILENCE is bosses[4] in the boss array.
+       Sandbox select value "4" maps to that index.
+     - computeTrackWidth() is already dynamic (uses max slot),
+       so the scroll track auto-widens to fit slot 6. No edit.
+     - Level 7 has no tag (tag:"").
+     - Reward node logic still tied to level 6 only.
+========================================================= */
+
 const canvas=document.getElementById("gameCanvas");
 const ctx=canvas.getContext("2d");
 
@@ -4670,7 +4722,8 @@ const mapLevels=[
     { id:3, name:"THE SNIPER & THE PULSAR", tag:"TAG TEAM", requires:2, slot:2, rowY:0.55 },
     { id:4, name:"PULSAR CORE", tag:"", requires:3, slot:3, rowY:0.55 },
     { id:5, name:"NEON GHOST", tag:"", requires:4, slot:4, rowY:0.55 },
-    { id:6, name:"2\u00d7 NEON GHOST + V-TWIN", tag:"", requires:5, slot:5, rowY:0.55 }
+    { id:6, name:"2\u00d7 NEON GHOST + V-TWIN", tag:"", requires:5, slot:5, rowY:0.55 },
+    { id:7, name:"WALL OF SILENCE", tag:"", requires:6, slot:6, rowY:0.55 }
 ];
 
 const REWARD_OWNER_LEVEL_ID = 6;
@@ -4969,6 +5022,12 @@ function startMapLevel(level){
         if(mapSniperBosses[0]){ mapSniperBosses[0].x=250; mapSniperBosses[0].y=180; }
         if(mapSniperBosses[1]){ mapSniperBosses[1].x=650; mapSniperBosses[1].y=180; }
         if(mapSniperBosses[2]){ mapSniperBosses[2].x=450; mapSniperBosses[2].y=250; }
+    }else if(level.id===7){
+        sandboxBossSelect.value="4";
+        currentBossIndex=4;
+        spawnSandboxBoss();
+        const b=mapSniperBosses[0];
+        if(b){ b.x=450; b.y=200; }
     }
 
     sandboxBosses=savedSandboxBosses;
@@ -5398,4 +5457,4 @@ gameLoop();
 
 </script>
 </body>
-    </html>
+</html>
