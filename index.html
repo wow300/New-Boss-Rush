@@ -32,7 +32,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .menuButton{width:300px;padding:16px;margin:7px;border:2px solid #444;background:#111;color:#fff;font:20px 'Courier New',monospace;cursor:pointer;transition:border-color .3s,background .3s,color .3s;position:relative;touch-action:manipulation;}
 .menuButton:hover{border-color:#0f0;background:#182018;}
 .menuButton.completed{border-color:#0f0;background:#0a1a0a;color:#0f0;box-shadow:0 0 12px rgba(0,255,0,.3);}
-.menuButton.completed::after{content:" \u2714 COMPLETED!";font-size:.75em;color:#0f0;display:block;margin-top:4px;letter-spacing:2px;pointer-events:none;}
+.menuButton.completed::after{content:" COMPLETED!";font-size:.75em;color:#0f0;display:block;margin-top:4px;letter-spacing:2px;pointer-events:none;}
 #startNightmareRushButton{border-color:#801010;}
 #startNightmareRushButton:hover{border-color:#ff2020;background:#200808;color:#ff8080;}
 #startNightmareRushButton.completed{border-color:#ff2020;background:#200808;color:#ff6060;box-shadow:0 0 14px rgba(255,32,32,.5);}
@@ -193,13 +193,27 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
    --- 2026-09-11 (part 8) ---
    Main menu vertical scrolling on small screens.
    --- 2026-09-11 (part 9) ---
-   Boss Map minion behavior:
-     - THE BOUNCER (level 9) spawns BOUNCER minions.
-     - GRASS MONSTROSITY (level 10) spawns no minions.
-   Files touched:
-     1. update() map-mode minion selector — added BOUNCER branch.
-     2. update() map-mode minion spawn guard — added
-        sb.name!=="GRASS MONSTROSITY" condition.
+   Boss Map minion behavior: THE BOUNCER spawns BOUNCER
+   minions; GRASS MONSTROSITY spawns no minions.
+   --- 2026-09-11 (part 10) ---
+   Remove \u2714 tick from .menuButton.completed::after.
+   Button now reads " COMPLETED!".
+   --- 2026-09-11 (part 11) ---
+   Nightmare Rush minion index fix. DROWNED (boss index 41)
+   was spawning HOLLOWLING (minion index 41) instead of
+   DROWNLING (minion index 40). Offset by -1 in Nightmare Rush.
+   --- 2026-09-11 (part 12) ---
+   1. Start Game / No Upgrades now end after boss 40
+      (THE APOCALYPSE). Previously they continued into
+      PULSAR CORE and the Nightmare bosses.
+      initBoss() and update() both clamp endIndex.
+   2. Bullet caps: fireBullet() and fireUniqueBullet() now
+      bail early if enemyBullets.length>300. Prevents the
+      NIGHTMARE INCARNATE multi-attack spam from locking
+      the game on low-end hardware.
+   3. NIGHTMARE INCARNATE no longer spawns minions.
+      Its NIGHTMARE SPECK minions + heavy bullet output
+      compounded the freeze.
 ========================================================= */
 const canvas=document.getElementById("gameCanvas");
 const ctx=canvas.getContext("2d");
@@ -529,6 +543,7 @@ function getAngleToPlayer(origin,leadFactor=0){
     return Math.atan2(targetY-origin.y,targetX-origin.x);
 }
 function fireBullet(x,y,angle,speed,color,size=4,bounce=0,damage=5){
+    if(enemyBullets.length>300) return;
     if(activeFiringBoss && activeFiringBoss.__bulletScale){
         size=size*(activeFiringBoss.__bulletScale.size||1);
         damage=damage*(activeFiringBoss.__bulletScale.damage||1);
@@ -569,6 +584,7 @@ function spawnHazard(type,opts={}){
         vx:opts.vx??0,vy:opts.vy??0,color:opts.color??'#fff',gap:opts.gap??120,hitCooldown:0,spin:opts.spin??0});
 }
 function fireUniqueBullet(x,y,angle,speed,color,size,damage,kind,extra={}){
+    if(enemyBullets.length>300) return;
     if(activeFiringBoss && activeFiringBoss.__bulletScale){
         size=size*(activeFiringBoss.__bulletScale.size||1);
         damage=damage*(activeFiringBoss.__bulletScale.damage||1);
@@ -1323,7 +1339,7 @@ window.addEventListener("keydown",e=>{
 });
 window.addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
 function initBoss(){
-    const endIndex=nightmareRush?NIGHTMARE_END_INDEX+1:bosses.length;
+    const endIndex=nightmareRush?NIGHTMARE_END_INDEX+1:(mapMode||sandboxMode?bosses.length:41);
     if(currentBossIndex>=endIndex){
         gameActive=false;
         alert(nightmareRush?"NIGHTMARES CONQUERED!\n\nYou cleared all 15 Nightmare bosses!":"GOD SLAYER!\n\nYou cleared all 40 bosses!");
@@ -1452,7 +1468,7 @@ function update(){
         const spawnInterval=currentBossIndex<15?240:220;
         const maxMinions=currentBossIndex<15?3:2;
         const unlimitedMinions=currentBossIndex===0;
-        if(boss.timer>100 && boss.timer%spawnInterval===0 && (unlimitedMinions||minions.length<maxMinions)) spawnMinion(currentBossIndex);
+        if(boss.name!=="NIGHTMARE INCARNATE" && boss.timer>100 && boss.timer%spawnInterval===0 && (unlimitedMinions||minions.length<maxMinions)) spawnMinion(nightmareRush && currentBossIndex>=NIGHTMARE_START_INDEX ? currentBossIndex-1 : currentBossIndex);
         for(let bi=bullets.length-1;bi>=0;bi--){
             const b=bullets[bi];
             if(Math.hypot(b.x-boss.x,b.y-boss.y)<boss.size/2){
@@ -1462,7 +1478,7 @@ function update(){
                 if(boss.hp<=0){
                     bullets=[];enemyBullets=[];minions=[];bossHazards=[];
                     currentBossIndex++;
-                    const endIndex=nightmareRush?NIGHTMARE_END_INDEX+1:bosses.length;
+                    const endIndex=nightmareRush?NIGHTMARE_END_INDEX+1:41;
                     if(currentBossIndex>=endIndex){
                         gameActive=false;
                         if(nightmareRush){markCompleted("nightmare");alert("NIGHTMARES CONQUERED!\n\nYou cleared all 15 Nightmare bosses!");}
@@ -1897,4 +1913,4 @@ gameLoop();
 })();
 </script>
 </body>
-</html>
+    </html>
