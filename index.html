@@ -1138,8 +1138,16 @@ const minionTypes=[
 
 function spawnMinion(typeIndex=currentBossIndex){
     if(!boss && !sandboxMode && !mapMode) return;
-    const type=minionTypes[typeIndex];
-    if(!type) return;
+    const baseType=minionTypes[typeIndex];
+    if(!baseType) return;
+    const nightmareNames=[
+      "DREADSCUTTER","VOID CHOIR","GLASSWRAITH","SIREN OF ASH","RED WATCHER",
+      "MASK OF THE ABYSS","SEAMRIPPER","CINDER HOUND","PALEFROST","SWARM OF NONE",
+      "WHISPER KNIFE","DEVOURING ECHO","IRON TETHER","MOONLESS SHADE","FINAL OMEN"
+    ];
+    const type=(nightmareRush && typeIndex>=NIGHTMARE_START_INDEX)
+      ? {...baseType,name:(nightmareNames[typeIndex-NIGHTMARE_START_INDEX]||baseType.name)}
+      : baseType;
     const margin=28;
     const x=margin+Math.random()*(canvas.width-margin*2);
     const y=margin+Math.random()*(canvas.height-margin*2);
@@ -1455,7 +1463,7 @@ function update(){
         const spawnInterval=currentBossIndex<15?240:220;
         const maxMinions=currentBossIndex<15?3:2;
         const unlimitedMinions=currentBossIndex===0;
-        if(!nightmareRush && boss.timer>100 && boss.timer%spawnInterval===0 && (unlimitedMinions||minions.length<maxMinions)) spawnMinion(currentBossIndex);
+        if(boss.timer>100 && boss.timer%spawnInterval===0 && (unlimitedMinions||minions.length<maxMinions)) spawnMinion(currentBossIndex);
         for(let bi=bullets.length-1;bi>=0;bi--){
             const b=bullets[bi];
             if(Math.hypot(b.x-boss.x,b.y-boss.y)<boss.size/2){
@@ -1601,7 +1609,8 @@ const mapLevels=[
     {id:5,name:"NEON GHOST",tag:"",requires:4,slot:4,rowY:0.55},
     {id:6,name:"2\u00d7 NEON GHOST + V-TWIN",tag:"",requires:5,slot:5,rowY:0.55},
     {id:7,name:"WALL OF SILENCE",tag:"",requires:6,slot:6,rowY:0.55},
-    {id:8,name:"WALL OF SILENCE & NEON GHOST",tag:"TAG TEAM",requires:7,slot:7,rowY:0.55}
+    {id:8,name:"WALL OF SILENCE & NEON GHOST",tag:"TAG TEAM",requires:7,slot:7,rowY:0.55},
+    {id:9,name:"THE BOUNCER",tag:"",requires:8,slot:8,rowY:0.55}
 ];
 const REWARD_OWNER_LEVEL_ID=6;
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -1687,7 +1696,7 @@ function startMapLevel(level){
     else if(level.id===5){sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===6){sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();spawnSandboxBoss();sandboxBossSelect.value="3";currentBossIndex=3;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=250;mapSniperBosses[0].y=180;}if(mapSniperBosses[1]){mapSniperBosses[1].x=650;mapSniperBosses[1].y=180;}if(mapSniperBosses[2]){mapSniperBosses[2].x=450;mapSniperBosses[2].y=250;}}
     else if(level.id===7){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
-    else if(level.id===8){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
+    else if(level.id===8){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}} else if(level.id===9){sandboxBossSelect.value="5";currentBossIndex=5;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
     startGrassyMusic();gameActive=true;updateUI();
