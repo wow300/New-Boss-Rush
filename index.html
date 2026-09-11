@@ -46,7 +46,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #mobileToggle{position:fixed;top:12px;left:12px;z-index:40;padding:10px 14px;background:#111;color:#fff;border:2px solid #555;font:bold 14px 'Courier New',monospace;cursor:pointer;display:block;}
 #mobileDashButton{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:105px;height:105px;border:3px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.08);color:#fff;font:bold 15px 'Courier New',monospace;pointer-events:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
 #mobileDashButton:active{transform:translateX(-50%) scale(.94);border-color:#0ff;}
-#mobileControls{display:none;position:fixed;inset:0;z-index:35;pointer-events:auto;touch-action:none;}
+#mobileControls{display:none;position:fixed;inset:0;z-index:35;pointer-events:none;touch-action:none;}
 #mobileControls.enabled{display:block;}
 #mobileJoystick{position:absolute;left:24px;bottom:24px;width:150px;height:150px;border:3px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.08);pointer-events:auto;touch-action:none;}
 #mobileStick{position:absolute;width:62px;height:62px;left:44px;top:44px;border-radius:50%;background:rgba(0,255,0,.35);border:2px solid #0f0;}
@@ -1751,7 +1751,15 @@ function joystickMove(e){
     if(len>max){dx=dx/len*max;dy=dy/len*max;}
     mobileMoveX=dx/max;mobileMoveY=dy/max;mobileStick.style.transform=`translate(${dx}px,${dy}px)`;
 }
-mobileToggle.onclick=()=>setMobileEnabled(!mobileEnabled);
+let mobileToggleBusy=false;
+function toggleMobileOnce(e){
+    if(e){e.preventDefault();e.stopPropagation();}
+    if(mobileToggleBusy)return;
+    mobileToggleBusy=true;
+    setMobileEnabled(!mobileEnabled);
+    setTimeout(()=>mobileToggleBusy=false,350);
+}
+mobileToggle.addEventListener("click",toggleMobileOnce,{passive:false});
 mobileDashButton.addEventListener("pointerdown",e=>{if(!mobileEnabled)return;performDash();e.preventDefault();});
 mobileJoystick.addEventListener("pointerdown",e=>{if(!mobileEnabled)return;mobileJoystick.setPointerCapture(e.pointerId);joystickMove(e);e.preventDefault();});
 mobileJoystick.addEventListener("pointermove",e=>{if(!mobileEnabled)return;joystickMove(e);e.preventDefault();});
@@ -1844,16 +1852,25 @@ showMainMenuOnStartup();
 function gameLoop(){update();draw();requestAnimationFrame(gameLoop);}
 gameLoop();
 
-/* MOBILE CONTROL REPAIR: touch controls must receive pointer events on iPad/Android */
+/* FINAL MOBILE INPUT FIX: overlay must not block menus or sandbox controls */
 (function(){
-  function repairMobileControls(){
-    const ids=["mobileControls","mobileJoystick","mobileAim","mobileDashButton"];
-    ids.forEach(id=>{const e=document.getElementById(id);if(e){e.style.pointerEvents="auto";e.style.touchAction="none";e.style.zIndex="100000";}});
+  function repairMobileLayer(){
+    const layer=document.getElementById("mobileControls");
+    if(layer){
+      layer.style.pointerEvents="none";
+      layer.style.touchAction="none";
+      layer.style.zIndex="35";
+    }
+    ["mobileJoystick","mobileAim","mobileDashButton"].forEach(id=>{
+      const e=document.getElementById(id);
+      if(e){e.style.pointerEvents="auto";e.style.touchAction="none";}
+    });
     const t=document.getElementById("mobileToggle");
-    if(t){t.style.pointerEvents="auto";t.style.zIndex="100001";t.addEventListener("touchend",()=>setMobileEnabled(!mobileEnabled),{passive:true});}
+    if(t){t.style.pointerEvents="auto";t.style.zIndex="100001";t.style.touchAction="manipulation";}
   }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",repairMobileControls);else repairMobileControls();
-  window.addEventListener("load",repairMobileControls);
+  repairMobileLayer();
+  window.addEventListener("load",repairMobileLayer);
+  window.addEventListener("resize",repairMobileLayer);
 })();
 </script>
 </body>
