@@ -32,6 +32,8 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .menuButton{width:300px;padding:16px;margin:7px;border:2px solid #444;background:#111;color:#fff;font:20px 'Courier New',monospace;cursor:pointer;transition:border-color .3s,background .3s,color .3s;position:relative;touch-action:manipulation;}
 .menuButton:hover{border-color:#0f0;background:#182018;}
 .menuButton.completed{border-color:#0f0;background:#0a1a0a;color:#0f0;box-shadow:0 0 12px rgba(0,255,0,.3);}
+#droneMadnessButton{border-color:#555;}
+#droneMadnessButton .miniLabel{display:block;color:#777;font-size:12px;margin-top:5px;letter-spacing:1px;}
 .menuButton.completed::after{content:" COMPLETED!";font-size:.75em;color:#0f0;display:block;margin-top:4px;letter-spacing:2px;pointer-events:none;}
 #startNightmareRushButton{border-color:#801010;}
 #startNightmareRushButton:hover{border-color:#ff2020;background:#200808;color:#ff8080;}
@@ -129,6 +131,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
     <button class="menuButton" id="startNightmareRushButton">NIGHTMARE RUSH</button>
     <button class="menuButton" id="startBossMapButton">BOSS MAP</button>
     <button class="menuButton" id="startSandboxButton">START SANDBOX MODE</button>
+    <button class="menuButton" id="droneMadnessButton">DRONE MADNESS<span class="miniLabel">MINIGAME</span></button>
 </div>
 <div id="bossMap">
     <div id="mapScroll"><div id="mapTrack">
@@ -500,7 +503,7 @@ window.addEventListener("orientationchange",()=>setTimeout(fitCanvasToScreen,50)
 fitCanvasToScreen();
 let player={x:450,y:600,size:18,hp:100,maxHp:100,speed:6,damage:5,fireRate:10,fireCooldown:0,shots:1,shotSpread:.13,piercing:0,shield:0,dashPower:0,dashCooldown:0};
 let bullets=[],enemyBullets=[],minions=[],boss=null,sandboxBosses=[];
-let currentBossIndex=0,keys={},mouseDown=false,gameActive=false,waitingForPowerup=false,sandboxMode=false,noUpgradeMode=false,nightmareRush=false;
+let currentBossIndex=0,keys={},mouseDown=false,gameActive=false,waitingForPowerup=false,sandboxMode=false,noUpgradeMode=false,nightmareRush=false,droneMadness=false,droneMadnessDefeated=0,droneMadnessSpawnTimer=0;
 let mapMode=false,activeMapLevel=null,mapSniperBosses=[],levelCompletePending=false;
 let activeFiringBoss=null;
 let lastMouseX=450,mobileAimAngle=-Math.PI/2,lastMouseY=600;
@@ -512,8 +515,8 @@ function loadCompletionState(){
         const raw = localStorage.getItem(COMPLETION_SAVE_KEY);
         if(!raw) return { normal:false, noUpgrade:false, nightmare:false };
         const obj = JSON.parse(raw);
-        return {normal:!!obj.normal,noUpgrade:!!obj.noUpgrade,nightmare:!!obj.nightmare};
-    }catch(e){return {normal:false,noUpgrade:false,nightmare:false};}
+        return {normal:!!obj.normal,noUpgrade:!!obj.noUpgrade,nightmare:!!obj.nightmare,droneMadness:!!obj.droneMadness};
+    }catch(e){return { normal:false, noUpgrade:false, nightmare:false, droneMadness:false };}
 }
 function saveCompletionState(state){try{localStorage.setItem(COMPLETION_SAVE_KEY,JSON.stringify(state));}catch(e){}}
 let completionState=loadCompletionState();
@@ -524,11 +527,14 @@ function updateMenuButtonStates(){
     if(completionState.normal) startBtn.classList.add("completed"); else startBtn.classList.remove("completed");
     if(completionState.noUpgrade) noUpBtn.classList.add("completed"); else noUpBtn.classList.remove("completed");
     if(completionState.nightmare) nmBtn.classList.add("completed"); else nmBtn.classList.remove("completed");
+    const dmBtn=document.getElementById("droneMadnessButton");
+    if(dmBtn) dmBtn.classList.toggle("completed",!!completionState.droneMadness);
 }
 function markCompleted(mode){
     if(mode==="normal") completionState.normal=true;
     else if(mode==="noUpgrade") completionState.noUpgrade=true;
     else if(mode==="nightmare") completionState.nightmare=true;
+    else if(mode==="droneMadness") completionState.droneMadness=true;
     saveCompletionState(completionState);
     updateMenuButtonStates();
 }
@@ -1225,6 +1231,14 @@ function updateMinion(m){
 }
 function killMinion(index){
     const m=minions[index];
+    if(droneMadness && m && m.kind!=="splitFragment"){
+        droneMadnessDefeated++;
+        if(droneMadnessDefeated>=50){
+            droneMadness=false;gameActive=false;markCompleted("droneMadness");
+            msg.textContent="DRONE MADNESS COMPLETE!";msg.style.display="block";
+            setTimeout(()=>{msg.style.display="none";exitToMainMenu();},1800);
+        }
+    }
     if(m.kind==="splitter" && !m.splitDone){
         for(let i=0;i<2;i++) minions.push({name:"SPLITTER FRAGMENT",kind:"splitFragment",color:m.color,size:11,hp:12,maxHp:12,speed:2.8,x:m.x+(i===0?-12:12),y:m.y,timer:0,contactCooldown:0,splitDone:true,angle:Math.random()*Math.PI*2});
     }
@@ -1351,6 +1365,7 @@ function initBoss(){
     boss={...template,x:450,y:150,timer:0,maxHp:template.hp,shield:template.shields||0,maxShield:template.shields||0};
     if(mapMode) uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);
     else if(nightmareRush) uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1)+"/15";
+    else if(droneMadness) uiBoss.textContent="DRONES: "+droneMadnessDefeated+"/50";
     else uiBoss.textContent=currentBossIndex+1;
     uiName.textContent=boss.name;
     startBossMusic(currentBossIndex);
@@ -1366,10 +1381,20 @@ function updateUI(){
     uiPower.textContent=player.damage;
     if(mapMode) uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);
     else if(nightmareRush) uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1)+"/15";
+    else if(droneMadness) uiBoss.textContent="DRONES: "+droneMadnessDefeated+"/50";
 }
 function update(){
     if(!gameActive||waitingForPowerup) return;
     if(mapMode && levelCompletePending) return;
+    if(droneMadness){
+        droneMadnessSpawnTimer++;
+        if(droneMadnessSpawnTimer>=180){
+            droneMadnessSpawnTimer=0;
+            const idx=Math.floor(Math.random()*Math.min(NIGHTMARE_START_INDEX,minionTypes.length));
+            const t=minionTypes[idx];
+            if(t) minions.push({...t,x:30+Math.random()*840,y:40+Math.random()*500,hp:t.hp,maxHp:t.hp,timer:0,contactCooldown:0,splitDone:false,angle:Math.random()*Math.PI*2,targetX:450,targetY:300,dx:0,dy:0,warningTimer:0});
+        }
+    }
     player.vx=0;player.vy=0;
     if(mobileEnabled){player.x+=mobileMoveX*player.speed;player.y+=mobileMoveY*player.speed;player.vx=mobileMoveX*player.speed;player.vy=mobileMoveY*player.speed;}
     if(keys["w"]||keys["arrowup"]){player.y-=player.speed;player.vy=-player.speed;}
@@ -1609,6 +1634,7 @@ const startNoUpgradeButton=document.getElementById("startNoUpgradeButton");
 const startNightmareRushButton=document.getElementById("startNightmareRushButton");
 const startBossMapButton=document.getElementById("startBossMapButton");
 const startSandboxButton=document.getElementById("startSandboxButton");
+const droneMadnessButton=document.getElementById("droneMadnessButton");
 const sandboxBossSelect=document.getElementById("sandboxBossSelect");
 const sandboxEnemySelect=document.getElementById("sandboxEnemySelect");
 const spawnBossButton=document.getElementById("spawnBossButton");
@@ -1776,7 +1802,7 @@ function playDingSound(){
 function showMainMenuOnStartup(){
     document.body.classList.add("menuOpen");mainMenu.style.display="flex";sandboxMenu.style.display="none";powerupScreen.style.display="none";
     bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
-    gameActive=false;waitingForPowerup=false;sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;
+    gameActive=false;waitingForPowerup=false;sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;droneMadness=false;
     boss=null;bullets=[];enemyBullets=[];minions=[];bossHazards=[];
     updateMenuButtonStates();
 }
@@ -1834,9 +1860,16 @@ function unlockAndPlayMusic(){
     };
     if(audioCtx.state==="running") begin();else audioCtx.resume().then(begin).catch(()=>{});
 }
+function startDroneMadness(){
+    unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+    sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;droneMadness=true;
+    droneMadnessDefeated=0;droneMadnessSpawnTimer=0;mainMenu.style.display="none";sandboxMenu.style.display="none";
+    powerupScreen.style.display="none";bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
+    waitingForPowerup=false;boss=null;bullets=[];enemyBullets=[];minions=[];resetPlayer();gameActive=true;updateUI();
+}
 function startGame(){
     unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
-    sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;
+    sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;droneMadness=false;
     mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";
     bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
     waitingForPowerup=false;currentBossIndex=0;resetPlayer();bullets=[];enemyBullets=[];minions=[];
@@ -1891,6 +1924,7 @@ startNoUpgradeButton.onclick=startNoUpgradeMode;
 startNightmareRushButton.onclick=startNightmareRush;
 startBossMapButton.onclick=openBossMap;
 startSandboxButton.onclick=startSandbox;
+droneMadnessButton.onclick=startDroneMadness;
 mapBackButton.onclick=closeBossMapToMenu;
 spawnBossButton.onclick=spawnSandboxBoss;
 spawnEnemyButton.onclick=spawnSandboxEnemy;
