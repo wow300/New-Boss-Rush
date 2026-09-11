@@ -1,1 +1,1 @@
-The latest update fixed Boss Map and added Nightmares Await DLC!
+The latest update added World 2 to Boss Map!
