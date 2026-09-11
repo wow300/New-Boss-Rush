@@ -1701,7 +1701,9 @@ const mapLevels=[
     {id:9,name:"THE BOUNCER",tag:"",requires:8,slot:8,rowY:0.55},
     {id:10,name:"GRASS MONSTROSITY",tag:"",requires:9,slot:9,rowY:0.55},
     {id:11,name:"GRAVITY WELL & CHRONOS",tag:"TAG TEAM",requires:10,slot:10,rowY:0.55},
-    {id:12,name:"ROCK BEASTS",tag:"3×",requires:11,slot:11,rowY:0.55}
+    {id:12,name:"ROCK BEASTS",tag:"3×",requires:11,slot:11,rowY:0.55},
+    {id:13,name:"WALL OF SILENCE",tag:"2×",requires:12,slot:12,rowY:0.55},
+    {id:14,name:"2× HYDRA + THE SNIPER",tag:"",requires:13,slot:13,rowY:0.55}
 ];
 const REWARD_OWNER_LEVEL_ID=6;
 const REWARD_OWNER_LEVEL_IDS=[6,12];
@@ -1792,6 +1794,18 @@ function startMapLevel(level){
     else if(level.id===9){sandboxBossSelect.value="5";currentBossIndex=5;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===10){currentBossIndex=bosses.findIndex(b=>b.name==="GRASS MONSTROSITY");sandboxBossSelect.value=String(currentBossIndex);spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===11){const gravityIndex=6;const chronosIndex=7;sandboxBossSelect.value=String(gravityIndex);currentBossIndex=gravityIndex;spawnSandboxBoss();sandboxBossSelect.value=String(chronosIndex);currentBossIndex=chronosIndex;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=320;mapSniperBosses[0].y=190;}if(mapSniperBosses[1]){mapSniperBosses[1].x=580;mapSniperBosses[1].y=190;}}
+    else if(level.id===13){
+        sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();spawnSandboxBoss();
+        if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}
+        if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}
+    }
+    else if(level.id===14){
+        sandboxBossSelect.value="8";currentBossIndex=8;spawnSandboxBoss();spawnSandboxBoss();
+        sandboxBossSelect.value="0";currentBossIndex=0;spawnSandboxBoss();
+        if(mapSniperBosses[0]){mapSniperBosses[0].x=260;mapSniperBosses[0].y=180;}
+        if(mapSniperBosses[1]){mapSniperBosses[1].x=640;mapSniperBosses[1].y=180;}
+        if(mapSniperBosses[2]){mapSniperBosses[2].x=450;mapSniperBosses[2].y=260;}
+    }
     else if(level.id===12){
         const makeRockBeast=(x,y)=>({name:"ROCK BEAST",hp:800,maxHp:800,color:"#777",size:125,x,y,timer:0,update:function(){
             if(this.timer%150===0){
