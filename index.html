@@ -98,7 +98,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .mapRewardNode.unlocked .rewardTag{display:block;}
 .mapRewardNode.claimed .rewardTag{display:block;color:#9a9a9a;max-width:180px;white-space:normal;}
 #mapScrollHint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:4;color:#8fc78f;font:bold 12px 'Courier New',monospace;letter-spacing:2px;text-shadow:1px 1px #000;pointer-events:none;opacity:.85;}
-#levelStartScreen{z-index:9999;display:none;position:fixed;inset:0;z-index:9500;align-items:center;justify-content:center;background:rgba(0,0,0,.72);flex-direction:column;}
+#levelStartScreen{z-index:9999;display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,.72);flex-direction:column;}
 .levelCard{width:280px;padding:26px 20px 22px;background:linear-gradient(180deg,#0e3d0e 0%, #06220a 100%);border:4px solid #6fe06f;box-shadow:0 0 30px rgba(80,255,80,.35), inset 0 0 20px rgba(0,0,0,.7);border-radius:6px;display:flex;flex-direction:column;align-items:center;gap:14px;}
 .levelCard h3{margin:0;color:#ffffff;font-size:20px;letter-spacing:3px;text-shadow:0 0 10px rgba(255,80,80,.6), 2px 2px #000;text-align:center;}
 .levelCard .x2Text{color:#ffe14d;font:bold 22px 'Courier New',monospace;letter-spacing:3px;text-shadow:0 0 10px rgba(255,220,80,.6), 2px 2px #000;}
@@ -180,17 +180,40 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
    --- 2026-09-11 (part 4) ---
    Level 7 spawns SILENCE WALLER minions.
    --- 2026-09-11 (part 5) ---
-   Nightmares Await DLC:
-     - New menu button NIGHTMARE RUSH
-     - Red top-right banner NIGHTMARES AWAIT DLC ENABLED
-     - 15 new bosses (indices 41-55), HP 1400 -> 5200
-     - 3 attacks each; final rotates through all + uber
-     - 15 new minions (kind:"nightmareDrone", variant 0-14)
-     - 15 new music themes appended
-     - startNightmareRush() added
-     - Completion save extended { normal, noUpgrade, nightmare }
-     - Sandbox auto-includes new bosses + minions
-     - Boss Map unchanged
+   Nightmares Await DLC: 15 bosses, 15 minions, new button,
+   red top-right banner, completion flag, sandbox auto-fill.
+   --- 2026-09-11 (part 6) ---
+   (User) Added levels 8-10 including GRASS MONSTROSITY,
+   mobile toggle debounce, map layer z-index fixes.
+   --- 2026-09-11 (part 7) ---
+   Request: Improve GRASS MONSTROSITY attacks — all bullet-only.
+     - Grass blades: now burst into 4 grass bullets in a
+       + (up/down/left/right) pattern after ~120 frames (2s).
+       The blade projectile itself is removed at burst.
+     - Trees: replaced with "bullet trees" — vertical columns
+       of grass bullets raining down from the top, each column
+       with a randomized 2-bullet gap the player runs through.
+       No more rising/sinking physical tree entity.
+     - Aimed 15-way fan unchanged.
+
+   Files/Lines touched:
+     1. GRASS MONSTROSITY.update() — rewrote the tree spawner to
+        emit a bullet-tree (column pattern with gap) instead of
+        the previous `tree:true` rising entity.
+     2. update() enemyBullets loop — added grassBlade burst
+        behavior with correct clean removal; added
+        grassTreeColumn handling (no special-case needed, they
+        are plain bullets with a kind label).
+     3. draw() — removed the tree-specific rendering branch.
+
+   Notes:
+     - Bullet tree columns are 6 bullets tall, spaced 60px,
+       with a 2-bullet gap. Speed 4.5, damage 7, life short so
+       they leave screen quickly.
+     - Grass blade burst fires at the blade's current position
+       so it stays readable.
+     - Grass blade orbit speed and radius unchanged (125 radius,
+       .075 orbitSpeed).
 ========================================================= */
 const canvas=document.getElementById("gameCanvas");
 const ctx=canvas.getContext("2d");
@@ -205,7 +228,6 @@ const uiPower=document.getElementById("power");
 ========================================================= */
 let audioCtx=null, musicTimer=null, musicStep=0, currentMusicKey="", musicGeneration=0, musicBus=null;
 let desiredMusicTheme=null, desiredMusicKey="";
-
 const bossMusicThemes=[
 [132,110,[0,2,3,5,7,8,10],[0,2,3,5,3,2,0,2,7,5,3,2,3,5,8,7,10,8,7,5,3,5,7,8,5,3,2,0,2,3,5,2]],
 [138,220,[0,2,3,7,9],[0,1,3,2,4,3,1,2,4,2,1,3,0,2,4,3,1,3,4,2,0,1,3,4,2,4,3,1,2,0,1,3]],
@@ -236,7 +258,6 @@ const bossMusicThemes=[
 const menuMusic=[118,220,[0,2,4,7,9],[0,2,4,3,1,4,2,0,4,2,5,3,1,2,4,3,0,2,4,5,3,1,4,2,5,4,2,0,3,1,2,4]];
 const sandboxMusic=[126,165,[0,2,3,5,7,9],[0,3,5,2,4,1,3,0,4,2,5,3,1,4,2,5,3,0,2,4,5,1,3,4,2,5,4,1,0,3,5,2]];
 const grassyMusic=[128,196,[0,2,4,5,7,9,11],[0,4,7,9,7,4,5,7,9,11,12,11,9,7,5,4,0,2,4,7,5,4,2,0,4,5,7,9,7,5,4,2]];
-
 function expandTheme(theme,index=0){
     const [bpm,root,scale,base]=theme;
     const motifs=[
@@ -310,7 +331,6 @@ const longBossMusicThemes=allBossMusicThemes.map((t,i)=>expandTheme(t,i));
 const longMenuMusic=expandTheme(menuMusic,0);
 const longSandboxMusic=expandTheme(sandboxMusic,2);
 const longGrassyMusic=expandTheme(grassyMusic,0);
-
 function ensureAudio(){
     if(!audioCtx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;audioCtx=new AC();}
     if(audioCtx.state!=="running") audioCtx.resume().catch(()=>{});
@@ -492,8 +512,6 @@ let activeFiringBoss=null;
 let lastMouseX=450,mobileAimAngle=-Math.PI/2,lastMouseY=600;
 const NIGHTMARE_START_INDEX=41;
 const NIGHTMARE_END_INDEX=55;
-
-/* Completion */
 const COMPLETION_SAVE_KEY = "bossRushCompletion_v1";
 function loadCompletionState(){
     try{
@@ -520,14 +538,11 @@ function markCompleted(mode){
     saveCompletionState(completionState);
     updateMenuButtonStates();
 }
-
-/* Map reward */
 const REWARD_SAVE_KEY="bossRushPermanentUpgrade_v1";
 let permanentUpgradeId=null;
 function loadPermanentUpgrade(){try{const raw=localStorage.getItem(REWARD_SAVE_KEY);return raw||null;}catch(e){return null;}}
 function savePermanentUpgrade(id){try{localStorage.setItem(REWARD_SAVE_KEY,id);}catch(e){}}
 permanentUpgradeId=loadPermanentUpgrade();
-
 function getAngleToPlayer(origin,leadFactor=0){
     const targetX=player.x+(player.vx||0)*leadFactor;
     const targetY=player.y+(player.vy||0)*leadFactor;
@@ -592,6 +607,7 @@ function bossChase(b){
     const dx=player.x-b.x,dy=player.y-b.y,d=Math.hypot(dx,dy)||1;
     let speed=(b.name==="THE APOCALYPSE"||b.name==="NIGHTMARE INCARNATE")?0.62:Math.max(0.75,Math.min(2.8,3.25-b.size*0.022));
     if(b.name==="PULSAR CORE") speed*=0.35;
+    if(b.name==="GRASS MONSTROSITY") speed*=0.4;
     if(d>2){b.x+=dx/d*speed;b.y+=dy/d*speed;}
     const edge=Math.max(20,b.size/2);
     b.x=Math.max(edge,Math.min(canvas.width-edge,b.x));
@@ -619,7 +635,6 @@ function pulsarCoreUpdate(){
     if(this.timer%140===0) aimSpread(this,12,.14,5.5,"#d080ff",5);
     if(this.timer%220===0) for(let i=0;i<16;i++) fireBullet(this.x,this.y,i*Math.PI*2/16,4.6,"#b070ff",5);
 }
-
 function newBossAttack(boss,index){
     const t=boss.timer;
     const bossColors=['#ff4444','#aa44ff','#00ffff','#ffaa00','#777','#00ff00','#ff00ff','#fff','#00aa00','#ff5500','#331133','#00ff66','#4444ff','#ffd700','#ff0000','#ff66aa','#66ffcc','#ff9933','#00aaff','#ff3366','#9966ff','#ffcc00','#0099ff','#ddddff','#ff0055','#ffff44','#ff66ff','#00ffff','#ff6600','#66ccff','#aa44ff','#ff2255','#ff8844','#88ff44','#ffffff','#00ff88','#ff66aa','#9966ff','#bbffff','#ff0055'];
@@ -957,8 +972,6 @@ const bosses=[
 }},
 {name:"THE APOCALYPSE",hp:4200,color:"#ff0055",size:110,update:function(){ newBossAttack(this,39); }},
 {name:"PULSAR CORE",hp:380,color:"#aa44ff",size:135,update:pulsarCoreUpdate},
-
-/* ============ NIGHTMARES AWAIT DLC — 15 NEW BOSSES ============ */
 /* 41 DROWNED */
 {name:"DROWNED",hp:1400,color:"#1a3a5c",size:88,update:function(){
     if(this.timer%80===0){for(let i=0;i<6;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/3+this.timer*.02,5.2,this.color,8,11,'homing',{life:200});}
@@ -1033,7 +1046,7 @@ const bosses=[
 }},
 /* 53 CHAINED */
 {name:"CHAINED",hp:4200,color:"#708090",size:96,update:function(){
-    if(this.timer%65===0){const a=getAngleToPlayer(this);const b1={x:this.x,y:this.y},b2={x:this.x+Math.cos(a+Math.PI)*0,y:this.y+Math.sin(a+Math.PI)*0};fireUniqueBullet(this.x,this.y,a,6.5,this.color,8,10,'chainA',{life:230});fireUniqueBullet(this.x,this.y,a+Math.PI,6.5,this.color,8,10,'chainB',{life:230});}
+    if(this.timer%65===0){const a=getAngleToPlayer(this);fireUniqueBullet(this.x,this.y,a,6.5,this.color,8,10,'chainA',{life:230});fireUniqueBullet(this.x,this.y,a+Math.PI,6.5,this.color,8,10,'chainB',{life:230});}
     if(this.timer%140===40){for(let i=0;i<10;i++) fireUniqueBullet(0,50+i*70,0,6,this.color,7,11,'sweep',{life:200});}
     if(this.timer%230===115){for(let i=0;i<12;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/6+this.timer*.03,6,this.color,7,12,'shackle',{life:210});}
 }},
@@ -1043,7 +1056,7 @@ const bosses=[
     if(this.timer%150===60){const a=getAngleToPlayer(this);for(let i=-2;i<=2;i++) fireUniqueBullet(this.x,this.y,a+i*.14,4.6,this.color,10,14,'heavy',{life:240});}
     if(this.timer%240===120){for(let i=0;i<16;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/8,8,this.color,9,13,'slam',{life:190});}
 }},
-/* 55 NIGHTMARE INCARNATE — rotates through all 14 Nightmare patterns + uber */
+/* 55 NIGHTMARE INCARNATE */
 {name:"NIGHTMARE INCARNATE",hp:5200,color:"#ff00aa",size:130,update:function(){
     if(this.timer%55===1){
         let choice=Math.floor(Math.random()*14);
@@ -1071,12 +1084,39 @@ const bosses=[
         for(let i=0;i<24;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/12,9,c,9,16,'spiral',{turn:.015,life:320});
         for(let i=0;i<8;i++) fireUniqueBullet(Math.random()*900,0,Math.PI/2,7,c,12,15,'heavy',{life:260});
     }
+}},
+/* GRASS MONSTROSITY — all-bullet attacks
+   --- 2026-09-11 part 7 rewrite ---
+   - Grass blades orbit then burst into 4 grass bullets (+ pattern)
+   - Trees replaced with vertical bullet-tree columns with a gap
+*/
+{name:"GRASS MONSTROSITY",hp:900,color:"#9cff70",size:105,shields:1000,update:function(){
+    this.x+=(450-this.x)*.004;this.y+=(210-this.y)*.004;
+    /* Grass blades: 6 orbiters that burst into 4 grass bullets after 2s */
+    if(this.timer%240===0){
+        for(let i=0;i<6;i++){
+            const ang=i*Math.PI/3;
+            fireUniqueBullet(this.x,this.y,ang,0,"#72d94b",10,12,"grassBlade",{
+                orbitBoss:this,orbitRadius:125,orbitAngle:ang,life:130,orbitSpeed:.075,grassBlade:true
+            });
+        }
+    }
+    /* Aimed fan */
+    if(this.timer%135===0) aimSpread(this,15,.105,5.5,"#b6ff75",5);
+    /* Bullet trees: vertical columns of grass bullets with a gap */
+    if(this.timer%300===0){
+        for(let c=0;c<3;c++){
+            const tx=140+c*280+Math.random()*60-30;
+            const gapIndex=Math.floor(Math.random()*4); /* 0..3 gap slot */
+            for(let i=0;i<6;i++){
+                if(i===gapIndex || i===gapIndex+1) continue;
+                const by=-20-i*60;
+                fireUniqueBullet(tx,by,Math.PI/2,4.5,"#7fe04a",6,7,"grassTreeBullet",{life:260});
+            }
+        }
+    }
 }}
 ];
-
-/* =========================================================
-   MINIONS (with 15 Nightmare variants appended)
-========================================================= */
 const minionTypes=[
 {name:"SNIPER DRONE",kind:"sniper",color:"#ff4444",size:17,hp:22,speed:1.7},
 {name:"PULSARLING",kind:"pulsar",color:"#aa44ff",size:17,hp:25,speed:1.8},
@@ -1118,7 +1158,6 @@ const minionTypes=[
 {name:"SNARE WITCH",kind:"newDrone",variant:12,color:"#9966ff",size:18,hp:36,speed:2.0},
 {name:"CLOCKBREAKER",kind:"newDrone",variant:13,color:"#bbffff",size:20,hp:46,speed:1.5},
 {name:"DOOM SIGNAL",kind:"newDrone",variant:14,color:"#ff0055",size:22,hp:65,speed:2.2},
-/* Nightmare minions */
 {name:"DROWNLING",kind:"nightmareDrone",variant:0,color:"#1a3a5c",size:19,hp:55,speed:1.6},
 {name:"HOLLOWLING",kind:"nightmareDrone",variant:1,color:"#0a0a0a",size:20,hp:60,speed:1.7},
 {name:"MIRRORLING",kind:"nightmareDrone",variant:2,color:"#c0c0ff",size:19,hp:60,speed:1.8},
@@ -1135,19 +1174,12 @@ const minionTypes=[
 {name:"PALE DRONE",kind:"nightmareDrone",variant:13,color:"#e8e8e8",size:21,hp:92,speed:2.0},
 {name:"NIGHTMARE SPECK",kind:"nightmareDrone",variant:14,color:"#ff00aa",size:23,hp:110,speed:2.2}
 ];
-
 function spawnMinion(typeIndex=currentBossIndex){
     if(!boss && !sandboxMode && !mapMode) return;
     const baseType=minionTypes[typeIndex];
     if(!baseType) return;
-    const nightmareNames=[
-      "DREADSCUTTER","VOID CHOIR","GLASSWRAITH","SIREN OF ASH","RED WATCHER",
-      "MASK OF THE ABYSS","SEAMRIPPER","CINDER HOUND","PALEFROST","SWARM OF NONE",
-      "WHISPER KNIFE","DEVOURING ECHO","IRON TETHER","MOONLESS SHADE","FINAL OMEN"
-    ];
-    const type=(nightmareRush && typeIndex>=NIGHTMARE_START_INDEX)
-      ? {...baseType,name:(nightmareNames[typeIndex-NIGHTMARE_START_INDEX]||baseType.name)}
-      : baseType;
+    const nightmareNames=["DREADSCUTTER","VOID CHOIR","GLASSWRAITH","SIREN OF ASH","RED WATCHER","MASK OF THE ABYSS","SEAMRIPPER","CINDER HOUND","PALEFROST","SWARM OF NONE","WHISPER KNIFE","DEVOURING ECHO","IRON TETHER","MOONLESS SHADE","FINAL OMEN"];
+    const type=(nightmareRush && typeIndex>=NIGHTMARE_START_INDEX)?{...baseType,name:(nightmareNames[typeIndex-NIGHTMARE_START_INDEX]||baseType.name)}:baseType;
     const margin=28;
     const x=margin+Math.random()*(canvas.width-margin*2);
     const y=margin+Math.random()*(canvas.height-margin*2);
@@ -1162,8 +1194,7 @@ function updateMinion(m){
     if(m.kind==="nightmareDrone"){
         const v=m.variant||0;
         const a=getAngleToPlayer(m);
-        m.x+=(player.x-m.x)*0.004;
-        m.y+=(player.y-m.y)*0.004;
+        m.x+=(player.x-m.x)*0.004;m.y+=(player.y-m.y)*0.004;
         if(m.timer%60===0){
             switch(v){
                 case 0: for(let i=0;i<4;i++) fireUniqueBullet(m.x,m.y,a+(i-1.5)*.2,4.5,m.color,5,6,'homing',{life:180}); break;
@@ -1183,8 +1214,7 @@ function updateMinion(m){
                 case 14: for(let i=0;i<8;i++) fireUniqueBullet(m.x,m.y,i*Math.PI/4,4.5,m.color,5,7,'spiral',{turn:.03,life:220}); break;
             }
         }
-        m.x=Math.max(20,Math.min(canvas.width-20,m.x));
-        m.y=Math.max(20,Math.min(canvas.height-20,m.y));
+        m.x=Math.max(20,Math.min(canvas.width-20,m.x));m.y=Math.max(20,Math.min(canvas.height-20,m.y));
         if(m.contactCooldown<=0 && Math.hypot(m.x-player.x,m.y-player.y)<m.size/2+player.size/2){
             if(player.shield>0) player.shield--;else player.hp-=8;
             m.contactCooldown=45;updateUI();if(player.hp<=0) playerDefeated();
@@ -1217,8 +1247,7 @@ function updateMinion(m){
     else if(m.kind==="mirror"){m.x+=(player.x-m.x)*.003;m.y+=(player.y-m.y)*.001;if(m.timer%90===0){const a=getAngleToPlayer(m);fireBullet(m.x,m.y,a,6,m.color,6,0,7);fireBullet(m.x,m.y,a+Math.PI,4,m.color,5);}}
     else if(m.kind==="absolute"){m.x+=Math.sin(m.timer*.025)*1.5;m.y+=Math.cos(m.timer*.03)*1.2;if(m.timer%55===0) for(let i=0;i<6;i++) fireBullet(m.x,m.y,i*Math.PI/3+m.timer*.08,5.5,m.color,6,0,7);if(m.timer%100===0) aimSpread(m,3,.16,7,m.color,6,8);}
     else if(m.kind==="newDrone"){const v=m.variant||0;const a=getAngleToPlayer(m);m.x+=(player.x-m.x)*.003;m.y+=(player.y-m.y)*.003;if(m.timer%70===0){switch(v){case 0: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.22,6,m.color,5,7,'thunder',{life:150});break;case 1: for(let i=0;i<8;i++) fireUniqueBullet(m.x,m.y,i*Math.PI/4,4.5,m.color,5,6,'ring',{life:190});break;case 2: fireUniqueBullet(m.x,m.y,a,8,m.color,9,9,'beam',{life:130});break;case 3: for(let i=-2;i<=2;i++) fireUniqueBullet(m.x,m.y,a+i*.18,6,m.color,6,7,'fire',{life:160});break;case 4: for(let i=0;i<5;i++) fireUniqueBullet(m.x,m.y,i*Math.PI*2/5,3.5,m.color,7,7,'frost',{life:250});break;case 5: fireUniqueBullet(m.x,m.y,a,4,m.color,9,8,'gravity',{turn:.02,life:240});break;case 6: fireUniqueBullet(0,m.y,0,6.5,m.color,5,7,'sweep',{life:150});break;case 7: fireUniqueBullet(m.x,m.y,a,4.5,m.color,10,9,'meteor',{life:240});break;case 8: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.28,5.5,m.color,7,8,'spikeTriangle',{life:190});break;case 9: fireUniqueBullet(m.x,m.y,a,6,m.color,6,8,'boomer',{life:280});break;case 10: fireUniqueBullet(0,m.y,0,5.5,m.color,6,8,'closer',{life:210});fireUniqueBullet(900,m.y,Math.PI,5.5,m.color,6,8,'closer',{life:210});break;case 11: fireUniqueBullet(m.x,m.y,a,3.5,m.color,9,8,'mine',{life:260});break;case 12: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.25,5.2,m.color,6,7,'trap',{life:220});break;case 13: for(let i=0;i<6;i++) fireUniqueBullet(m.x,m.y,i*Math.PI/3,4.3,m.color,6,8,'time',{life:240});break;}}}
-    m.x=Math.max(-60,Math.min(canvas.width+60,m.x));
-    m.y=Math.max(-60,Math.min(canvas.height+60,m.y));
+    m.x=Math.max(-60,Math.min(canvas.width+60,m.x));m.y=Math.max(-60,Math.min(canvas.height+60,m.y));
     if(m.contactCooldown<=0 && Math.hypot(m.x-player.x,m.y-player.y)<m.size/2+player.size/2){
         if(player.shield>0) player.shield--;else player.hp-=7;
         m.contactCooldown=45;updateUI();if(player.hp<=0) playerDefeated();
@@ -1245,18 +1274,10 @@ function playerDefeated(){
     if(!gameActive) return;
     gameActive=false;
     if(mapMode){exitMapLevelToMap();return;}
-    if(nightmareRush){
-        alert("NIGHTMARE CONSUMED YOU.\n\nYou reached Nightmare Boss "+(currentBossIndex-NIGHTMARE_START_INDEX+1)+" of 15.");
-        exitToMainMenu();
-        return;
-    }
+    if(nightmareRush){alert("NIGHTMARE CONSUMED YOU.\n\nYou reached Nightmare Boss "+(currentBossIndex-NIGHTMARE_START_INDEX+1)+" of 15.");exitToMainMenu();return;}
     alert("SYSTEM FAILURE.\n\nYou reached Boss "+(currentBossIndex+1)+".");
     exitToMainMenu();
 }
-
-/* =========================================================
-   POWERUPS
-========================================================= */
 const powerups=[
 {id:"rapid_fire",name:"RAPID FIRE",description:"Shoot 12% faster. Maximum effect is limited.",apply:()=>{player.fireRate=Math.max(5,Math.floor(player.fireRate*.88));}},
 {id:"damage_core",name:"DAMAGE CORE",description:"Shots deal +2 damage.",apply:()=>{player.damage+=2;}},
@@ -1270,7 +1291,6 @@ const powerups=[
 ];
 function getPowerupById(id){return powerups.find(p=>p.id===id)||null;}
 function applyPermanentUpgradeToPlayer(){if(!permanentUpgradeId) return;const up=getPowerupById(permanentUpgradeId);if(!up) return;up.apply();}
-
 const rewardScreen=document.getElementById("rewardScreen");
 const rewardChoices=document.getElementById("rewardChoices");
 const rewardBackButton=document.getElementById("rewardBackButton");
@@ -1290,7 +1310,6 @@ function openRewardPicker(){
     rewardScreen.style.display="flex";
 }
 rewardBackButton.onclick=()=>{rewardScreen.style.display="none";};
-
 function choosePowerups(){
     waitingForPowerup=true;
     minions=[];bullets=[];enemyBullets=[];
@@ -1314,7 +1333,6 @@ function choosePowerups(){
         powerupChoices.appendChild(button);
     });
 }
-
 function shoot(){
     if(!gameActive||waitingForPowerup||player.fireCooldown>0) return;
     const rect=canvas.getBoundingClientRect();
@@ -1351,7 +1369,6 @@ window.addEventListener("keydown",e=>{
     if(e.code==="Space"&&player.dashPower>0&&player.dashCooldown<=0&&gameActive&&!waitingForPowerup) performDash();
 });
 window.addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
-
 function initBoss(){
     const endIndex=nightmareRush?NIGHTMARE_END_INDEX+1:bosses.length;
     if(currentBossIndex>=endIndex){
@@ -1361,7 +1378,7 @@ function initBoss(){
     }
     bullets=[];enemyBullets=[];minions=[];bossHazards=[];
     const template=bosses[currentBossIndex];
-    boss={...template,x:450,y:150,timer:0,maxHp:template.hp};
+    boss={...template,x:450,y:150,timer:0,maxHp:template.hp,shield:template.shields||0,maxShield:template.shields||0};
     if(mapMode) uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);
     else if(nightmareRush) uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1)+"/15";
     else uiBoss.textContent=currentBossIndex+1;
@@ -1374,7 +1391,7 @@ function updateUI(){
     let displayedBossHP=0;
     if(sandboxMode) displayedBossHP=sandboxBosses.reduce((sum,b)=>sum+Math.max(0,b.hp),0);
     else if(mapMode) displayedBossHP=mapSniperBosses.reduce((sum,b)=>sum+Math.max(0,b.hp),0);
-    else displayedBossHP=boss?boss.hp:0;
+    else displayedBossHP=boss?(boss.hp+Math.max(0,boss.shield||0)):0;
     uiBhp.textContent=Math.max(0,Math.ceil(displayedBossHP));
     uiPower.textContent=player.damage;
     if(mapMode) uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);
@@ -1420,6 +1437,24 @@ function update(){
         for(let i=enemyBullets.length-1;i>=0;i--){
             const b=enemyBullets[i];b.age=(b.age||0)+1;
             if(b.kind){
+                if(b.kind==='grassBlade'){
+                    const ob=b.orbitBoss;
+                    if(ob){
+                        const a=(b.orbitAngle||0)+b.age*(b.orbitSpeed||.075);
+                        const r=b.orbitRadius||125;
+                        b.x=ob.x+Math.cos(a)*r;
+                        b.y=ob.y+Math.sin(a)*r;
+                        b.dx=0;b.dy=0;
+                        if(b.age>=120 && !b.burst){
+                            b.burst=true;
+                            for(let q=0;q<4;q++){
+                                fireUniqueBullet(b.x,b.y,q*Math.PI/2,5.4,"#8cff55",5,7,"grassBullet",{life:180});
+                            }
+                            enemyBullets.splice(i,1);
+                            continue;
+                        }
+                    }
+                }
                 if(b.kind==='bossOrbit'){const ob=b.orbitBoss;if(ob){const oa=(b.orbitAngle||0)+b.age*(b.orbitSpeed||.055);const r=b.orbitRadius||80;b.x=ob.x+Math.cos(oa)*r;b.y=ob.y+Math.sin(oa)*r;b.dx=-Math.sin(oa);b.dy=Math.cos(oa);}}
                 else if(b.kind==='spiral'||b.kind==='apocalypse-spiral'){const turn=b.turn||.035;const c=Math.cos(turn),s=Math.sin(turn),dx=b.dx,dy=b.dy;b.dx=dx*c-dy*s;b.dy=dx*s+dy*c;}
                 else if(b.kind==='homing'||b.kind==='apocalypse-homing'){const a=Math.atan2(player.y-b.y,player.x-b.x);const cur=Math.atan2(b.dy,b.dx);let d=a-cur;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;const na=cur+Math.max(-.045,Math.min(.045,d));b.dx=Math.cos(na);b.dy=Math.sin(na);}
@@ -1438,7 +1473,7 @@ function update(){
             }
             if(b.kind && b.kind.includes('mine') && b.speed===0 && b.age>=b.life){enemyBullets.splice(i,1);continue;}
             if(b.speed===0){if(b.bomb){b.timer++;const d=Math.hypot(b.x-player.x,b.y-player.y);if(d<player.size/2+b.size){if(player.shield>0) player.shield--;else player.hp-=b.damage;enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();continue;}if(b.timer>=b.fuse){if(d<=b.blastRadius){if(player.shield>0) player.shield--;else player.hp-=b.damage;updateUI();if(player.hp<=0) playerDefeated();}enemyBullets.splice(i,1);}continue;}if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size){if(player.shield>0) player.shield--;else player.hp-=b.damage;enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();}continue;}
-            if(b.kind!=='bossOrbit'){b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;}
+            if(b.kind!=='bossOrbit'&&b.kind!=='grassBlade'){b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;}
             if(b.bounce>0){if(b.x<0||b.x>canvas.width){b.dx*=-1;b.bounce--;}if(b.y<0||b.y>canvas.height){b.dy*=-1;b.bounce--;}}
             if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){if(player.shield>0) player.shield--;else player.hp-=b.damage||5;enemyBullets.splice(i,1);updateUI();if(player.hp<=0){playerDefeated();return;}continue;}
             if(b.x<-100||b.x>canvas.width+100||b.y<-100||b.y>canvas.height+100) enemyBullets.splice(i,1);
@@ -1467,7 +1502,7 @@ function update(){
         for(let bi=bullets.length-1;bi>=0;bi--){
             const b=bullets[bi];
             if(Math.hypot(b.x-boss.x,b.y-boss.y)<boss.size/2){
-                boss.hp-=b.damage;
+                if(boss.shield>0){boss.shield-=b.damage;if(boss.shield<0){boss.hp+=boss.shield;boss.shield=0;}}else boss.hp-=b.damage;
                 if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);
                 updateUI();
                 if(boss.hp<=0){
@@ -1500,6 +1535,24 @@ function update(){
     for(let i=enemyBullets.length-1;i>=0;i--){
         const b=enemyBullets[i];b.age=(b.age||0)+1;
         if(b.kind){
+            if(b.kind==='grassBlade'){
+                const ob=b.orbitBoss;
+                if(ob){
+                    const a=(b.orbitAngle||0)+b.age*(b.orbitSpeed||.075);
+                    const r=b.orbitRadius||125;
+                    b.x=ob.x+Math.cos(a)*r;
+                    b.y=ob.y+Math.sin(a)*r;
+                    b.dx=0;b.dy=0;
+                    if(b.age>=120 && !b.burst){
+                        b.burst=true;
+                        for(let q=0;q<4;q++){
+                            fireUniqueBullet(b.x,b.y,q*Math.PI/2,5.4,"#8cff55",5,7,"grassBullet",{life:180});
+                        }
+                        enemyBullets.splice(i,1);
+                        continue;
+                    }
+                }
+            }
             if(b.kind==='bossOrbit'){const ob=b.orbitBoss;if(ob){const oa=(b.orbitAngle||0)+b.age*(b.orbitSpeed||.055);const r=b.orbitRadius||80;b.x=ob.x+Math.cos(oa)*r;b.y=ob.y+Math.sin(oa)*r;b.dx=-Math.sin(oa);b.dy=Math.cos(oa);}}
             else if(b.kind==='spiral'||b.kind==='apocalypse-spiral'){const turn=b.turn||.035;const c=Math.cos(turn),s=Math.sin(turn),dx=b.dx,dy=b.dy;b.dx=dx*c-dy*s;b.dy=dx*s+dy*c;}
             else if(b.kind==='homing'||b.kind==='apocalypse-homing'){const a=Math.atan2(player.y-b.y,player.x-b.x);const cur=Math.atan2(b.dy,b.dx);let d=a-cur;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;const na=cur+Math.max(-.045,Math.min(.045,d));b.dx=Math.cos(na);b.dy=Math.sin(na);}
@@ -1518,7 +1571,7 @@ function update(){
         }
         if(b.kind && b.kind.includes('mine') && b.speed===0 && b.age>=b.life){enemyBullets.splice(i,1);continue;}
         if(b.speed===0){if(b.bomb){b.timer++;const d=Math.hypot(b.x-player.x,b.y-player.y);if(d<player.size/2+b.size){if(player.shield>0) player.shield--;else player.hp-=b.damage;enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();continue;}if(b.timer>=b.fuse){if(d<=b.blastRadius){if(player.shield>0) player.shield--;else player.hp-=b.damage;updateUI();if(player.hp<=0) playerDefeated();}enemyBullets.splice(i,1);}continue;}if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size){if(player.shield>0) player.shield--;else player.hp-=b.damage;enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();}continue;}
-        if(b.kind!=='bossOrbit'){b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;}
+        if(b.kind!=='bossOrbit'&&b.kind!=='grassBlade'){b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;}
         if(b.bounce>0){if(b.x<0||b.x>canvas.width){b.dx*=-1;b.bounce--;}if(b.y<0||b.y>canvas.height){b.dy*=-1;b.bounce--;}}
         if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){if(player.shield>0) player.shield--;else player.hp-=b.damage||5;enemyBullets.splice(i,1);updateUI();if(player.hp<=0){playerDefeated();return;}continue;}
         if(b.x<-100||b.x>canvas.width+100||b.y<-100||b.y>canvas.height+100) enemyBullets.splice(i,1);
@@ -1546,7 +1599,21 @@ function draw(){
     drawBossHazards();
     enemyBullets.forEach(b=>{
         ctx.fillStyle=b.color;ctx.shadowColor=b.color;ctx.shadowBlur=8;
-        if(b.bomb){const remaining=Math.max(0,b.fuse-b.timer);const pulse=1+Math.sin(b.timer*.25)*.2;ctx.beginPath();ctx.arc(b.x,b.y,b.size*pulse,0,Math.PI*2);ctx.fill();ctx.strokeStyle=b.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,b.blastRadius*(1-remaining/b.fuse),0,Math.PI*2);ctx.stroke();ctx.fillStyle="#fff";ctx.font="10px Courier New";ctx.fillText(Math.ceil(remaining/60),b.x-3,b.y+4);}
+        if(b.kind && b.kind==='grassBlade'){
+            ctx.beginPath();ctx.arc(b.x,b.y,b.size,0,Math.PI*2);ctx.fill();
+            ctx.strokeStyle='#eaffd0';ctx.lineWidth=2;ctx.stroke();
+        }
+        else if(b.kind && b.kind==='grassTreeBullet'){
+            ctx.save();ctx.translate(b.x,b.y);
+            ctx.beginPath();ctx.moveTo(0,-b.size*1.4);ctx.lineTo(b.size*.7,b.size*.6);ctx.lineTo(-b.size*.7,b.size*.6);ctx.closePath();ctx.fill();
+            ctx.restore();
+        }
+        else if(b.bomb){
+            const remaining=Math.max(0,b.fuse-b.timer);const pulse=1+Math.sin(b.timer*.25)*.2;
+            ctx.beginPath();ctx.arc(b.x,b.y,b.size*pulse,0,Math.PI*2);ctx.fill();
+            ctx.strokeStyle=b.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,b.blastRadius*(1-remaining/b.fuse),0,Math.PI*2);ctx.stroke();
+            ctx.fillStyle="#fff";ctx.font="10px Courier New";ctx.fillText(Math.ceil(remaining/60),b.x-3,b.y+4);
+        }
         else{
             if(b.kind && b.kind.includes('flame')){ctx.save();const ta=Math.atan2(b.dy,b.dx);ctx.translate(b.x,b.y);ctx.rotate(ta);for(let k=1;k<=6;k++){const fade=1-k/7;ctx.globalAlpha=fade*.65;ctx.fillStyle=(k%2===0)?'#ffcc33':'#ff3300';ctx.beginPath();ctx.arc(-k*b.size*.75+(Math.random()-.5)*3,0,k===1?b.size*.6:b.size*(.35+Math.random()*.2),0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;ctx.restore();}
             ctx.save();ctx.translate(b.x,b.y);const a=Math.atan2(b.dy,b.dx);ctx.rotate(a);
@@ -1564,7 +1631,6 @@ function draw(){
     });
     ctx.shadowBlur=0;
 }
-
 const mainMenu=document.getElementById("mainMenu");
 const sandboxMenu=document.getElementById("sandboxMenu");
 const startGameButton=document.getElementById("startGameButton");
@@ -1610,7 +1676,8 @@ const mapLevels=[
     {id:6,name:"2\u00d7 NEON GHOST + V-TWIN",tag:"",requires:5,slot:5,rowY:0.55},
     {id:7,name:"WALL OF SILENCE",tag:"",requires:6,slot:6,rowY:0.55},
     {id:8,name:"WALL OF SILENCE & NEON GHOST",tag:"TAG TEAM",requires:7,slot:7,rowY:0.55},
-    {id:9,name:"THE BOUNCER",tag:"",requires:8,slot:8,rowY:0.55}
+    {id:9,name:"THE BOUNCER",tag:"",requires:8,slot:8,rowY:0.55},
+    {id:10,name:"GRASS MONSTROSITY",tag:"",requires:9,slot:9,rowY:0.55}
 ];
 const REWARD_OWNER_LEVEL_ID=6;
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -1696,7 +1763,9 @@ function startMapLevel(level){
     else if(level.id===5){sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===6){sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();spawnSandboxBoss();sandboxBossSelect.value="3";currentBossIndex=3;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=250;mapSniperBosses[0].y=180;}if(mapSniperBosses[1]){mapSniperBosses[1].x=650;mapSniperBosses[1].y=180;}if(mapSniperBosses[2]){mapSniperBosses[2].x=450;mapSniperBosses[2].y=250;}}
     else if(level.id===7){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
-    else if(level.id===8){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}} else if(level.id===9){sandboxBossSelect.value="5";currentBossIndex=5;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
+    else if(level.id===8){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
+    else if(level.id===9){sandboxBossSelect.value="5";currentBossIndex=5;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
+    else if(level.id===10){currentBossIndex=bosses.findIndex(b=>b.name==="GRASS MONSTROSITY");sandboxBossSelect.value=String(currentBossIndex);spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
     startGrassyMusic();gameActive=true;updateUI();
@@ -1860,20 +1929,11 @@ fillSandboxMenus();
 showMainMenuOnStartup();
 function gameLoop(){update();draw();requestAnimationFrame(gameLoop);}
 gameLoop();
-
-/* FINAL MOBILE INPUT FIX: overlay must not block menus or sandbox controls */
 (function(){
   function repairMobileLayer(){
     const layer=document.getElementById("mobileControls");
-    if(layer){
-      layer.style.pointerEvents="none";
-      layer.style.touchAction="none";
-      layer.style.zIndex="35";
-    }
-    ["mobileJoystick","mobileAim","mobileDashButton"].forEach(id=>{
-      const e=document.getElementById(id);
-      if(e){e.style.pointerEvents="auto";e.style.touchAction="none";}
-    });
+    if(layer){layer.style.pointerEvents="none";layer.style.touchAction="none";layer.style.zIndex="35";}
+    ["mobileJoystick","mobileAim","mobileDashButton"].forEach(id=>{const e=document.getElementById(id);if(e){e.style.pointerEvents="auto";e.style.touchAction="none";}});
     const t=document.getElementById("mobileToggle");
     if(t){t.style.pointerEvents="auto";t.style.zIndex="100001";t.style.touchAction="manipulation";}
   }
@@ -1883,4 +1943,4 @@ gameLoop();
 })();
 </script>
 </body>
-</html>
+    </html>
