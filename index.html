@@ -64,7 +64,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
     #sandboxMenu{top:48px;right:8px;width:220px;}
     #dlcBanner{font-size:10px;padding:4px 6px;}
 }
-#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:linear-gradient(180deg,#236b2a,#18551f 55%,#103b17);overflow:hidden;}
+#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:linear-gradient(180deg,#236b2a,#18551f 55%,#18551f);overflow:hidden;}
 #mapScroll{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-color:#4f8f4f #0c2b0c;}
 #mapScroll::-webkit-scrollbar{height:14px;}
 #mapScroll::-webkit-scrollbar-track{background:#0c2b0c;border-top:2px solid #1a4a1a;}
@@ -121,8 +121,8 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .rewardBack{margin-top:6px;padding:10px 18px;background:#111;color:#fff;border:2px solid #555;font:bold 14px 'Courier New',monospace;cursor:pointer;letter-spacing:2px;}
 .rewardBack:hover{border-color:#0f0;background:#182018;}
 
-#mapTrack::after{content:"";position:absolute;left:calc(120px + 10 * 260px);top:0;width:calc(100% - (120px + 10 * 260px));height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
-.mapWorld2Region{position:absolute;left:calc(120px + 10 * 260px);top:0;width:calc(100% - (120px + 10 * 260px));height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:35px;padding-top:26px;box-sizing:border-box;z-index:2;pointer-events:none;}
+#mapTrack::after{content:"";position:absolute;left:calc(120px + 10 * 260px);top:0;right:0;height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
+.mapWorld2Region{position:absolute;left:calc(120px + 10 * 260px);top:0;right:0;height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:35px;padding-top:26px;box-sizing:border-box;z-index:2;pointer-events:none;}
 .mapWorld2Title{color:#eee;font-size:30px;letter-spacing:5px;text-shadow:2px 2px #000;}
 .mapWorld2Sub{color:#bbb;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
 </style>
@@ -1660,7 +1660,8 @@ const mapLevels=[
     {id:12,name:"ROCK BEASTS",tag:"3\u00d7",requires:11,slot:11,rowY:0.55},
     {id:13,name:"WALL OF SILENCE",tag:"2\u00d7",requires:12,slot:12,rowY:0.55},
     {id:14,name:"2\u00d7 HYDRA + THE SNIPER",tag:"",requires:13,slot:13,rowY:0.55},
-    {id:15,name:"EMERALD KILLER",tag:"",requires:14,slot:14,rowY:0.55}
+    {id:15,name:"EMERALD KILLER",tag:"",requires:14,slot:14,rowY:0.55},
+    {id:16,name:"3\u00d7 NEON GHOST",tag:"",requires:15,slot:15,rowY:0.55}
 ];
 const REWARD_OWNER_LEVEL_IDS=[6,12,15];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -1673,7 +1674,7 @@ const w=mapCanvas.width,h=mapCanvas.height,g=mapCanvas.getContext("2d");
 const grad=g.createLinearGradient(0,0,0,h);
 grad.addColorStop(0,"#236b2a");
 grad.addColorStop(0.55,"#18551f");
-grad.addColorStop(1,"#103b17");
+grad.addColorStop(1,"#18551f");
 g.fillStyle=grad;
 g.fillRect(0,0,w,h);
 }
@@ -1773,6 +1774,12 @@ function startMapLevel(level){
         }});
         mapSniperBosses.push(makeRockBeast(220,190),makeRockBeast(450,160),makeRockBeast(680,190));
         currentBossIndex=0;
+    }
+    else if(level.id===16){
+        sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();spawnSandboxBoss();spawnSandboxBoss();
+        if(mapSniperBosses[0]){mapSniperBosses[0].x=250;mapSniperBosses[0].y=180;}
+        if(mapSniperBosses[1]){mapSniperBosses[1].x=450;mapSniperBosses[1].y=180;}
+        if(mapSniperBosses[2]){mapSniperBosses[2].x=650;mapSniperBosses[2].y=180;}
     }
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
