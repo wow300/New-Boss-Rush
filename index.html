@@ -782,7 +782,7 @@ const bosses=[
     if(this.timer%130===0) for(let i=-3;i<=3;i++) fireBullet(this.x,this.y,Math.PI/2+i*.18,5.5,"#ffbb33",5);
 }},
 {name:"WALL OF SILENCE",hp:300,color:"#777",size:60,update:function(){
-    if(this.timer%55===0){const gap=Math.floor(Math.random()*10);for(let i=0;i<12;i++)if(i!==gap&&i!==gap+1) fireBullet(i*80+40,0,Math.PI/2,4.2,"#888",8);}
+    if(this.timer%55===0){const gap=Math.floor(Math.random()*10);for(let i=0;i<12;i++)if(i!==gap&&i!==gap+1) fireBullet(i*80+40,0,Math.PI/2,4.2,"#888",8);},{name:"WALL OF SILENCE & NEON GHOST",tag:"TAG TEAM",bosses:["wallSilence","neonGhost"],level:8}
     if(this.timer%150===0){const gap=Math.floor(Math.random()*8);for(let i=0;i<10;i++)if(i!==gap&&i!==gap+1) fireBullet(0,i*70+20,0,4.5,"#aaa",7);}
 }},
 {name:"THE BOUNCER",hp:260,color:"#00ff00",size:50,update:function(){
