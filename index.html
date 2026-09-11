@@ -137,7 +137,7 @@ canvas{
     bottom:0;
     inset:0;
     background:rgba(0,0,0,.94);
-    z-index:9999;
+    z-index:100000;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -161,7 +161,12 @@ body.menuOpen canvas,
 body.menuOpen #ui,
 body.menuOpen #msg,
 body.menuOpen #mobileToggle,
-body.menuOpen #mobileControls{
+body.menuOpen #mobileControls,
+body.menuOpen #sandboxMenu,
+body.menuOpen #rewardScreen,
+body.menuOpen #levelStartScreen,
+body.menuOpen #levelCompleteScreen,
+body.menuOpen #bossMap{
     display:none !important;
 }
 
@@ -175,6 +180,8 @@ body.menuOpen #mobileControls{
     font:20px 'Courier New',monospace;
     cursor:pointer;
     transition: border-color 0.3s, background 0.3s, color 0.3s;
+    position:relative;
+    touch-action:manipulation;
 }
 
 .menuButton:hover{
@@ -196,6 +203,7 @@ body.menuOpen #mobileControls{
     display: block;
     margin-top: 4px;
     letter-spacing: 2px;
+    pointer-events: none;
 }
 
 #sandboxMenu{
@@ -872,6 +880,53 @@ body.menuOpen #mobileControls{
        so the scroll track auto-widens to fit slot 6. No edit.
      - Level 7 has no tag (tag:"").
      - Reward node logic still tied to level 6 only.
+
+   --- 2026-09-11 (part 3) ---
+   Request: Main menu buttons unresponsive on some local/touch
+            devices (works on GitHub Pages, not always locally).
+
+   Likely cause: some overlays (map, reward modal, level start
+   / complete overlays, mobile toggle) can sit on top of the
+   main menu if left in a display state from a prior run, or
+   the touch-action / pseudo-element behavior on some mobile
+   browsers swallows taps.
+
+   Files/Lines touched:
+     1. CSS: #mainMenu z-index raised 9999 -> 100000, so it
+        always wins stacking over every other overlay.
+     2. CSS: .menuButton now has position:relative and
+        touch-action:manipulation.
+     3. CSS: .menuButton.completed::after now has
+        pointer-events:none, so the "COMPLETED!" label can
+        never eat a tap.
+     4. CSS: body.menuOpen now also hides #bossMap,
+        #sandboxMenu, #rewardScreen, #levelStartScreen, and
+        #levelCompleteScreen, not just the mobile controls.
+        This guarantees no stale overlay eats menu clicks.
+
+   Notes:
+     - No JS logic was changed. The button handlers still wire
+       exactly as before; this is a pure CSS hardening pass.
+     - If the issue persists, next step is to inspect the
+       browser console for a JS error on the affected device.
+
+   --- 2026-09-11 (part 4) ---
+   Request: Level 7 (WALL OF SILENCE) wasn't spawning Silence
+            Waller minions — it was falling through to the
+            default minionTypeForBoss = 0 (Sniper Drones).
+
+   Files/Lines touched:
+     1. JS: in update() map-mode block, the minion-type
+        selection chain now has a new branch:
+          else if(sb.name==="WALL OF SILENCE") minionTypeForBoss = 4;
+        minionTypes[4] is SILENCE WALLER, which is the
+        thematic match for the Wall of Silence boss.
+
+   Notes:
+     - This only affects Boss Map mode. Normal Game and
+       Sandbox mode are untouched.
+     - The map-mode spawn interval (240) and max minions (4)
+       are unchanged.
 ========================================================= */
 
 const canvas=document.getElementById("gameCanvas");
@@ -4068,10 +4123,14 @@ function update(){
 
             const spawnInterval=240;
             const maxMinions=4;
+            /* [CHANGE LOG 2026-09-11 part 4]
+               Added WALL OF SILENCE branch so level 7 spawns
+               Silence Wallers instead of default Sniper Drones. */
             let minionTypeForBoss = 0;
             if(sb.name==="THE PULSAR" || sb.name==="PULSAR CORE") minionTypeForBoss = 1;
             else if(sb.name==="NEON GHOST") minionTypeForBoss = 2;
             else if(sb.name==="V-TWIN REVENANT") minionTypeForBoss = 3;
+            else if(sb.name==="WALL OF SILENCE") minionTypeForBoss = 4;
             if(
                 sb.timer>100 &&
                 sb.timer%spawnInterval===0 &&
