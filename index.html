@@ -23,7 +23,7 @@ canvas{background:#000;display:block;position:fixed;left:50%;top:50%;transform:t
 .powerChoice:hover{border-color:#0f0;background:#182018;transform:translateY(-5px);}
 .powerChoice strong{display:block;color:#0f0;font-size:19px;margin-bottom:10px;}
 .powerChoice span{color:#aaa;font-size:14px;}
-#mainMenu{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:100000;display:flex;align-items:center;justify-content:flex-start;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:20px 0 40px;}
+#mainMenu{pointer-events:auto;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:100000;display:flex;align-items:center;justify-content:flex-start;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:20px 0 40px;}
 #mainMenu h1{font-size:46px;letter-spacing:6px;color:#0f0;margin:0 0 10px;text-shadow:0 0 18px rgba(0,255,0,.35);}
 #mainMenu p{color:#777;margin:0 0 28px;}
 #dlcBanner{position:fixed;top:14px;right:14px;z-index:100001;color:#ff2020;font:bold 14px 'Courier New',monospace;letter-spacing:2px;text-shadow:0 0 10px rgba(255,0,0,.7),2px 2px #000;pointer-events:none;padding:6px 10px;border:2px solid #ff2020;background:rgba(20,0,0,.75);border-radius:4px;}
@@ -1977,6 +1977,39 @@ gameLoop();
   repairMobileLayer();
   window.addEventListener("load",repairMobileLayer);
   window.addEventListener("resize",repairMobileLayer);
+})();
+
+/* FINAL MAIN MENU INPUT FIX */
+(function(){
+  function install(){
+    const menu=document.getElementById("mainMenu");
+    if(menu){menu.style.pointerEvents="auto";menu.style.zIndex="1000000";}
+    const ids={
+      startGameButton:()=>startGame(),
+      startNoUpgradeButton:()=>startNoUpgradeMode(),
+      startNightmareRushButton:()=>startNightmareRush(),
+      startBossMapButton:()=>openBossMap(),
+      startSandboxButton:()=>startSandbox(),
+      enemyMadnessButton:()=>startDroneMadness()
+    };
+    Object.keys(ids).forEach(id=>{
+      const b=document.getElementById(id); if(!b||b.dataset.finalMenuFix)return;
+      b.dataset.finalMenuFix="1";
+      b.style.pointerEvents="auto"; b.style.position="relative"; b.style.zIndex="1000001"; b.style.touchAction="manipulation";
+      let last=0;
+      const run=e=>{
+        const now=Date.now(); if(now-last<400)return; last=now;
+        if(e){e.preventDefault();e.stopImmediatePropagation();}
+        if(typeof ids[id]==="function")ids[id]();
+      };
+      b.addEventListener("pointerup",run,{capture:true,passive:false});
+      b.addEventListener("touchend",run,{capture:true,passive:false});
+      b.addEventListener("click",run,{capture:true,passive:false});
+    });
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install);
+  else install();
+  window.addEventListener("load",install);
 })();
 </script>
 </body>
