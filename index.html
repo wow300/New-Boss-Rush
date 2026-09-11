@@ -64,7 +64,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
     #sandboxMenu{top:48px;right:8px;width:220px;}
     #dlcBanner{font-size:10px;padding:4px 6px;}
 }
-#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:#18551f;overflow:hidden;}
+#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:radial-gradient(circle at 30% 20%, #1b4d1b 0%, #0c2b0c 45%, #051705 100%);overflow:hidden;}
 #mapScroll{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-color:#4f8f4f #0c2b0c;}
 #mapScroll::-webkit-scrollbar{height:14px;}
 #mapScroll::-webkit-scrollbar-track{background:#0c2b0c;border-top:2px solid #1a4a1a;}
@@ -1297,7 +1297,7 @@ const rewardBackButton=document.getElementById("rewardBackButton");
 const rewardScreenText=document.getElementById("rewardScreenText");
 function openRewardPicker(){
     const claimedIds=permanentUpgradeIds.length?permanentUpgradeIds:(permanentUpgradeId?[permanentUpgradeId]:[]);
-    if(claimedIds.length>=2) return;
+    if(claimedIds.length>=3) return;
     const picks=[...powerups].sort(()=>Math.random()-.5).slice(0,3);
     rewardChoices.innerHTML="";
     rewardScreenText.textContent="Choose one upgrade to keep forever. It only applies while you play the Boss Map.";
@@ -1443,8 +1443,8 @@ function update(){
             else if(sb.name==="GRAVITY WELL") minionTypeForBoss=6;
             else if(sb.name==="CHRONOS") minionTypeForBoss=7;
             else if(sb.name==="THE HYDRA") minionTypeForBoss=8;
-            if(sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
-            for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){mapSniperBosses.splice(si,1);break;}}}
+            if(sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.name!=="EMERALD KILLER" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
+            for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){if(sb.shield>0){sb.shield-=b.damage;if(sb.shield<0){sb.hp+=sb.shield;sb.shield=0;}}else sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){mapSniperBosses.splice(si,1);break;}}}
         }
         separateBosses(mapSniperBosses);
         if(mapSniperBosses.length===0 && !levelCompletePending){levelCompletePending=true;showLevelComplete();}
@@ -1506,7 +1506,7 @@ function update(){
     if(sandboxMode){
         for(let si=sandboxBosses.length-1;si>=0;si--){
             const sb=sandboxBosses[si];sb.timer++;activeFiringBoss=sb;sb.update();activeFiringBoss=null;bossChase(sb);
-            for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){sandboxBosses.splice(si,1);break;}}}
+            for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){if(sb.shield>0){sb.shield-=b.damage;if(sb.shield<0){sb.hp+=sb.shield;sb.shield=0;}}else sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){sandboxBosses.splice(si,1);break;}}}
         }
         separateBosses(sandboxBosses);
         boss=sandboxBosses.length?sandboxBosses[sandboxBosses.length-1]:null;
@@ -1606,7 +1606,7 @@ function draw(){
     ctx.fillRect(player.x-player.size/2,player.y-player.size/2,player.size,player.size);
     if(player.shield>0){ctx.strokeStyle="#00ffff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(player.x,player.y,27,0,Math.PI*2);ctx.stroke();ctx.fillStyle="#00ffff";ctx.font="12px Courier New";ctx.fillText("S:"+player.shield,player.x+18,player.y-20);}
     const bossesToDraw=mapMode?mapSniperBosses:(sandboxMode?sandboxBosses:(boss?[boss]:[]));
-    for(const db of bossesToDraw){ctx.fillStyle=db.color;ctx.shadowColor=db.color;ctx.shadowBlur=15;ctx.fillRect(db.x-db.size/2,db.y-db.size/2,db.size,db.size);ctx.shadowBlur=0;ctx.fillStyle="#222";ctx.fillRect(db.x-50,db.y-db.size-14,100,7);ctx.fillStyle=db.color;ctx.fillRect(db.x-50,db.y-db.size-14,Math.max(0,db.hp/db.maxHp*100),7);}
+    for(const db of bossesToDraw){ctx.fillStyle=db.color;ctx.shadowColor=db.color;ctx.shadowBlur=15;ctx.fillRect(db.x-db.size/2,db.y-db.size/2,db.size,db.size);ctx.shadowBlur=0;ctx.fillStyle="#222";ctx.fillRect(db.x-50,db.y-db.size-14,100,7);ctx.fillStyle=db.color;ctx.fillRect(db.x-50,db.y-db.size-14,Math.max(0,db.hp/db.maxHp*100),7);if(db.shield>0){ctx.fillStyle="#00ffff";ctx.fillRect(db.x-50,db.y-db.size-22,Math.max(0,db.shield/(db.maxShield||1)*100),6);}}
     minions.forEach(m=>{
         if(m.kind==="grid" && m.warningTimer>0){const pulse=0.22+0.28*Math.sin(m.warningTimer*.45)**2;ctx.save();ctx.globalAlpha=pulse;ctx.strokeStyle=m.color;ctx.shadowColor=m.color;ctx.shadowBlur=14;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(m.x,0);ctx.lineTo(m.x,canvas.height);ctx.moveTo(0,m.y);ctx.lineTo(canvas.width,m.y);ctx.stroke();ctx.globalAlpha=0.9;ctx.lineWidth=2;ctx.stroke();ctx.restore();}
         ctx.fillStyle=m.color;ctx.shadowColor=m.color;ctx.shadowBlur=10;
@@ -1702,12 +1702,11 @@ const mapLevels=[
     {id:9,name:"THE BOUNCER",tag:"",requires:8,slot:8,rowY:0.55},
     {id:10,name:"GRASS MONSTROSITY",tag:"",requires:9,slot:9,rowY:0.55},
     {id:11,name:"GRAVITY WELL & CHRONOS",tag:"TAG TEAM",requires:10,slot:10,rowY:0.55},
-    {id:12,name:"ROCK BEASTS",tag:"3×",requires:11,slot:11,rowY:0.55},
-    {id:13,name:"WALL OF SILENCE",tag:"2×",requires:12,slot:12,rowY:0.55},
-    {id:14,name:"2× HYDRA + THE SNIPER",tag:"",requires:13,slot:13,rowY:0.55},
+    {id:12,name:"ROCK BEASTS",tag:"3\u00d7",requires:11,slot:11,rowY:0.55},
+    {id:13,name:"WALL OF SILENCE",tag:"2\u00d7",requires:12,slot:12,rowY:0.55},
+    {id:14,name:"2\u00d7 HYDRA + THE SNIPER",tag:"",requires:13,slot:13,rowY:0.55},
     {id:15,name:"EMERALD KILLER",tag:"",requires:14,slot:14,rowY:0.55}
 ];
-const REWARD_OWNER_LEVEL_ID=6;
 const REWARD_OWNER_LEVEL_IDS=[6,12,15];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
 function loadMapSave(){try{const raw=localStorage.getItem(MAP_SAVE_KEY);if(!raw) return {};const obj=JSON.parse(raw);return (obj&&typeof obj==="object")?obj:{};}catch(e){return {};}}
@@ -1716,7 +1715,11 @@ let mapCleared=loadMapSave();
 function sizeMapCanvas(){const w=mapTrack.clientWidth,h=mapTrack.clientHeight;mapCanvas.width=Math.max(1,w);mapCanvas.height=Math.max(1,h);drawMapBackground();}
 function drawMapBackground(){
 const w=mapCanvas.width,h=mapCanvas.height,g=mapCanvas.getContext("2d");
-g.fillStyle="#18551f";
+const grad=g.createLinearGradient(0,0,0,h);
+grad.addColorStop(0,"#236b2a");
+grad.addColorStop(0.5,"#18551f");
+grad.addColorStop(1,"#103b17");
+g.fillStyle=grad;
 g.fillRect(0,0,w,h);
 }
 window.addEventListener("resize",()=>{if(bossMap.style.display==="flex"){sizeMapCanvas();renderMapNodes();}});
@@ -1742,7 +1745,9 @@ function renderMapNodes(){
         label.innerHTML="<span class='lvTag'>LEVEL "+level.id+"</span><span class='lvName'>"+level.name+"</span>"+(level.tag?("<span class='lvTag' style='margin-top:2px;color:#ffe14d'>"+level.tag+"</span>"):"");
         node.appendChild(circle);node.appendChild(label);mapNodesLayer.appendChild(node);
         if(REWARD_OWNER_LEVEL_IDS.includes(level.id)){
-            const rewardUnlocked=cleared;const rewardClaimed=(level.id===6&&permanentUpgradeIds.length>=1)||(level.id===12&&permanentUpgradeIds.length>=2)||(level.id===15&&permanentUpgradeIds.length>=3);
+            const rewardUnlocked=cleared;
+            const rewardIndex=REWARD_OWNER_LEVEL_IDS.indexOf(level.id)+1;
+            const rewardClaimed=permanentUpgradeIds.length>=rewardIndex;
             const rewardNode=document.createElement("div");
             rewardNode.className="mapRewardNode"+(rewardUnlocked?" unlocked":"")+(rewardClaimed?" claimed":"");
             rewardNode.style.left=(pos.x+46)+"px";rewardNode.style.top=(pos.y-62)+"px";
@@ -1753,7 +1758,7 @@ function renderMapNodes(){
             else{rcircle.onclick=()=>{};rcircle.disabled=true;}
             const rtag=document.createElement("div");
             rtag.className="rewardTag";
-            if(rewardClaimed){const claimedUp=getPowerupById(permanentUpgradeId);rtag.textContent=claimedUp?claimedUp.name:"PICKED";rtag.style.whiteSpace="normal";}
+            if(rewardClaimed){rtag.textContent="CLAIMED";rtag.style.whiteSpace="normal";}
             else rtag.textContent="REWARD";
             rewardNode.appendChild(rcircle);rewardNode.appendChild(rtag);mapRewardLayer.appendChild(rewardNode);
         }
@@ -1792,50 +1797,24 @@ function startMapLevel(level){
     else if(level.id===9){sandboxBossSelect.value="5";currentBossIndex=5;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===10){currentBossIndex=bosses.findIndex(b=>b.name==="GRASS MONSTROSITY");sandboxBossSelect.value=String(currentBossIndex);spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===11){const gravityIndex=6;const chronosIndex=7;sandboxBossSelect.value=String(gravityIndex);currentBossIndex=gravityIndex;spawnSandboxBoss();sandboxBossSelect.value=String(chronosIndex);currentBossIndex=chronosIndex;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=320;mapSniperBosses[0].y=190;}if(mapSniperBosses[1]){mapSniperBosses[1].x=580;mapSniperBosses[1].y=190;}}
-    else if(level.id===13){
-        sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();spawnSandboxBoss();
-        if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}
-        if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}
-    }
-    else if(level.id===14){
-        sandboxBossSelect.value="8";currentBossIndex=8;spawnSandboxBoss();spawnSandboxBoss();
-        sandboxBossSelect.value="0";currentBossIndex=0;spawnSandboxBoss();
-        if(mapSniperBosses[0]){mapSniperBosses[0].x=260;mapSniperBosses[0].y=180;}
-        if(mapSniperBosses[1]){mapSniperBosses[1].x=640;mapSniperBosses[1].y=180;}
-        if(mapSniperBosses[2]){mapSniperBosses[2].x=450;mapSniperBosses[2].y=260;}
-    }
+    else if(level.id===13){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
+    else if(level.id===14){sandboxBossSelect.value="8";currentBossIndex=8;spawnSandboxBoss();spawnSandboxBoss();sandboxBossSelect.value="0";currentBossIndex=0;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=260;mapSniperBosses[0].y=180;}if(mapSniperBosses[1]){mapSniperBosses[1].x=640;mapSniperBosses[1].y=180;}if(mapSniperBosses[2]){mapSniperBosses[2].x=450;mapSniperBosses[2].y=260;}}
     else if(level.id===15){
         const makeEmeraldKiller=(x,y)=>({name:"EMERALD KILLER",hp:1000,maxHp:1000,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:1.7,x,y,timer:0,update:function(){
             const dx=player.x-this.x,dy=player.y-this.y,len=Math.hypot(dx,dy)||1;
             this.x+=dx/len*this.speed;this.y+=dy/len*this.speed;
-            if(this.timer%150===0){
-                const a=getAngleToPlayer(this);[-0.45,0,0.45].forEach(off=>fireBullet(this.x,this.y,a+off,4.5,"#9cff9c",7,0,7));
-            }
-            if(this.timer%240===0){
-                for(let burst=0;burst<3;burst++){
-                    for(let i=0;i<5;i++){const a=(Math.PI*2*i/5)+(burst*0.16);fireBullet(this.x,this.y,a,3.2,"#9cff9c",6,0,5);}
-                }
-            }
-            if(this.timer%300===0){
-                this.emeraldMinigunShots=20;
-            }
-            if(this.emeraldMinigunShots>0 && this.timer%6===0){
-                const a=getAngleToPlayer(this);
-                fireBullet(this.x,this.y,a+(Math.random()-.5)*0.08,6.8,"#9cff9c",4,0,4);
-                this.emeraldMinigunShots--;
-            }
+            if(this.timer%150===0){const a=getAngleToPlayer(this);[-0.45,0,0.45].forEach(off=>fireBullet(this.x,this.y,a+off,4.5,"#9cff9c",7,0,7));}
+            if(this.timer%240===0){for(let burst=0;burst<3;burst++){for(let i=0;i<5;i++){const a=(Math.PI*2*i/5)+(burst*0.16);fireBullet(this.x,this.y,a,3.2,"#9cff9c",6,0,5);}}}
+            if(this.timer%300===0){this.emeraldMinigunShots=20;}
+            if(this.emeraldMinigunShots>0 && this.timer%6===0){const a=getAngleToPlayer(this);fireBullet(this.x,this.y,a+(Math.random()-.5)*0.08,6.8,"#9cff9c",4,0,4);this.emeraldMinigunShots--;}
         }});
         mapSniperBosses.push(makeEmeraldKiller(450,180));
         currentBossIndex=0;
     }
     else if(level.id===12){
         const makeRockBeast=(x,y)=>({name:"ROCK BEAST",hp:800,maxHp:800,color:"#777",size:125,x,y,timer:0,update:function(){
-            if(this.timer%150===0){
-                for(let i=0;i<20;i++){const center=getAngleToPlayer(this);const a=center+(i-9.5)*0.105;fireBullet(this.x,this.y,a,4.2,"#888",8,0,5);}
-            }
-            if(this.timer%210===0){
-                fireBullet(this.x,this.y,getAngleToPlayer(this),2.1,"#aaa",30,0,15);
-            }
+            if(this.timer%150===0){for(let i=0;i<20;i++){const center=getAngleToPlayer(this);const a=center+(i-9.5)*0.105;fireBullet(this.x,this.y,a,4.2,"#888",8,0,5);}}
+            if(this.timer%210===0){fireBullet(this.x,this.y,getAngleToPlayer(this),2.1,"#aaa",30,0,15);}
         }});
         mapSniperBosses.push(makeRockBeast(220,190),makeRockBeast(450,160),makeRockBeast(680,190));
         currentBossIndex=0;
@@ -2001,7 +1980,7 @@ function spawnSandboxBoss(){
     const index=Number(selected);
     const template=bosses[index];currentBossIndex=index;
     const count=sandboxBosses.length;const angle=count*0.9;const radius=Math.min(230,60+count*18);
-    const newBoss={...template,x:450+Math.cos(angle)*radius,y:180+Math.sin(angle)*radius,timer:0,maxHp:template.hp};
+    const newBoss={...template,x:450+Math.cos(angle)*radius,y:180+Math.sin(angle)*radius,timer:0,maxHp:template.hp,shield:template.shields||0,maxShield:template.shields||0};
     newBoss.x=Math.max(newBoss.size,Math.min(canvas.width-newBoss.size,newBoss.x));
     newBoss.y=Math.max(newBoss.size+20,Math.min(canvas.height/2,newBoss.y));
     sandboxBosses.push(newBoss);boss=newBoss;updateUI();
@@ -2010,7 +1989,7 @@ function spawnSandboxEnemy(){const index=Number(sandboxEnemySelect.value);spawnM
 function clearSandbox(){boss=null;sandboxBosses=[];bullets=[];enemyBullets=[];minions=[];updateUI();}
 function exitToMainMenu(){
     setMobileEnabled(false);stopMusic();document.body.classList.add("menuOpen");
-    sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;gameActive=false;waitingForPowerup=false;
+    sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;gameActive=false;waitingForPowerup=false;
     boss=null;sandboxBosses=[];mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];
     sandboxMenu.style.display="none";powerupScreen.style.display="none";bossMap.style.display="none";
     levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
