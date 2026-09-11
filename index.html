@@ -32,8 +32,9 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .menuButton{width:300px;padding:16px;margin:7px;border:2px solid #444;background:#111;color:#fff;font:20px 'Courier New',monospace;cursor:pointer;transition:border-color .3s,background .3s,color .3s;position:relative;touch-action:manipulation;}
 .menuButton:hover{border-color:#0f0;background:#182018;}
 .menuButton.completed{border-color:#0f0;background:#0a1a0a;color:#0f0;box-shadow:0 0 12px rgba(0,255,0,.3);}
-#droneMadnessButton{border-color:#555;}
-#droneMadnessButton .miniLabel{display:block;color:#777;font-size:12px;margin-top:5px;letter-spacing:1px;}
+#enemyMadnessButton{border-color:#555;}
+#enemyMadnessButton:hover{border-color:#0f0;background:#182018;}
+#enemyMadnessButton .miniLabel{display:block;color:#777;font-size:12px;margin-top:5px;letter-spacing:1px;}
 .menuButton.completed::after{content:" COMPLETED!";font-size:.75em;color:#0f0;display:block;margin-top:4px;letter-spacing:2px;pointer-events:none;}
 #startNightmareRushButton{border-color:#801010;}
 #startNightmareRushButton:hover{border-color:#ff2020;background:#200808;color:#ff8080;}
@@ -131,12 +132,13 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
     <button class="menuButton" id="startNightmareRushButton">NIGHTMARE RUSH</button>
     <button class="menuButton" id="startBossMapButton">BOSS MAP</button>
     <button class="menuButton" id="startSandboxButton">START SANDBOX MODE</button>
-    <button class="menuButton" id="droneMadnessButton">DRONE MADNESS<span class="miniLabel">MINIGAME</span></button>
+    <button class="menuButton" id="enemyMadnessButton">ENEMY MADNESS<span class="miniLabel">MINIGAME</span></button>
 </div>
 <div id="bossMap">
     <div id="mapScroll"><div id="mapTrack">
         <canvas id="mapCanvas"></canvas>
         <div id="mapOverlay"><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div>
+        <div id="world2Marker" style="position:absolute;left:3040px;top:18%;transform:translateX(-50%);z-index:101;text-align:center;pointer-events:none;text-shadow:0 0 12px #79d7ff,0 0 28px #287da8;white-space:nowrap"><div style="font-size:clamp(24px,4vw,52px);font-weight:1000;letter-spacing:6px;color:#b9efff">WORLD 2</div><div style="font-size:clamp(14px,2vw,25px);font-weight:900;letter-spacing:4px;color:#79d7ff;margin-top:5px">THE CAVES</div></div>
         <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:103;pointer-events:auto;"></div>
         <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:none;"></div>
         <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
@@ -470,6 +472,16 @@ function startMusic(theme,key){
             if(beat===4||beat===12) playSnare(when,.036);
             if(beat%2===0) playHat(when,.013);
         }
+        if(key==="caves"){
+            const caveLead=noteFreq(root,scale[(idx+section*2)%scale.length]+24);
+            playTone(caveLead,d*1.15,.075,"sine",when,.003,.07,-5);
+            if(s%2===0) playTone(noteFreq(root,scale[(idx+3)%scale.length]+12),d*.8,.035,"triangle",when,.003,.08);
+            if(s%4===0) playTone(bass,d*3,.055,"sine",when,.006,.10);
+            if(s%8===0) playTone(chord,d*6,.022,"triangle",when,.018,.14);
+            if(beat===0||beat===10) playKick(when,.06);
+            if(beat===6||beat===14) playSnare(when,.028);
+            if(beat%2===0) playHat(when,.010);
+        }
     }
     function scheduler(){
         if(gen!==musicGeneration||currentMusicKey!==key){if(musicTimer){clearInterval(musicTimer);musicTimer=null;}return;}
@@ -483,6 +495,8 @@ function startMenuMusic(){startMusic(longMenuMusic,"menu");}
 function startSandboxMusic(){startMusic(longSandboxMusic,"sandbox");}
 function startBossMusic(index){startMusic(longBossMusicThemes[index%longBossMusicThemes.length],"boss"+index);}
 function startGrassyMusic(){startMusic(longGrassyMusic,"grassy");}
+const longCavesMusic=[148,196,[0,2,3,5,7,10,12],[0,2,4,1,3,5,2,6,4,1,0,3,5,2,7,4]];
+function startCavesMusic(){startMusic(longCavesMusic,"caves");}
 document.addEventListener("pointerdown",()=>{
     if(!audioCtx) ensureAudio();
     if(!audioCtx) return;
@@ -505,7 +519,7 @@ window.addEventListener("orientationchange",()=>setTimeout(fitCanvasToScreen,50)
 fitCanvasToScreen();
 let player={x:450,y:600,size:18,hp:100,maxHp:100,speed:6,damage:5,fireRate:10,fireCooldown:0,shots:1,shotSpread:.13,piercing:0,shield:0,dashPower:0,dashCooldown:0};
 let bullets=[],enemyBullets=[],minions=[],boss=null,sandboxBosses=[];
-let currentBossIndex=0,keys={},mouseDown=false,gameActive=false,waitingForPowerup=false,sandboxMode=false,noUpgradeMode=false,nightmareRush=false,droneMadness=false,droneMadnessDefeated=0,droneMadnessSpawnTimer=0;
+let currentBossIndex=0,keys={},mouseDown=false,gameActive=false,waitingForPowerup=false,sandboxMode=false,noUpgradeMode=false,nightmareRush=false,enemyMadness=false,enemyMadnessDefeated=0,enemyMadnessSpawnTimer=0;
 let mapMode=false,activeMapLevel=null,mapSniperBosses=[],levelCompletePending=false;
 let activeFiringBoss=null;
 let lastMouseX=450,mobileAimAngle=-Math.PI/2,lastMouseY=600;
@@ -517,8 +531,8 @@ function loadCompletionState(){
         const raw = localStorage.getItem(COMPLETION_SAVE_KEY);
         if(!raw) return { normal:false, noUpgrade:false, nightmare:false };
         const obj = JSON.parse(raw);
-        return {normal:!!obj.normal,noUpgrade:!!obj.noUpgrade,nightmare:!!obj.nightmare,droneMadness:!!obj.droneMadness};
-    }catch(e){return { normal:false, noUpgrade:false, nightmare:false, droneMadness:false };}
+        return {normal:!!obj.normal,noUpgrade:!!obj.noUpgrade,nightmare:!!obj.nightmare,enemyMadness:!!obj.enemyMadness};
+    }catch(e){return { normal:false, noUpgrade:false, nightmare:false, enemyMadness:false };}
 }
 function saveCompletionState(state){try{localStorage.setItem(COMPLETION_SAVE_KEY,JSON.stringify(state));}catch(e){}}
 let completionState=loadCompletionState();
@@ -529,14 +543,14 @@ function updateMenuButtonStates(){
     if(completionState.normal) startBtn.classList.add("completed"); else startBtn.classList.remove("completed");
     if(completionState.noUpgrade) noUpBtn.classList.add("completed"); else noUpBtn.classList.remove("completed");
     if(completionState.nightmare) nmBtn.classList.add("completed"); else nmBtn.classList.remove("completed");
-    const dmBtn=document.getElementById("droneMadnessButton");
-    if(dmBtn) dmBtn.classList.toggle("completed",!!completionState.droneMadness);
+    const dmBtn=document.getElementById("enemyMadnessButton");
+    if(dmBtn) dmBtn.classList.toggle("completed",!!completionState.enemyMadness);
 }
 function markCompleted(mode){
     if(mode==="normal") completionState.normal=true;
     else if(mode==="noUpgrade") completionState.noUpgrade=true;
     else if(mode==="nightmare") completionState.nightmare=true;
-    else if(mode==="droneMadness") completionState.droneMadness=true;
+    else if(mode==="enemyMadness") completionState.enemyMadness=true;
     saveCompletionState(completionState);
     updateMenuButtonStates();
 }
@@ -1233,11 +1247,11 @@ function updateMinion(m){
 }
 function killMinion(index){
     const m=minions[index];
-    if(droneMadness && m && m.kind!=="splitFragment"){
-        droneMadnessDefeated++;
-        if(droneMadnessDefeated>=50){
-            droneMadness=false;gameActive=false;markCompleted("droneMadness");
-            msg.textContent="DRONE MADNESS COMPLETE!";msg.style.display="block";
+    if(enemyMadness && m && m.kind!=="splitFragment"){
+        enemyMadnessDefeated++;
+        if(enemyMadnessDefeated>=50){
+            enemyMadness=false;gameActive=false;markCompleted("enemyMadness");
+            msg.textContent="ENEMY MADNESS COMPLETE!";msg.style.display="block";
             setTimeout(()=>{msg.style.display="none";exitToMainMenu();},1800);
         }
     }
@@ -1367,7 +1381,7 @@ function initBoss(){
     boss={...template,x:450,y:150,timer:0,maxHp:template.hp,shield:template.shields||0,maxShield:template.shields||0};
     if(mapMode){uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);setBossCounter("");}
     else if(nightmareRush){uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1);setBossCounter("/15");}
-    else if(droneMadness){uiBoss.textContent="DRONES: "+droneMadnessDefeated;setBossCounter("/50");}
+    else if(enemyMadness){uiBoss.textContent="DRONES: "+enemyMadnessDefeated;setBossCounter("/50");}
     else {uiBoss.textContent=currentBossIndex+1;setBossCounter("/40");}
     uiName.textContent=boss.name;
     startBossMusic(currentBossIndex);
@@ -1383,16 +1397,16 @@ function updateUI(){
     uiPower.textContent=player.damage;
     if(mapMode){uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);setBossCounter("");}
     else if(nightmareRush){uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1);setBossCounter("/15");}
-    else if(droneMadness){uiBoss.textContent="DRONES: "+droneMadnessDefeated;setBossCounter("/50");}
+    else if(enemyMadness){uiBoss.textContent="DRONES: "+enemyMadnessDefeated;setBossCounter("/50");}
     else setBossCounter("/40");
 }
 function update(){
     if(!gameActive||waitingForPowerup) return;
     if(mapMode && levelCompletePending) return;
-    if(droneMadness){
-        droneMadnessSpawnTimer++;
-        if(droneMadnessSpawnTimer>=180){
-            droneMadnessSpawnTimer=0;
+    if(enemyMadness){
+        enemyMadnessSpawnTimer++;
+        if(enemyMadnessSpawnTimer>=180){
+            enemyMadnessSpawnTimer=0;
             const idx=Math.floor(Math.random()*Math.min(NIGHTMARE_START_INDEX,minionTypes.length));
             const t=minionTypes[idx];
             if(t) minions.push({...t,x:30+Math.random()*840,y:40+Math.random()*500,hp:t.hp,maxHp:t.hp,timer:0,contactCooldown:0,splitDone:false,angle:Math.random()*Math.PI*2,targetX:450,targetY:300,dx:0,dy:0,warningTimer:0});
@@ -1637,7 +1651,7 @@ const startNoUpgradeButton=document.getElementById("startNoUpgradeButton");
 const startNightmareRushButton=document.getElementById("startNightmareRushButton");
 const startBossMapButton=document.getElementById("startBossMapButton");
 const startSandboxButton=document.getElementById("startSandboxButton");
-const droneMadnessButton=document.getElementById("droneMadnessButton");
+const enemyMadnessButton=document.getElementById("enemyMadnessButton");
 const sandboxBossSelect=document.getElementById("sandboxBossSelect");
 const sandboxEnemySelect=document.getElementById("sandboxEnemySelect");
 const spawnBossButton=document.getElementById("spawnBossButton");
@@ -1677,7 +1691,8 @@ const mapLevels=[
     {id:7,name:"WALL OF SILENCE",tag:"",requires:6,slot:6,rowY:0.55},
     {id:8,name:"WALL OF SILENCE & NEON GHOST",tag:"TAG TEAM",requires:7,slot:7,rowY:0.55},
     {id:9,name:"THE BOUNCER",tag:"",requires:8,slot:8,rowY:0.55},
-    {id:10,name:"GRASS MONSTROSITY",tag:"",requires:9,slot:9,rowY:0.55}
+    {id:10,name:"GRASS MONSTROSITY",tag:"",requires:9,slot:9,rowY:0.55},
+    {id:11,name:"GRAVITY WELL & CHRONOS",tag:"TAG TEAM",requires:10,slot:11,rowY:0.55}
 ];
 const REWARD_OWNER_LEVEL_ID=6;
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -1693,6 +1708,18 @@ grad.addColorStop(0.5,"#18551f");
 grad.addColorStop(1,"#103b17");
 g.fillStyle=grad;
 g.fillRect(0,0,w,h);
+// World 2: rectangular gray cave region beginning at the actual World 2 marker.
+const caveStart=3040;
+const caveTop=40;
+if(w>caveStart){
+    const caveGrad=g.createLinearGradient(caveStart,caveTop,w,h);
+    caveGrad.addColorStop(0,"#b8b8b8");
+    caveGrad.addColorStop(0.5,"#858585");
+    caveGrad.addColorStop(1,"#404040");
+    g.fillStyle=caveGrad;
+    g.fillRect(caveStart,caveTop,w-caveStart,h-caveTop);
+}
+}
 }
 window.addEventListener("resize",()=>{if(bossMap.style.display==="flex"){sizeMapCanvas();renderMapNodes();}});
 function computeTrackWidth(){const maxSlot=mapLevels.reduce((m,l)=>Math.max(m,l.slot),0);const needed=(maxSlot+1)*SCROLL_SLOT_PX+SCROLL_PADDING_PX*2;return Math.max(window.innerWidth,needed);}
@@ -1766,9 +1793,10 @@ function startMapLevel(level){
     else if(level.id===8){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
     else if(level.id===9){sandboxBossSelect.value="5";currentBossIndex=5;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===10){currentBossIndex=bosses.findIndex(b=>b.name==="GRASS MONSTROSITY");sandboxBossSelect.value=String(currentBossIndex);spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
+    else if(level.id===11){const gi=bosses.findIndex(b=>b.name==="GRAVITY WELL"),ci=bosses.findIndex(b=>b.name==="CHRONOS");sandboxBossSelect.value=String(gi);currentBossIndex=gi;spawnSandboxBoss();sandboxBossSelect.value=String(ci);currentBossIndex=ci;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=190;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=190;}}
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
-    startGrassyMusic();gameActive=true;updateUI();
+    if(level.id===11) startCavesMusic(); else startGrassyMusic();gameActive=true;updateUI();
 }
 function showLevelComplete(){
     gameActive=false;levelCompleteText.textContent="LEVEL "+activeMapLevel.id+" COMPLETED!";
@@ -1805,7 +1833,7 @@ function playDingSound(){
 function showMainMenuOnStartup(){
     document.body.classList.add("menuOpen");mainMenu.style.display="flex";sandboxMenu.style.display="none";powerupScreen.style.display="none";
     bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
-    gameActive=false;waitingForPowerup=false;sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;droneMadness=false;
+    gameActive=false;waitingForPowerup=false;sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;
     boss=null;bullets=[];enemyBullets=[];minions=[];bossHazards=[];
     updateMenuButtonStates();
 }
@@ -1865,14 +1893,14 @@ function unlockAndPlayMusic(){
 }
 function startDroneMadness(){
     unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
-    sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;droneMadness=true;
-    droneMadnessDefeated=0;droneMadnessSpawnTimer=0;mainMenu.style.display="none";sandboxMenu.style.display="none";
+    sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=true;
+    enemyMadnessDefeated=0;enemyMadnessSpawnTimer=0;mainMenu.style.display="none";sandboxMenu.style.display="none";
     powerupScreen.style.display="none";bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
     waitingForPowerup=false;boss=null;bullets=[];enemyBullets=[];minions=[];resetPlayer();gameActive=true;updateUI();
 }
 function startGame(){
     unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
-    sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;droneMadness=false;
+    sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;
     mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";
     bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
     waitingForPowerup=false;currentBossIndex=0;resetPlayer();bullets=[];enemyBullets=[];minions=[];
@@ -1927,7 +1955,8 @@ startNoUpgradeButton.onclick=startNoUpgradeMode;
 startNightmareRushButton.onclick=startNightmareRush;
 startBossMapButton.onclick=openBossMap;
 startSandboxButton.onclick=startSandbox;
-droneMadnessButton.onclick=startDroneMadness;
+enemyMadnessButton.addEventListener("click",e=>{e.preventDefault();playMenuChime();startDroneMadness();},{passive:false});
+enemyMadnessButton.addEventListener("touchend",e=>{e.preventDefault();playMenuChime();startDroneMadness();},{passive:false});
 mapBackButton.onclick=closeBossMapToMenu;
 spawnBossButton.onclick=spawnSandboxBoss;
 spawnEnemyButton.onclick=spawnSandboxEnemy;
