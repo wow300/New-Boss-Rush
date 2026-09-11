@@ -166,7 +166,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 <div id="mobileControls"><div id="mobileJoystick"><div id="mobileStick"></div></div><div id="mobileAim"><div id="mobileAimStick"></div></div><button id="mobileDashButton" type="button">DASH</button></div>
 <div id="ui">
     <h1 style="letter-spacing:5px">BOSS RUSH: <span id="bossName" style="color:#fff">Name</span></h1>
-    <p><span class="label">Tier:</span> <span id="bossNum">1</span>/40 | <span class="label">Shields:</span> <span id="bhp" class="stat">100</span></p>
+    <p><span class="label">Tier:</span> <span id="bossNum">1</span><span id="bossTotal">/40</span> | <span class="label">Shields:</span> <span id="bhp" class="stat">100</span></p>
     <p><span class="label">Pilot Integrity:</span> <span id="hp" class="stat">100</span>% | <span class="label">Damage:</span> <span id="power" class="stat">5</span></p>
 </div>
 <div id="msg">WASD to Move | Click to Shoot | SPACE to Dash if unlocked</div>
@@ -223,6 +223,8 @@ const ctx=canvas.getContext("2d");
 const uiHp=document.getElementById("hp");
 const uiBhp=document.getElementById("bhp");
 const uiBoss=document.getElementById("bossNum");
+const uiBossTotal=document.getElementById("bossTotal");
+function setBossCounter(total){if(uiBossTotal)uiBossTotal.textContent=total||"";}
 const uiName=document.getElementById("bossName");
 const uiPower=document.getElementById("power");
 let audioCtx=null, musicTimer=null, musicStep=0, currentMusicKey="", musicGeneration=0, musicBus=null;
@@ -1363,10 +1365,10 @@ function initBoss(){
     bullets=[];enemyBullets=[];minions=[];bossHazards=[];
     const template=bosses[currentBossIndex];
     boss={...template,x:450,y:150,timer:0,maxHp:template.hp,shield:template.shields||0,maxShield:template.shields||0};
-    if(mapMode) uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);
-    else if(nightmareRush) uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1)+"/15";
-    else if(droneMadness) uiBoss.textContent="DRONES: "+droneMadnessDefeated+"/50";
-    else uiBoss.textContent=currentBossIndex+1;
+    if(mapMode){uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);setBossCounter("");}
+    else if(nightmareRush){uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1);setBossCounter("/15");}
+    else if(droneMadness){uiBoss.textContent="DRONES: "+droneMadnessDefeated;setBossCounter("/50");}
+    else {uiBoss.textContent=currentBossIndex+1;setBossCounter("/40");}
     uiName.textContent=boss.name;
     startBossMusic(currentBossIndex);
     updateUI();
@@ -1379,9 +1381,10 @@ function updateUI(){
     else displayedBossHP=boss?(boss.hp+Math.max(0,boss.shield||0)):0;
     uiBhp.textContent=Math.max(0,Math.ceil(displayedBossHP));
     uiPower.textContent=player.damage;
-    if(mapMode) uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);
-    else if(nightmareRush) uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1)+"/15";
-    else if(droneMadness) uiBoss.textContent="DRONES: "+droneMadnessDefeated+"/50";
+    if(mapMode){uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);setBossCounter("");}
+    else if(nightmareRush){uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1);setBossCounter("/15");}
+    else if(droneMadness){uiBoss.textContent="DRONES: "+droneMadnessDefeated;setBossCounter("/50");}
+    else setBossCounter("/40");
 }
 function update(){
     if(!gameActive||waitingForPowerup) return;
