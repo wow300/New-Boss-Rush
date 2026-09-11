@@ -506,10 +506,10 @@ function markCompleted(mode){
 const REWARD_SAVE_KEY="bossRushPermanentUpgrade_v1";
 let permanentUpgradeId=null;
 let permanentUpgradeIds=[];
-function loadPermanentUpgrade(){try{const raw=localStorage.getItem(REWARD_SAVE_KEY);return raw||null;}catch(e){return null;}}
-function savePermanentUpgrade(id){try{localStorage.setItem(REWARD_SAVE_KEY,id);}catch(e){}}
-permanentUpgradeId=loadPermanentUpgrade();
-if(permanentUpgradeId) permanentUpgradeIds=[permanentUpgradeId];
+function loadPermanentUpgrade(){try{const raw=localStorage.getItem(REWARD_SAVE_KEY);if(!raw) return null;const parsed=JSON.parse(raw);if(Array.isArray(parsed)) return parsed;return [raw];}catch(e){return null;}}
+function savePermanentUpgrade(id){try{localStorage.setItem(REWARD_SAVE_KEY,JSON.stringify(permanentUpgradeIds));}catch(e){}}
+const _loadedUpgrades=loadPermanentUpgrade();
+if(_loadedUpgrades){permanentUpgradeIds=_loadedUpgrades.filter(Boolean);permanentUpgradeId=permanentUpgradeIds[0]||null;}
 function getAngleToPlayer(origin,leadFactor=0){
     const targetX=player.x+(player.vx||0)*leadFactor;
     const targetY=player.y+(player.vy||0)*leadFactor;
@@ -1253,7 +1253,10 @@ const rewardScreenText=document.getElementById("rewardScreenText");
 function openRewardPicker(){
     const claimedIds=permanentUpgradeIds.length?permanentUpgradeIds:(permanentUpgradeId?[permanentUpgradeId]:[]);
     if(claimedIds.length>=3) return;
-    const picks=[...powerups].sort(()=>Math.random()-.5).slice(0,3);
+    const claimedSet=new Set(claimedIds);
+    const available=powerups.filter(p=>!claimedSet.has(p.id));
+    if(available.length===0) return;
+    const picks=available.sort(()=>Math.random()-.5).slice(0,3);
     rewardChoices.innerHTML="";
     rewardScreenText.textContent="Choose one upgrade to keep forever. It only applies while you play the Boss Map.";
     picks.forEach(up=>{
@@ -1561,7 +1564,7 @@ function draw(){
     ctx.fillRect(player.x-player.size/2,player.y-player.size/2,player.size,player.size);
     if(player.shield>0){ctx.strokeStyle="#00ffff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(player.x,player.y,27,0,Math.PI*2);ctx.stroke();ctx.fillStyle="#00ffff";ctx.font="12px Courier New";ctx.fillText("S:"+player.shield,player.x+18,player.y-20);}
     const bossesToDraw=mapMode?mapSniperBosses:(sandboxMode?sandboxBosses:(boss?[boss]:[]));
-    for(const db of bossesToDraw){ctx.fillStyle=db.color;ctx.shadowColor=db.color;ctx.shadowBlur=15;ctx.fillRect(db.x-db.size/2,db.y-db.size/2,db.size,db.size);ctx.shadowBlur=0;ctx.fillStyle="#222";ctx.fillRect(db.x-50,db.y-db.size-14,100,7);ctx.fillStyle=db.color;ctx.fillRect(db.x-50,db.y-db.size-14,Math.max(0,db.hp/db.maxHp*100),7);if(db.shield>0){ctx.fillStyle="#00ffff";ctx.fillRect(db.x-50,db.y-db.size-22,Math.max(0,db.shield/(db.maxShield||1)*100),6);}}
+    for(const db of bossesToDraw){ctx.fillStyle=db.color;ctx.shadowColor=db.color;ctx.shadowBlur=15;ctx.fillRect(db.x-db.size/2,db.y-db.size/2,db.size,db.size);ctx.shadowBlur=0;ctx.fillStyle="#222";ctx.fillRect(db.x-50,db.y-db.size-14,100,7);ctx.fillStyle=db.color;ctx.fillRect(db.x-50,db.y-db.size-14,Math.max(0,db.hp/db.maxHp*100),7);if(db.shield>0 && db.name!=="GRASS MONSTROSITY" && db.name!=="EMERALD KILLER"){ctx.fillStyle="#00ffff";ctx.fillRect(db.x-50,db.y-db.size-22,Math.max(0,db.shield/(db.maxShield||1)*100),6);}}
     minions.forEach(m=>{
         if(m.kind==="grid" && m.warningTimer>0){const pulse=0.22+0.28*Math.sin(m.warningTimer*.45)**2;ctx.save();ctx.globalAlpha=pulse;ctx.strokeStyle=m.color;ctx.shadowColor=m.color;ctx.shadowBlur=14;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(m.x,0);ctx.lineTo(m.x,canvas.height);ctx.moveTo(0,m.y);ctx.lineTo(canvas.width,m.y);ctx.stroke();ctx.globalAlpha=0.9;ctx.lineWidth=2;ctx.stroke();ctx.restore();}
         ctx.fillStyle=m.color;ctx.shadowColor=m.color;ctx.shadowBlur=10;
