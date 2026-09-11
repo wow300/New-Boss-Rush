@@ -64,7 +64,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
     #sandboxMenu{top:48px;right:8px;width:220px;}
     #dlcBanner{font-size:10px;padding:4px 6px;}
 }
-#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:linear-gradient(180deg,#236b2a 0%, #18551f 50%, #103b17 100%);overflow:hidden;}
+#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:linear-gradient(180deg,#236b2a,#18551f 55%,#103b17);overflow:hidden;}
 #mapScroll{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-color:#4f8f4f #0c2b0c;}
 #mapScroll::-webkit-scrollbar{height:14px;}
 #mapScroll::-webkit-scrollbar-track{background:#0c2b0c;border-top:2px solid #1a4a1a;}
@@ -1672,7 +1672,7 @@ function drawMapBackground(){
 const w=mapCanvas.width,h=mapCanvas.height,g=mapCanvas.getContext("2d");
 const grad=g.createLinearGradient(0,0,0,h);
 grad.addColorStop(0,"#236b2a");
-grad.addColorStop(0.5,"#18551f");
+grad.addColorStop(0.55,"#18551f");
 grad.addColorStop(1,"#103b17");
 g.fillStyle=grad;
 g.fillRect(0,0,w,h);
