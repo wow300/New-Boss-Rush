@@ -1235,7 +1235,7 @@ function updateMinion(m){
     else if(m.kind==="tidal"){m.y+=Math.sin(m.timer*.035)*2;if(m.timer%100===0){fireBullet(0,m.y,0,5.5,m.color,7);fireBullet(900,m.y,Math.PI,5.5,m.color,7);}}
     else if(m.kind==="mirror"){m.x+=(player.x-m.x)*.003;m.y+=(player.y-m.y)*.001;if(m.timer%90===0){const a=getAngleToPlayer(m);fireBullet(m.x,m.y,a,6,m.color,6,0,7);fireBullet(m.x,m.y,a+Math.PI,4,m.color,5);}}
     else if(m.kind==="absolute"){m.x+=Math.sin(m.timer*.025)*1.5;m.y+=Math.cos(m.timer*.03)*1.2;if(m.timer%55===0) for(let i=0;i<6;i++) fireBullet(m.x,m.y,i*Math.PI/3+m.timer*.08,5.5,m.color,6,0,7);if(m.timer%100===0) aimSpread(m,3,.16,7,m.color,6,8);}
-    else if(m.kind==="newDrone"){const v=m.variant||0;const a=getAngleToPlayer(m);m.x+=(player.x-m.x)*.003;m.y+=(player.y-m.y)*.003;if(m.timer%70===0){switch(v){case 0: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.22,6,m.color,5,7,'thunder',{life:150});break;case 1: for(let i=0;i<8;i++) fireUniqueBullet(m.x,m.y,i*Math.PI/4,4.5,m.color,5,6,'ring',{life:190});break;case 2: fireUniqueBullet(m.x,m.y,a,8,m.color,9,9,'beam',{life:130});break;case 3: for(let i=-2;i<=2;i++) fireUniqueBullet(m.x,m.y,a+i*.18,6,m.color,6,7,'fire',{life:160});break;case 4: for(let i=0;i<5;i++) fireUniqueBullet(m.x,m.y,i*Math.PI*2/5,3.5,m.color,7,7,'frost',{life:250});break;case 5: fireUniqueBullet(m.x,m.y,a,4,m.color,9,8,'gravity',{turn:.02,life:240});break;case 6: fireUniqueBullet(0,m.y,0,6.5,m.color,5,7,'sweep',{life:150});break;case 7: fireUniqueBullet(m.x,m.y,a,4.5,m.color,10,9,'meteor',{life:240});break;case 8: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.28,5.5,m.color,7,8,'spikeTriangle',{life:190});break;case 9: fireUniqueBullet(m.x,m.y,a,6,m.color,6,8,'boomer',{life:280});break;case 10: fireUniqueBullet(0,m.y,0,5.5,m.color,6,8,'closer',{life:210});fireUniqueBullet(900,m.y,Math.PI,5.5,m.color,6,8,'closer',{life:210});break;case 11: fireUniqueBullet(m.x,m.y,a,3.5,m.color,9,8,'mine',{life:260});break;case 12: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.25,5.2,m.color,6,7,'trap',{life:220});break;case 13: for(let i=0;i<6;i++) fireUniqueBullet(m.x,m.y,i*Math.PI/3,4.3,m.color,6,8,'time',{life:240});break;}}}
+    else if(m.kind==="newDrone"){const v=m.variant||0;const a=getAngleToPlayer(m);m.x+=(player.x-m.x)*.003;m.y+=(player.y-m.y)*.003;if((v===14?m.timer%120===0:m.timer%70===0)){const attackVariant=v===14?Math.floor(Math.random()*14):v;const attackColor=v===14?["#ffff44","#ff66ff","#00ffff","#ff6600","#66ccff","#aa44ff","#ff2255","#ff8844","#88ff44","#ffffff","#00ff88","#ff66aa","#9966ff","#bbffff"][attackVariant]:m.color;switch(attackVariant){case 0: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.22,6,attackColor,5,7,'thunder',{life:150});break;case 1: for(let i=0;i<8;i++) fireUniqueBullet(m.x,m.y,i*Math.PI/4,4.5,attackColor,5,6,'ring',{life:190});break;case 2: fireUniqueBullet(m.x,m.y,a,8,attackColor,9,9,'beam',{life:130});break;case 3: for(let i=-2;i<=2;i++) fireUniqueBullet(m.x,m.y,a+i*.18,6,attackColor,6,7,'fire',{life:160});break;case 4: for(let i=0;i<5;i++) fireUniqueBullet(m.x,m.y,i*Math.PI*2/5,3.5,attackColor,7,7,'frost',{life:250});break;case 5: fireUniqueBullet(m.x,m.y,a,4,attackColor,9,8,'gravity',{turn:.02,life:240});break;case 6: fireUniqueBullet(0,m.y,0,6.5,attackColor,5,7,'sweep',{life:150});break;case 7: fireUniqueBullet(m.x,m.y,a,4.5,attackColor,10,9,'meteor',{life:240});break;case 8: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.28,5.5,attackColor,7,8,'spikeTriangle',{life:190});break;case 9: fireUniqueBullet(m.x,m.y,a,6,attackColor,6,8,'boomer',{life:280});break;case 10: fireUniqueBullet(0,m.y,0,5.5,attackColor,6,8,'closer',{life:210});fireUniqueBullet(900,m.y,Math.PI,5.5,attackColor,6,8,'closer',{life:210});break;case 11: fireUniqueBullet(m.x,m.y,a,3.5,attackColor,9,8,'mine',{life:260});break;case 12: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.25,5.2,attackColor,6,7,'trap',{life:220});break;case 13: for(let i=0;i<6;i++) fireUniqueBullet(m.x,m.y,i*Math.PI/3,4.3,attackColor,6,8,'time',{life:240});break;}}}
     m.x=Math.max(-60,Math.min(canvas.width+60,m.x));m.y=Math.max(-60,Math.min(canvas.height+60,m.y));
     if(m.contactCooldown<=0 && Math.hypot(m.x-player.x,m.y-player.y)<m.size/2+player.size/2){
         if(player.shield>0) player.shield--;else player.hp-=7;
@@ -1809,19 +1809,24 @@ function startMapLevel(level){
         if(mapSniperBosses[2]){mapSniperBosses[2].x=450;mapSniperBosses[2].y=260;}
     }
     else if(level.id===15){
-        const makeEmeraldKiller=(x,y)=>({name:"EMERALD KILLER",hp:1000,maxHp:1000,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:2.15,x,y,timer:0,update:function(){
+        const makeEmeraldKiller=(x,y)=>({name:"EMERALD KILLER",hp:1000,maxHp:1000,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:1.7,x,y,timer:0,update:function(){
             const dx=player.x-this.x,dy=player.y-this.y,len=Math.hypot(dx,dy)||1;
             this.x+=dx/len*this.speed;this.y+=dy/len*this.speed;
             if(this.timer%150===0){
-                const a=getAngleToPlayer(this);[-0.2,0,0.2].forEach(off=>fireBullet(this.x,this.y,a+off,5.2,"#65ff65",7,0,7));
+                const a=getAngleToPlayer(this);[-0.45,0,0.45].forEach(off=>fireBullet(this.x,this.y,a+off,4.5,"#9cff9c",7,0,7));
             }
             if(this.timer%240===0){
                 for(let burst=0;burst<3;burst++){
-                    for(let i=0;i<5;i++){const a=(Math.PI*2*i/5)+(burst*0.16);fireBullet(this.x,this.y,a,3.8,"#baffba",6,0,5);}
+                    for(let i=0;i<5;i++){const a=(Math.PI*2*i/5)+(burst*0.16);fireBullet(this.x,this.y,a,3.2,"#9cff9c",6,0,5);}
                 }
             }
             if(this.timer%300===0){
-                const a=getAngleToPlayer(this);for(let i=0;i<20;i++)fireBullet(this.x,this.y,a+(Math.random()-.5)*0.08,8.2,"#39ff65",4,0,4);
+                this.emeraldMinigunShots=20;
+            }
+            if(this.emeraldMinigunShots>0 && this.timer%6===0){
+                const a=getAngleToPlayer(this);
+                fireBullet(this.x,this.y,a+(Math.random()-.5)*0.08,6.8,"#9cff9c",4,0,4);
+                this.emeraldMinigunShots--;
             }
         }});
         mapSniperBosses.push(makeEmeraldKiller(450,180));
@@ -1980,11 +1985,11 @@ function startSandbox(){
 function spawnSandboxBoss(){
     const selected=sandboxBossSelect.value;
     if(selected==="EMERALD_KILLER"){
-        const emerald={name:"EMERALD KILLER",hp:1000,maxHp:1000,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:2.15,x:450,y:220,timer:0,update:function(){
+        const emerald={name:"EMERALD KILLER",hp:1000,maxHp:1000,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:1.7,x:450,y:220,timer:0,update:function(){
             const dx=player.x-this.x,dy=player.y-this.y,len=Math.hypot(dx,dy)||1;this.x+=dx/len*this.speed;this.y+=dy/len*this.speed;
-            if(this.timer%150===0){const a=getAngleToPlayer(this);[-0.2,0,0.2].forEach(off=>fireBullet(this.x,this.y,a+off,5.2,"#65ff65",7,0,7));}
-            if(this.timer%240===0){for(let burst=0;burst<3;burst++)for(let i=0;i<5;i++){const a=(Math.PI*2*i/5)+(burst*0.16);fireBullet(this.x,this.y,a,3.8,"#baffba",6,0,5);}}
-            if(this.timer%300===0){const a=getAngleToPlayer(this);for(let i=0;i<20;i++)fireBullet(this.x,this.y,a+(Math.random()-.5)*0.08,8.2,"#39ff65",4,0,4);}
+            if(this.timer%150===0){const a=getAngleToPlayer(this);[-0.45,0,0.45].forEach(off=>fireBullet(this.x,this.y,a+off,4.5,"#9cff9c",7,0,7));}
+            if(this.timer%240===0){for(let burst=0;burst<3;burst++)for(let i=0;i<5;i++){const a=(Math.PI*2*i/5)+(burst*0.16);fireBullet(this.x,this.y,a,3.2,"#9cff9c",6,0,5);}}
+            if(this.timer%300===0){this.emeraldMinigunShots=20;}if(this.emeraldMinigunShots>0&&this.timer%6===0){const a=getAngleToPlayer(this);fireBullet(this.x,this.y,a+(Math.random()-.5)*0.08,6.8,"#9cff9c",4,0,4);this.emeraldMinigunShots--;}
         }};
         const count=sandboxBosses.length;const angle=count*0.9,radius=Math.min(230,60+count*18);emerald.x=450+Math.cos(angle)*radius;emerald.y=180+Math.sin(angle)*radius;sandboxBosses.push(emerald);boss=emerald;currentBossIndex=0;updateUI();return;
     }
