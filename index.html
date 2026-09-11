@@ -64,14 +64,14 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
     #sandboxMenu{top:48px;right:8px;width:220px;}
     #dlcBanner{font-size:10px;padding:4px 6px;}
 }
-#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:radial-gradient(circle at 30% 20%, #1b4d1b 0%, #0c2b0c 45%, #051705 100%);overflow:hidden;}
+#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:#18551f;overflow:hidden;}
 #mapScroll{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-color:#4f8f4f #0c2b0c;}
 #mapScroll::-webkit-scrollbar{height:14px;}
 #mapScroll::-webkit-scrollbar-track{background:#0c2b0c;border-top:2px solid #1a4a1a;}
 #mapScroll::-webkit-scrollbar-thumb{background:#4f8f4f;border:2px solid #0c2b0c;border-radius:8px;}
 #mapScroll::-webkit-scrollbar-thumb:hover{background:#8fff8f;}
 #mapTrack{position:relative;height:100%;min-width:100%;}
-#mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;}
+#mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;border:none;box-shadow:none;}
 #mapOverlay{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;pointer-events:none;}
 #bossMap .mapTitle{margin-top:26px;color:#dfffdf;font-size:30px;letter-spacing:5px;text-shadow:0 0 14px rgba(80,255,80,.5),2px 2px #000;pointer-events:none;}
 #bossMap .mapSub{color:#8fc78f;margin:4px 0 0;font-size:14px;letter-spacing:3px;text-shadow:1px 1px #000;pointer-events:none;}
@@ -1716,11 +1716,7 @@ let mapCleared=loadMapSave();
 function sizeMapCanvas(){const w=mapTrack.clientWidth,h=mapTrack.clientHeight;mapCanvas.width=Math.max(1,w);mapCanvas.height=Math.max(1,h);drawMapBackground();}
 function drawMapBackground(){
 const w=mapCanvas.width,h=mapCanvas.height,g=mapCanvas.getContext("2d");
-const grad=g.createLinearGradient(0,0,0,h);
-grad.addColorStop(0,"#236b2a");
-grad.addColorStop(0.5,"#18551f");
-grad.addColorStop(1,"#103b17");
-g.fillStyle=grad;
+g.fillStyle="#18551f";
 g.fillRect(0,0,w,h);
 }
 window.addEventListener("resize",()=>{if(bossMap.style.display==="flex"){sizeMapCanvas();renderMapNodes();}});
