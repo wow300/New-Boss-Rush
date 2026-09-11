@@ -23,7 +23,7 @@ canvas{background:#000;display:block;position:fixed;left:50%;top:50%;transform:t
 .powerChoice:hover{border-color:#0f0;background:#182018;transform:translateY(-5px);}
 .powerChoice strong{display:block;color:#0f0;font-size:19px;margin-bottom:10px;}
 .powerChoice span{color:#aaa;font-size:14px;}
-#mainMenu{pointer-events:auto;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:100000;display:flex;align-items:center;justify-content:flex-start;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:20px 0 40px;}
+#mainMenu{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:100000;display:flex;align-items:center;justify-content:flex-start;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:20px 0 40px;}
 #mainMenu h1{font-size:46px;letter-spacing:6px;color:#0f0;margin:0 0 10px;text-shadow:0 0 18px rgba(0,255,0,.35);}
 #mainMenu p{color:#777;margin:0 0 28px;}
 #dlcBanner{position:fixed;top:14px;right:14px;z-index:100001;color:#ff2020;font:bold 14px 'Courier New',monospace;letter-spacing:2px;text-shadow:0 0 10px rgba(255,0,0,.7),2px 2px #000;pointer-events:none;padding:6px 10px;border:2px solid #ff2020;background:rgba(20,0,0,.75);border-radius:4px;}
@@ -33,7 +33,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .menuButton:hover{border-color:#0f0;background:#182018;}
 .menuButton.completed{border-color:#0f0;background:#0a1a0a;color:#0f0;box-shadow:0 0 12px rgba(0,255,0,.3);}
 #enemyMadnessButton{border-color:#555;}
-#enemyMadnessButton:hover{border-color:#0f0;background:#182018;}
+#enemyMadnessButton:hover{border-color:#0f0;background:#182018;color:#fff;}
 #enemyMadnessButton .miniLabel{display:block;color:#777;font-size:12px;margin-top:5px;letter-spacing:1px;}
 .menuButton.completed::after{content:" COMPLETED!";font-size:.75em;color:#0f0;display:block;margin-top:4px;letter-spacing:2px;pointer-events:none;}
 #startNightmareRushButton{border-color:#801010;}
@@ -120,6 +120,11 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #rewardChoices{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;max-width:850px;}
 .rewardBack{margin-top:6px;padding:10px 18px;background:#111;color:#fff;border:2px solid #555;font:bold 14px 'Courier New',monospace;cursor:pointer;letter-spacing:2px;}
 .rewardBack:hover{border-color:#0f0;background:#182018;}
+
+#mapTrack::after{content:"";position:absolute;left:calc(120px + 10 * 260px);top:0;width:calc(100% - (120px + 10 * 260px));height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
+.mapWorld2Region{position:absolute;left:calc(120px + 10 * 260px);top:0;width:calc(100% - (120px + 10 * 260px));height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:35px;padding-top:26px;box-sizing:border-box;z-index:2;pointer-events:none;}
+.mapWorld2Title{color:#eee;font-size:30px;letter-spacing:5px;text-shadow:2px 2px #000;}
+.mapWorld2Sub{color:#bbb;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
 </style>
 </head>
 <body class="menuOpen" style="margin:0;">
@@ -137,8 +142,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 <div id="bossMap">
     <div id="mapScroll"><div id="mapTrack">
         <canvas id="mapCanvas"></canvas>
-        <div id="mapOverlay"><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div>
-        <div id="world2Marker" style="position:absolute;left:3040px;top:18%;transform:translateX(-50%);z-index:101;text-align:center;pointer-events:none;text-shadow:0 0 12px #79d7ff,0 0 28px #287da8;white-space:nowrap"><div style="font-size:clamp(24px,4vw,52px);font-weight:1000;letter-spacing:6px;color:#b9efff">WORLD 2</div><div style="font-size:clamp(14px,2vw,25px);font-weight:900;letter-spacing:4px;color:#79d7ff;margin-top:5px">THE CAVES</div></div>
+        <div id="mapOverlay"><div class="mapWorld2Region"><div class="mapWorld2Title">WORLD 2</div><div class="mapWorld2Sub">THE CAVES</div></div><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div>
         <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:103;pointer-events:auto;"></div>
         <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:none;"></div>
         <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
@@ -386,7 +390,7 @@ function playMenuChime(){
 document.addEventListener("click",e=>{
     const t=e.target;
     if(!t) return;
-    if(t.closest && t.closest("#startGameButton, #startNoUpgradeButton, #startBossMapButton, #startSandboxButton, #startNightmareRushButton")){
+    if(t.closest && t.closest("#startGameButton, #startNoUpgradeButton, #startBossMapButton, #startSandboxButton, #startNightmareRushButton, #enemyMadnessButton")){
         playMenuChime();
     }
 },true);
@@ -472,16 +476,6 @@ function startMusic(theme,key){
             if(beat===4||beat===12) playSnare(when,.036);
             if(beat%2===0) playHat(when,.013);
         }
-        if(key==="caves"){
-            const caveLead=noteFreq(root,scale[(idx+section*2)%scale.length]+24);
-            playTone(caveLead,d*1.15,.075,"sine",when,.003,.07,-5);
-            if(s%2===0) playTone(noteFreq(root,scale[(idx+3)%scale.length]+12),d*.8,.035,"triangle",when,.003,.08);
-            if(s%4===0) playTone(bass,d*3,.055,"sine",when,.006,.10);
-            if(s%8===0) playTone(chord,d*6,.022,"triangle",when,.018,.14);
-            if(beat===0||beat===10) playKick(when,.06);
-            if(beat===6||beat===14) playSnare(when,.028);
-            if(beat%2===0) playHat(when,.010);
-        }
     }
     function scheduler(){
         if(gen!==musicGeneration||currentMusicKey!==key){if(musicTimer){clearInterval(musicTimer);musicTimer=null;}return;}
@@ -495,8 +489,6 @@ function startMenuMusic(){startMusic(longMenuMusic,"menu");}
 function startSandboxMusic(){startMusic(longSandboxMusic,"sandbox");}
 function startBossMusic(index){startMusic(longBossMusicThemes[index%longBossMusicThemes.length],"boss"+index);}
 function startGrassyMusic(){startMusic(longGrassyMusic,"grassy");}
-const longCavesMusic=[148,196,[0,2,3,5,7,10,12],[0,2,4,1,3,5,2,6,4,1,0,3,5,2,7,4]];
-function startCavesMusic(){startMusic(longCavesMusic,"caves");}
 document.addEventListener("pointerdown",()=>{
     if(!audioCtx) ensureAudio();
     if(!audioCtx) return;
@@ -1692,7 +1684,7 @@ const mapLevels=[
     {id:8,name:"WALL OF SILENCE & NEON GHOST",tag:"TAG TEAM",requires:7,slot:7,rowY:0.55},
     {id:9,name:"THE BOUNCER",tag:"",requires:8,slot:8,rowY:0.55},
     {id:10,name:"GRASS MONSTROSITY",tag:"",requires:9,slot:9,rowY:0.55},
-    {id:11,name:"GRAVITY WELL & CHRONOS",tag:"TAG TEAM",requires:10,slot:11,rowY:0.55}
+    {id:11,name:"GRAVITY WELL & CHRONOS",tag:"TAG TEAM",requires:10,slot:10,rowY:0.55}
 ];
 const REWARD_OWNER_LEVEL_ID=6;
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -1708,18 +1700,6 @@ grad.addColorStop(0.5,"#18551f");
 grad.addColorStop(1,"#103b17");
 g.fillStyle=grad;
 g.fillRect(0,0,w,h);
-// World 2: rectangular gray cave region beginning at the actual World 2 marker.
-const caveStart=3040;
-const caveTop=40;
-if(w>caveStart){
-    const caveGrad=g.createLinearGradient(caveStart,caveTop,w,h);
-    caveGrad.addColorStop(0,"#b8b8b8");
-    caveGrad.addColorStop(0.5,"#858585");
-    caveGrad.addColorStop(1,"#404040");
-    g.fillStyle=caveGrad;
-    g.fillRect(caveStart,caveTop,w-caveStart,h-caveTop);
-}
-}
 }
 window.addEventListener("resize",()=>{if(bossMap.style.display==="flex"){sizeMapCanvas();renderMapNodes();}});
 function computeTrackWidth(){const maxSlot=mapLevels.reduce((m,l)=>Math.max(m,l.slot),0);const needed=(maxSlot+1)*SCROLL_SLOT_PX+SCROLL_PADDING_PX*2;return Math.max(window.innerWidth,needed);}
@@ -1793,10 +1773,10 @@ function startMapLevel(level){
     else if(level.id===8){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
     else if(level.id===9){sandboxBossSelect.value="5";currentBossIndex=5;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===10){currentBossIndex=bosses.findIndex(b=>b.name==="GRASS MONSTROSITY");sandboxBossSelect.value=String(currentBossIndex);spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
-    else if(level.id===11){const gi=bosses.findIndex(b=>b.name==="GRAVITY WELL"),ci=bosses.findIndex(b=>b.name==="CHRONOS");sandboxBossSelect.value=String(gi);currentBossIndex=gi;spawnSandboxBoss();sandboxBossSelect.value=String(ci);currentBossIndex=ci;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=190;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=190;}}
+    else if(level.id===11){sandboxBossSelect.value="10";currentBossIndex=10;spawnSandboxBoss();sandboxBossSelect.value="11";currentBossIndex=11;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=320;mapSniperBosses[0].y=190;}if(mapSniperBosses[1]){mapSniperBosses[1].x=580;mapSniperBosses[1].y=190;}}
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
-    if(level.id===11) startCavesMusic(); else startGrassyMusic();gameActive=true;updateUI();
+    startGrassyMusic();gameActive=true;updateUI();
 }
 function showLevelComplete(){
     gameActive=false;levelCompleteText.textContent="LEVEL "+activeMapLevel.id+" COMPLETED!";
@@ -1955,8 +1935,7 @@ startNoUpgradeButton.onclick=startNoUpgradeMode;
 startNightmareRushButton.onclick=startNightmareRush;
 startBossMapButton.onclick=openBossMap;
 startSandboxButton.onclick=startSandbox;
-enemyMadnessButton.addEventListener("click",e=>{e.preventDefault();playMenuChime();startDroneMadness();},{passive:false});
-enemyMadnessButton.addEventListener("touchend",e=>{e.preventDefault();playMenuChime();startDroneMadness();},{passive:false});
+enemyMadnessButton.onclick=startDroneMadness;
 mapBackButton.onclick=closeBossMapToMenu;
 spawnBossButton.onclick=spawnSandboxBoss;
 spawnEnemyButton.onclick=spawnSandboxEnemy;
@@ -1977,39 +1956,6 @@ gameLoop();
   repairMobileLayer();
   window.addEventListener("load",repairMobileLayer);
   window.addEventListener("resize",repairMobileLayer);
-})();
-
-/* FINAL MAIN MENU INPUT FIX */
-(function(){
-  function install(){
-    const menu=document.getElementById("mainMenu");
-    if(menu){menu.style.pointerEvents="auto";menu.style.zIndex="1000000";}
-    const ids={
-      startGameButton:()=>startGame(),
-      startNoUpgradeButton:()=>startNoUpgradeMode(),
-      startNightmareRushButton:()=>startNightmareRush(),
-      startBossMapButton:()=>openBossMap(),
-      startSandboxButton:()=>startSandbox(),
-      enemyMadnessButton:()=>startDroneMadness()
-    };
-    Object.keys(ids).forEach(id=>{
-      const b=document.getElementById(id); if(!b||b.dataset.finalMenuFix)return;
-      b.dataset.finalMenuFix="1";
-      b.style.pointerEvents="auto"; b.style.position="relative"; b.style.zIndex="1000001"; b.style.touchAction="manipulation";
-      let last=0;
-      const run=e=>{
-        const now=Date.now(); if(now-last<400)return; last=now;
-        if(e){e.preventDefault();e.stopImmediatePropagation();}
-        if(typeof ids[id]==="function")ids[id]();
-      };
-      b.addEventListener("pointerup",run,{capture:true,passive:false});
-      b.addEventListener("touchend",run,{capture:true,passive:false});
-      b.addEventListener("click",run,{capture:true,passive:false});
-    });
-  }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install);
-  else install();
-  window.addEventListener("load",install);
 })();
 </script>
 </body>
