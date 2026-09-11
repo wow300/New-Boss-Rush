@@ -7,7 +7,7 @@
 html, body{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
 button, canvas, input, select, textarea{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
 body{margin:0;background:#050505;color:white;text-align:center;overflow:hidden;font-family:'Courier New',monospace;}
-canvas:not(#mapCanvas){background:#000;display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;cursor:crosshair;border:4px solid #222;box-shadow:0 0 20px rgba(0,255,0,.1);width:900px;height:700px;box-sizing:border-box;}
+canvas{background:#000;display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;cursor:crosshair;border:4px solid #222;box-shadow:0 0 20px rgba(0,255,0,.1);width:900px;height:700px;box-sizing:border-box;}
 #ui{position:absolute;top:10px;width:100%;pointer-events:none;text-shadow:2px 2px #000;z-index:5;}
 .stat{font-weight:bold;font-size:1.2em;}
 #hp{color:#0f0}
@@ -44,13 +44,13 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #sandboxMenu button:hover{border-color:#0f0;}
 #sandboxMenu .sandboxDanger{color:#f88;}
 #mobileToggle{position:fixed;top:12px;left:12px;z-index:40;padding:10px 14px;background:#111;color:#fff;border:2px solid #555;font:bold 14px 'Courier New',monospace;cursor:pointer;display:block;}
-#mobileDashButton{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:105px;height:105px;border:3px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.08);color:#fff;font:bold 15px 'Courier New',monospace;pointer-events:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+#mobileDashButton{z-index:10001;pointer-events:auto;position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:105px;height:105px;border:3px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.08);color:#fff;font:bold 15px 'Courier New',monospace;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
 #mobileDashButton:active{transform:translateX(-50%) scale(.94);border-color:#0ff;}
 #mobileControls{display:none;position:fixed;inset:0;z-index:35;pointer-events:none;}
 #mobileControls.enabled{display:block;}
-#mobileJoystick{position:absolute;left:24px;bottom:24px;width:150px;height:150px;border:3px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none;touch-action:none;}
+#mobileJoystick{z-index:10000;pointer-events:auto;position:absolute;left:24px;bottom:24px;width:150px;height:150px;border:3px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.08);pointer-events:auto;touch-action:none;}
 #mobileStick{position:absolute;width:62px;height:62px;left:44px;top:44px;border-radius:50%;background:rgba(0,255,0,.35);border:2px solid #0f0;}
-#mobileAim{position:absolute;right:24px;bottom:24px;width:150px;height:150px;border-radius:50%;background:rgba(0,200,255,.12);border:3px solid #4dd;pointer-events:none;touch-action:none;user-select:none;}
+#mobileAim{z-index:10000;pointer-events:auto;position:absolute;right:24px;bottom:24px;width:150px;height:150px;border-radius:50%;background:rgba(0,200,255,.12);border:3px solid #4dd;pointer-events:auto;touch-action:none;user-select:none;}
 #mobileAim::after{content:"AIM + FIRE";position:absolute;left:0;right:0;bottom:18px;text-align:center;font:bold 11px 'Courier New',monospace;color:#9ee;pointer-events:none;}
 #mobileAimStick{position:absolute;width:62px;height:62px;left:44px;top:44px;border-radius:50%;background:rgba(0,200,255,.35);border:2px solid #4dd;box-sizing:border-box;pointer-events:none;transform:translate(0,0);}
 @media (max-width:700px){
@@ -67,22 +67,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #mapScroll::-webkit-scrollbar-thumb{background:#4f8f4f;border:2px solid #0c2b0c;border-radius:8px;}
 #mapScroll::-webkit-scrollbar-thumb:hover{background:#8fff8f;}
 #mapTrack{position:relative;height:100%;min-width:100%;}
-#mapCanvas{
-position:absolute!important;
-left:0!important;
-top:0!important;
-width:100%!important;
-height:100%!important;
-display:block!important;
-transform:none!important;
-margin:0!important;
-border:0!important;
-outline:0!important;
-box-shadow:none!important;
-background:transparent!important;
-pointer-events:none!important;
-z-index:0!important;
-}
+#mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;}
 #mapOverlay{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;pointer-events:none;}
 #bossMap .mapTitle{margin-top:26px;color:#dfffdf;font-size:30px;letter-spacing:5px;text-shadow:0 0 14px rgba(80,255,80,.5),2px 2px #000;pointer-events:none;}
 #bossMap .mapSub{color:#8fc78f;margin:4px 0 0;font-size:14px;letter-spacing:3px;text-shadow:1px 1px #000;pointer-events:none;}
