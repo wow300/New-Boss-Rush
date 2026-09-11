@@ -1340,7 +1340,7 @@ window.addEventListener("keydown",e=>{
 });
 window.addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
 function initBoss(){
-    const endIndex=nightmareRush?NIGHTMARE_END_INDEX+1:(mapMode||sandboxMode?bosses.length:41);
+    const endIndex=nightmareRush?NIGHTMARE_END_INDEX+1:(mapMode||sandboxMode?bosses.length:40);
     if(currentBossIndex>=endIndex){
         gameActive=false;
         alert(nightmareRush?"NIGHTMARES CONQUERED!\n\nYou cleared all 15 Nightmare bosses!":"GOD SLAYER!\n\nYou cleared all 40 bosses!");
@@ -1479,7 +1479,7 @@ function update(){
                 if(boss.hp<=0){
                     bullets=[];enemyBullets=[];minions=[];bossHazards=[];
                     currentBossIndex++;
-                    const endIndex=nightmareRush?NIGHTMARE_END_INDEX+1:41;
+                    const endIndex=nightmareRush?NIGHTMARE_END_INDEX+1:40;
                     if(currentBossIndex>=endIndex){
                         gameActive=false;
                         if(nightmareRush){markCompleted("nightmare");alert("NIGHTMARES CONQUERED!\n\nYou cleared all 15 Nightmare bosses!");}
