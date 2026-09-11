@@ -1,1 +1,1 @@
-The latest update added Level 6 to the Boss Map!
+The latest update fixed Boss Map and added Nightmares Await DLC!
