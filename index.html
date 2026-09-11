@@ -1442,6 +1442,7 @@ function update(){
             else if(sb.name==="THE BOUNCER") minionTypeForBoss=5;
             else if(sb.name==="GRAVITY WELL") minionTypeForBoss=6;
             else if(sb.name==="CHRONOS") minionTypeForBoss=7;
+            else if(sb.name==="THE HYDRA") minionTypeForBoss=8;
             if(sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
             for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){mapSniperBosses.splice(si,1);break;}}}
         }
