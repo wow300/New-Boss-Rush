@@ -338,6 +338,7 @@ const longBossMusicThemes=allBossMusicThemes.map((t,i)=>expandTheme(t,i));
 const longMenuMusic=expandTheme(menuMusic,0);
 const longSandboxMusic=expandTheme(sandboxMusic,2);
 const longGrassyMusic=expandTheme(grassyMusic,0);
+const cavesMusic=expandTheme([150,110,[0,1,3,6,8,10,11],[0,3,6,8,11,8,6,3,1,0,4,7,10,7,4,2,5,9,11,9,5,2,0,3,6,10,8,5,1,4,7,10,6]],2);
 function ensureAudio(){
     if(!audioCtx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;audioCtx=new AC();}
     if(audioCtx.state!=="running") audioCtx.resume().catch(()=>{});
@@ -489,6 +490,7 @@ function startMenuMusic(){startMusic(longMenuMusic,"menu");}
 function startSandboxMusic(){startMusic(longSandboxMusic,"sandbox");}
 function startBossMusic(index){startMusic(longBossMusicThemes[index%longBossMusicThemes.length],"boss"+index);}
 function startGrassyMusic(){startMusic(longGrassyMusic,"grassy");}
+function startCavesMusic(){startMusic(cavesMusic,"caves");}
 document.addEventListener("pointerdown",()=>{
     if(!audioCtx) ensureAudio();
     if(!audioCtx) return;
@@ -1773,10 +1775,10 @@ function startMapLevel(level){
     else if(level.id===8){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
     else if(level.id===9){sandboxBossSelect.value="5";currentBossIndex=5;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===10){currentBossIndex=bosses.findIndex(b=>b.name==="GRASS MONSTROSITY");sandboxBossSelect.value=String(currentBossIndex);spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
-    else if(level.id===11){sandboxBossSelect.value="10";currentBossIndex=10;spawnSandboxBoss();sandboxBossSelect.value="11";currentBossIndex=11;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=320;mapSniperBosses[0].y=190;}if(mapSniperBosses[1]){mapSniperBosses[1].x=580;mapSniperBosses[1].y=190;}}
+    else if(level.id===11){const gravityIndex=bosses.findIndex(b=>b.name==="GRAVITY WELL");const chronosIndex=bosses.findIndex(b=>b.name==="CHRONOS");sandboxBossSelect.value=String(gravityIndex);currentBossIndex=gravityIndex;spawnSandboxBoss();sandboxBossSelect.value=String(chronosIndex);currentBossIndex=chronosIndex;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=320;mapSniperBosses[0].y=190;}if(mapSniperBosses[1]){mapSniperBosses[1].x=580;mapSniperBosses[1].y=190;}}
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
-    startGrassyMusic();gameActive=true;updateUI();
+    if(level.id===11) startCavesMusic(); else startGrassyMusic();gameActive=true;updateUI();
 }
 function showLevelComplete(){
     gameActive=false;levelCompleteText.textContent="LEVEL "+activeMapLevel.id+" COMPLETED!";
