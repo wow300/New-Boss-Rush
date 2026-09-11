@@ -1775,7 +1775,7 @@ function startMapLevel(level){
     else if(level.id===8){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
     else if(level.id===9){sandboxBossSelect.value="5";currentBossIndex=5;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===10){currentBossIndex=bosses.findIndex(b=>b.name==="GRASS MONSTROSITY");sandboxBossSelect.value=String(currentBossIndex);spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
-    else if(level.id===11){const gravityIndex=6;const chronosIndex=7;sandboxBossSelect.value=String(gravityIndex);currentBossIndex=gravityIndex;spawnSandboxBoss();sandboxBossSelect.value=String(chronosIndex);currentBossIndex=chronosIndex;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=320;mapSniperBosses[0].y=190;}if(mapSniperBosses[1]){mapSniperBosses[1].x=580;mapSniperBosses[1].y=190;}}
+    else if(level.id===11){const spawnExactMapBoss=(wantedName,x,y)=>{const template=bosses.find(b=>b.name===wantedName);if(!template)return;const newBoss={...template,x,y,timer:0,maxHp:template.hp};mapSniperBosses.push(newBoss);boss=newBoss;};spawnExactMapBoss("GRAVITY WELL",320,190);spawnExactMapBoss("CHRONOS",580,190);currentBossIndex=bosses.findIndex(b=>b.name==="CHRONOS");}
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
     if(level.id===11) startCavesMusic(); else startGrassyMusic();gameActive=true;updateUI();
