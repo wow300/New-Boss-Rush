@@ -22,13 +22,13 @@ canvas{background:#000;display:block;position:fixed;left:50%;top:50%;transform:t
 .powerChoice:hover{border-color:#0f0;background:#182018;transform:translateY(-5px);}
 .powerChoice strong{display:block;color:#0f0;font-size:19px;margin-bottom:10px;}
 .powerChoice span{color:#aaa;font-size:14px;}
-#mainMenu{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:100000;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+#mainMenu{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:1000000;display:flex;pointer-events:auto;align-items:center;justify-content:center;flex-direction:column;}
 #mainMenu h1{font-size:46px;letter-spacing:6px;color:#0f0;margin:0 0 10px;text-shadow:0 0 18px rgba(0,255,0,.35);}
 #mainMenu p{color:#777;margin:0 0 28px;}
 #dlcBanner{position:fixed;top:14px;right:14px;z-index:100001;color:#ff2020;font:bold 14px 'Courier New',monospace;letter-spacing:2px;text-shadow:0 0 10px rgba(255,0,0,.7),2px 2px #000;pointer-events:none;padding:6px 10px;border:2px solid #ff2020;background:rgba(20,0,0,.75);border-radius:4px;}
 body:not(.menuOpen) #dlcBanner{display:none;}
 body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileToggle,body.menuOpen #mobileControls,body.menuOpen #sandboxMenu,body.menuOpen #rewardScreen,body.menuOpen #levelStartScreen{z-index:9999;display:none;} body.menuOpen #levelCompleteScreen{display:none !important;}
-.menuButton{width:300px;padding:16px;margin:7px;border:2px solid #444;background:#111;color:#fff;font:20px 'Courier New',monospace;cursor:pointer;transition:border-color .3s,background .3s,color .3s;position:relative;touch-action:manipulation;}
+.menuButton{pointer-events:auto;z-index:1000001;-webkit-appearance:none;appearance:none;user-select:none;-webkit-user-select:none;touch-action:manipulation;width:300px;padding:16px;margin:7px;border:2px solid #444;background:#111;color:#fff;font:20px 'Courier New',monospace;cursor:pointer;transition:border-color .3s,background .3s,color .3s;position:relative;touch-action:manipulation;}
 .menuButton:hover{border-color:#0f0;background:#182018;}
 .menuButton.completed{border-color:#0f0;background:#0a1a0a;color:#0f0;box-shadow:0 0 12px rgba(0,255,0,.3);}
 .menuButton.completed::after{content:" \u2714 COMPLETED!";font-size:.75em;color:#0f0;display:block;margin-top:4px;letter-spacing:2px;pointer-events:none;}
@@ -1829,11 +1829,12 @@ function exitToMainMenu(){
     mainMenu.style.display="flex";
     updateMenuButtonStates();updateUI();
 }
-startGameButton.onclick=startGame;
-startNoUpgradeButton.onclick=startNoUpgradeMode;
-startNightmareRushButton.onclick=startNightmareRush;
-startBossMapButton.onclick=openBossMap;
-startSandboxButton.onclick=startSandbox;
+function bindMenuButton(id,fn){const el=document.getElementById(id);if(!el)return;el.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();fn();},{passive:false});el.addEventListener("touchend",e=>{e.preventDefault();e.stopPropagation();fn();},{passive:false});}
+bindMenuButton("startGameButton",startGame);
+bindMenuButton("startNoUpgradeButton",startNoUpgradeMode);
+bindMenuButton("startNightmareRushButton",startNightmareRush);
+bindMenuButton("startBossMapButton",openBossMap);
+bindMenuButton("startSandboxButton",startSandbox);
 mapBackButton.onclick=closeBossMapToMenu;
 spawnBossButton.onclick=spawnSandboxBoss;
 spawnEnemyButton.onclick=spawnSandboxEnemy;
