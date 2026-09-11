@@ -64,7 +64,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
     #sandboxMenu{top:48px;right:8px;width:220px;}
     #dlcBanner{font-size:10px;padding:4px 6px;}
 }
-#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:radial-gradient(circle at 30% 20%, #1b4d1b 0%, #0c2b0c 45%, #051705 100%);overflow:hidden;}
+#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:linear-gradient(180deg,#236b2a 0%, #18551f 50%, #103b17 100%);overflow:hidden;}
 #mapScroll{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-color:#4f8f4f #0c2b0c;}
 #mapScroll::-webkit-scrollbar{height:14px;}
 #mapScroll::-webkit-scrollbar-track{background:#0c2b0c;border-top:2px solid #1a4a1a;}
@@ -179,51 +179,6 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 <div id="powerupScreen"><h2>BOSS DEFEATED!</h2><p>Choose one upgrade before the next fight.</p><div id="powerupChoices"></div></div>
 <canvas id="gameCanvas"></canvas>
 <script>
-/* =========================================================
-   [CHANGE LOG]
-   --- 2026-09-11 (part 1) ---
-   Completion buttons turn green.
-   --- 2026-09-11 (part 2) ---
-   Boss Map Level 7: WALL OF SILENCE added.
-   --- 2026-09-11 (part 3) ---
-   Main menu button stacking/touch hardening.
-   --- 2026-09-11 (part 4) ---
-   Level 7 spawns SILENCE WALLER minions.
-   --- 2026-09-11 (part 5) ---
-   Nightmares Await DLC: 15 bosses, 15 minions, new button,
-   red top-right banner, completion flag, sandbox auto-fill.
-   --- 2026-09-11 (part 6) ---
-   (User) Added levels 8-10 including GRASS MONSTROSITY,
-   mobile toggle debounce, map layer z-index fixes.
-   --- 2026-09-11 (part 7) ---
-   GRASS MONSTROSITY attacks: all bullet-only. Grass blades
-   burst into 4 bullets (+ pattern) after 2s. Trees replaced
-   with bullet-tree columns (gap to run through).
-   --- 2026-09-11 (part 8) ---
-   Main menu vertical scrolling on small screens.
-   --- 2026-09-11 (part 9) ---
-   Boss Map minion behavior: THE BOUNCER spawns BOUNCER
-   minions; GRASS MONSTROSITY spawns no minions.
-   --- 2026-09-11 (part 10) ---
-   Remove \u2714 tick from .menuButton.completed::after.
-   Button now reads " COMPLETED!".
-   --- 2026-09-11 (part 11) ---
-   Nightmare Rush minion index fix. DROWNED (boss index 41)
-   was spawning HOLLOWLING (minion index 41) instead of
-   DROWNLING (minion index 40). Offset by -1 in Nightmare Rush.
-   --- 2026-09-11 (part 12) ---
-   1. Start Game / No Upgrades now end after boss 40
-      (THE APOCALYPSE). Previously they continued into
-      PULSAR CORE and the Nightmare bosses.
-      initBoss() and update() both clamp endIndex.
-   2. Bullet caps: fireBullet() and fireUniqueBullet() now
-      bail early if enemyBullets.length>300. Prevents the
-      NIGHTMARE INCARNATE multi-attack spam from locking
-      the game on low-end hardware.
-   3. NIGHTMARE INCARNATE no longer spawns minions.
-      Its NIGHTMARE SPECK minions + heavy bullet output
-      compounded the freeze.
-========================================================= */
 const canvas=document.getElementById("gameCanvas");
 const ctx=canvas.getContext("2d");
 const uiHp=document.getElementById("hp");
@@ -1821,7 +1776,7 @@ function startMapLevel(level){
     }
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
-    if(level.id===11) startCavesMusic(); else startGrassyMusic();gameActive=true;updateUI();
+    if(level.id>=11) startCavesMusic(); else startGrassyMusic();gameActive=true;updateUI();
 }
 function showLevelComplete(){
     gameActive=false;levelCompleteText.textContent="LEVEL "+activeMapLevel.id+" COMPLETED!";
