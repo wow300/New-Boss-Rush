@@ -7,7 +7,7 @@
 html, body{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
 button, canvas, input, select, textarea{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
 body{margin:0;background:#050505;color:white;text-align:center;overflow:hidden;font-family:'Courier New',monospace;}
-canvas{background:#000;display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;cursor:crosshair;border:4px solid #222;box-shadow:0 0 20px rgba(0,255,0,.1);width:900px;height:700px;box-sizing:border-box;}
+canvas:not(#mapCanvas){background:#000;display:block;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;cursor:crosshair;border:4px solid #222;box-shadow:0 0 20px rgba(0,255,0,.1);width:900px;height:700px;box-sizing:border-box;}
 #ui{position:absolute;top:10px;width:100%;pointer-events:none;text-shadow:2px 2px #000;z-index:5;}
 .stat{font-weight:bold;font-size:1.2em;}
 #hp{color:#0f0}
@@ -27,7 +27,7 @@ canvas{background:#000;display:block;position:fixed;left:50%;top:50%;transform:t
 #mainMenu p{color:#777;margin:0 0 28px;}
 #dlcBanner{position:fixed;top:14px;right:14px;z-index:100001;color:#ff2020;font:bold 14px 'Courier New',monospace;letter-spacing:2px;text-shadow:0 0 10px rgba(255,0,0,.7),2px 2px #000;pointer-events:none;padding:6px 10px;border:2px solid #ff2020;background:rgba(20,0,0,.75);border-radius:4px;}
 body:not(.menuOpen) #dlcBanner{display:none;}
-body.menuOpen canvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileToggle,body.menuOpen #mobileControls,body.menuOpen #sandboxMenu,body.menuOpen #rewardScreen,body.menuOpen #levelStartScreen,body.menuOpen #levelCompleteScreen,body.menuOpen #bossMap{display:none !important;}
+body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileToggle,body.menuOpen #mobileControls,body.menuOpen #sandboxMenu,body.menuOpen #rewardScreen,body.menuOpen #levelStartScreen{z-index:9999;display:none;} body.menuOpen #levelCompleteScreen{display:none !important;}
 .menuButton{width:300px;padding:16px;margin:7px;border:2px solid #444;background:#111;color:#fff;font:20px 'Courier New',monospace;cursor:pointer;transition:border-color .3s,background .3s,color .3s;position:relative;touch-action:manipulation;}
 .menuButton:hover{border-color:#0f0;background:#182018;}
 .menuButton.completed{border-color:#0f0;background:#0a1a0a;color:#0f0;box-shadow:0 0 12px rgba(0,255,0,.3);}
@@ -44,13 +44,13 @@ body.menuOpen canvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileT
 #sandboxMenu button:hover{border-color:#0f0;}
 #sandboxMenu .sandboxDanger{color:#f88;}
 #mobileToggle{position:fixed;top:12px;left:12px;z-index:40;padding:10px 14px;background:#111;color:#fff;border:2px solid #555;font:bold 14px 'Courier New',monospace;cursor:pointer;display:block;}
-#mobileDashButton{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:105px;height:105px;border:3px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.08);color:#fff;font:bold 15px 'Courier New',monospace;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+#mobileDashButton{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:105px;height:105px;border:3px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.08);color:#fff;font:bold 15px 'Courier New',monospace;pointer-events:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
 #mobileDashButton:active{transform:translateX(-50%) scale(.94);border-color:#0ff;}
 #mobileControls{display:none;position:fixed;inset:0;z-index:35;pointer-events:none;}
 #mobileControls.enabled{display:block;}
-#mobileJoystick{position:absolute;left:24px;bottom:24px;width:150px;height:150px;border:3px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.08);pointer-events:auto;touch-action:none;}
+#mobileJoystick{position:absolute;left:24px;bottom:24px;width:150px;height:150px;border:3px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none;touch-action:none;}
 #mobileStick{position:absolute;width:62px;height:62px;left:44px;top:44px;border-radius:50%;background:rgba(0,255,0,.35);border:2px solid #0f0;}
-#mobileAim{position:absolute;right:24px;bottom:24px;width:150px;height:150px;border-radius:50%;background:rgba(0,200,255,.12);border:3px solid #4dd;pointer-events:auto;touch-action:none;user-select:none;}
+#mobileAim{position:absolute;right:24px;bottom:24px;width:150px;height:150px;border-radius:50%;background:rgba(0,200,255,.12);border:3px solid #4dd;pointer-events:none;touch-action:none;user-select:none;}
 #mobileAim::after{content:"AIM + FIRE";position:absolute;left:0;right:0;bottom:18px;text-align:center;font:bold 11px 'Courier New',monospace;color:#9ee;pointer-events:none;}
 #mobileAimStick{position:absolute;width:62px;height:62px;left:44px;top:44px;border-radius:50%;background:rgba(0,200,255,.35);border:2px solid #4dd;box-sizing:border-box;pointer-events:none;transform:translate(0,0);}
 @media (max-width:700px){
@@ -67,13 +67,28 @@ body.menuOpen canvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileT
 #mapScroll::-webkit-scrollbar-thumb{background:#4f8f4f;border:2px solid #0c2b0c;border-radius:8px;}
 #mapScroll::-webkit-scrollbar-thumb:hover{background:#8fff8f;}
 #mapTrack{position:relative;height:100%;min-width:100%;}
-#mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;}
+#mapCanvas{
+position:absolute!important;
+left:0!important;
+top:0!important;
+width:100%!important;
+height:100%!important;
+display:block!important;
+transform:none!important;
+margin:0!important;
+border:0!important;
+outline:0!important;
+box-shadow:none!important;
+background:transparent!important;
+pointer-events:none!important;
+z-index:0!important;
+}
 #mapOverlay{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;pointer-events:none;}
 #bossMap .mapTitle{margin-top:26px;color:#dfffdf;font-size:30px;letter-spacing:5px;text-shadow:0 0 14px rgba(80,255,80,.5),2px 2px #000;pointer-events:none;}
 #bossMap .mapSub{color:#8fc78f;margin:4px 0 0;font-size:14px;letter-spacing:3px;text-shadow:1px 1px #000;pointer-events:none;}
 #mapBackButton{position:fixed;top:16px;left:16px;z-index:9100;padding:10px 14px;background:#0c2b0c;color:#dfffdf;border:2px solid #4f8f4f;font:bold 14px 'Courier New',monospace;cursor:pointer;pointer-events:auto;}
 #mapBackButton:hover{border-color:#8fff8f;background:#14401a;}
-.mapLevelNode{position:absolute;transform:translate(-50%,-50%);z-index:3;display:flex;flex-direction:column;align-items:center;pointer-events:auto;width:220px;}
+.mapLevelNode{position:absolute;transform:translate(-50%,-50%);z-index:103;display:flex;flex-direction:column;align-items:center;pointer-events:auto;width:220px;}
 .mapLevelCircle{width:90px;height:90px;border-radius:50%;border:4px solid #882020;background:radial-gradient(circle at 35% 30%, #5a1616 0%, #2a0808 80%);box-shadow:0 0 22px rgba(255,60,60,.45), inset 0 0 14px rgba(0,0,0,.6);color:#ffdede;font:bold 30px 'Courier New',monospace;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s, box-shadow .2s, border-color .2s;padding:0;}
 .mapLevelCircle:hover{transform:scale(1.06);}
 .mapLevelNode.cleared .mapLevelCircle{border-color:#4dff4d;background:radial-gradient(circle at 35% 30%, #2a8f2a 0%, #0d3d0d 80%);box-shadow:0 0 34px rgba(80,255,80,.85), 0 0 60px rgba(80,255,80,.4), inset 0 0 16px rgba(0,0,0,.5);color:#eaffea;animation:clearPulse 1.9s ease-in-out infinite;}
@@ -87,7 +102,7 @@ body.menuOpen canvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileT
 .mapLevelLabel .lvName{color:#ffffff;font-size:13px;display:block;}
 .mapLevelNode.cleared .mapLevelLabel .lvName{color:#bfffc1;}
 .mapLevelNode.cleared .mapLevelLabel .lvTag{color:#7fd07f;}
-.mapRewardNode{position:absolute;transform:translate(-50%,-50%);z-index:4;pointer-events:auto;display:flex;flex-direction:column;align-items:center;}
+.mapRewardNode{position:absolute;transform:translate(-50%,-50%);z-index:4;pointer-events:none;display:flex;flex-direction:column;align-items:center;}
 .mapRewardCircle{width:44px;height:44px;border-radius:50%;border:3px solid #555;background:radial-gradient(circle at 35% 30%, #2a2a2a 0%, #141414 80%);box-shadow:0 0 10px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.8);color:#888;font:bold 20px 'Courier New',monospace;cursor:not-allowed;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .12s, box-shadow .2s, border-color .2s, background .2s;}
 .mapRewardNode.unlocked .mapRewardCircle{border-color:#ffd24d;background:radial-gradient(circle at 35% 30%, #6a4f10 0%, #2c1f05 80%);box-shadow:0 0 22px rgba(255,210,80,.85), 0 0 40px rgba(255,210,80,.4), inset 0 0 12px rgba(0,0,0,.6);color:#fff2b3;cursor:pointer;animation:rewardPulse 1.6s ease-in-out infinite;}
 .mapRewardNode.unlocked .mapRewardCircle:hover{transform:scale(1.08);}
@@ -98,7 +113,7 @@ body.menuOpen canvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileT
 .mapRewardNode.unlocked .rewardTag{display:block;}
 .mapRewardNode.claimed .rewardTag{display:block;color:#9a9a9a;max-width:180px;white-space:normal;}
 #mapScrollHint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:4;color:#8fc78f;font:bold 12px 'Courier New',monospace;letter-spacing:2px;text-shadow:1px 1px #000;pointer-events:none;opacity:.85;}
-#levelStartScreen{display:none;position:fixed;inset:0;z-index:9500;align-items:center;justify-content:center;background:rgba(0,0,0,.72);flex-direction:column;}
+#levelStartScreen{z-index:9999;display:none;position:fixed;inset:0;z-index:9500;align-items:center;justify-content:center;background:rgba(0,0,0,.72);flex-direction:column;}
 .levelCard{width:280px;padding:26px 20px 22px;background:linear-gradient(180deg,#0e3d0e 0%, #06220a 100%);border:4px solid #6fe06f;box-shadow:0 0 30px rgba(80,255,80,.35), inset 0 0 20px rgba(0,0,0,.7);border-radius:6px;display:flex;flex-direction:column;align-items:center;gap:14px;}
 .levelCard h3{margin:0;color:#ffffff;font-size:20px;letter-spacing:3px;text-shadow:0 0 10px rgba(255,80,80,.6), 2px 2px #000;text-align:center;}
 .levelCard .x2Text{color:#ffe14d;font:bold 22px 'Courier New',monospace;letter-spacing:3px;text-shadow:0 0 10px rgba(255,220,80,.6), 2px 2px #000;}
@@ -133,8 +148,8 @@ body.menuOpen canvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileT
     <div id="mapScroll"><div id="mapTrack">
         <canvas id="mapCanvas"></canvas>
         <div id="mapOverlay"><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div>
-        <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:2;pointer-events:none;"></div>
-        <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:4;pointer-events:none;"></div>
+        <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:103;pointer-events:auto;"></div>
+        <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:none;"></div>
         <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
     </div></div>
     <button id="mapBackButton">&#8592; MAIN MENU</button>
@@ -1608,7 +1623,15 @@ function loadMapSave(){try{const raw=localStorage.getItem(MAP_SAVE_KEY);if(!raw)
 function saveMapSave(obj){try{localStorage.setItem(MAP_SAVE_KEY,JSON.stringify(obj));}catch(e){}}
 let mapCleared=loadMapSave();
 function sizeMapCanvas(){const w=mapTrack.clientWidth,h=mapTrack.clientHeight;mapCanvas.width=Math.max(1,w);mapCanvas.height=Math.max(1,h);drawMapBackground();}
-function drawMapBackground(){const w=mapCanvas.width,h=mapCanvas.height;const g=mapCanvas.getContext("2d");const grad=g.createLinearGradient(0,0,0,h);grad.addColorStop(0,"#1f6b1f");grad.addColorStop(0.55,"#134913");grad.addColorStop(1,"#082808");g.fillStyle=grad;g.fillRect(0,0,w,h);for(let y=0;y<h;y+=6)for(let x=0;x<w;x+=6){const r=Math.random();if(r<0.32){g.fillStyle="#185218";g.fillRect(x,y,6,6);}else if(r<0.5){g.fillStyle="#226b22";g.fillRect(x,y,6,6);}else if(r<0.56){g.fillStyle="#2c7d2c";g.fillRect(x,y,6,6);}}g.fillStyle="rgba(0,0,0,.18)";for(let i=0;i<Math.floor(w*h/1600);i++){const x=Math.floor(Math.random()*w);const y=Math.floor(Math.random()*h);g.fillRect(x,y,3,7);}g.fillStyle="rgba(120,255,120,.05)";for(let i=0;i<Math.floor(w*h/2000);i++){const x=Math.floor(Math.random()*w);const y=Math.floor(Math.random()*h);g.fillRect(x,y,3,5);}}
+function drawMapBackground(){
+const w=mapCanvas.width,h=mapCanvas.height,g=mapCanvas.getContext("2d");
+const grad=g.createLinearGradient(0,0,0,h);
+grad.addColorStop(0,"#1d7a2b");
+grad.addColorStop(0.5,"#17601f");
+grad.addColorStop(1,"#104417");
+g.fillStyle=grad;
+g.fillRect(0,0,w,h);
+}
 window.addEventListener("resize",()=>{if(bossMap.style.display==="flex"){sizeMapCanvas();renderMapNodes();}});
 function computeTrackWidth(){const maxSlot=mapLevels.reduce((m,l)=>Math.max(m,l.slot),0);const needed=(maxSlot+1)*SCROLL_SLOT_PX+SCROLL_PADDING_PX*2;return Math.max(window.innerWidth,needed);}
 function levelNodePosition(level){return {x:SCROLL_PADDING_PX+level.slot*SCROLL_SLOT_PX+SCROLL_SLOT_PX/2,y:level.rowY*mapTrack.clientHeight};}
