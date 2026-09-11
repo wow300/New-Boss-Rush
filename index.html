@@ -550,9 +550,11 @@ function markCompleted(mode){
 }
 const REWARD_SAVE_KEY="bossRushPermanentUpgrade_v1";
 let permanentUpgradeId=null;
+let permanentUpgradeIds=[];
 function loadPermanentUpgrade(){try{const raw=localStorage.getItem(REWARD_SAVE_KEY);return raw||null;}catch(e){return null;}}
 function savePermanentUpgrade(id){try{localStorage.setItem(REWARD_SAVE_KEY,id);}catch(e){}}
 permanentUpgradeId=loadPermanentUpgrade();
+if(permanentUpgradeId) permanentUpgradeIds=[permanentUpgradeId];
 function getAngleToPlayer(origin,leadFactor=0){
     const targetX=player.x+(player.vx||0)*leadFactor;
     const targetY=player.y+(player.vy||0)*leadFactor;
@@ -620,6 +622,7 @@ function bossChase(b){
     let speed=(b.name==="THE APOCALYPSE"||b.name==="NIGHTMARE INCARNATE")?0.62:Math.max(0.75,Math.min(2.8,3.25-b.size*0.022));
     if(b.name==="PULSAR CORE") speed*=0.35;
     if(b.name==="GRASS MONSTROSITY") speed*=0.4;
+    if(b.name==="ROCK BEAST") speed=0.48;
     if(d>2){b.x+=dx/d*speed;b.y+=dy/d*speed;}
     const edge=Math.max(20,b.size/2);
     b.x=Math.max(edge,Math.min(canvas.width-edge,b.x));
@@ -1284,13 +1287,17 @@ const powerups=[
 {id:"max_integrity",name:"MAX INTEGRITY",description:"Maximum HP +15 and restore 15 HP.",apply:()=>{player.maxHp+=15;player.hp=Math.min(player.maxHp,player.hp+15);}}
 ];
 function getPowerupById(id){return powerups.find(p=>p.id===id)||null;}
-function applyPermanentUpgradeToPlayer(){if(!permanentUpgradeId) return;const up=getPowerupById(permanentUpgradeId);if(!up) return;up.apply();}
+function applyPermanentUpgradeToPlayer(){
+    const ids=permanentUpgradeIds.length?permanentUpgradeIds:(permanentUpgradeId?[permanentUpgradeId]:[]);
+    ids.forEach(id=>{const up=getPowerupById(id);if(up) up.apply();});
+}
 const rewardScreen=document.getElementById("rewardScreen");
 const rewardChoices=document.getElementById("rewardChoices");
 const rewardBackButton=document.getElementById("rewardBackButton");
 const rewardScreenText=document.getElementById("rewardScreenText");
 function openRewardPicker(){
-    if(permanentUpgradeId) return;
+    const claimedIds=permanentUpgradeIds.length?permanentUpgradeIds:(permanentUpgradeId?[permanentUpgradeId]:[]);
+    if(claimedIds.length>=2) return;
     const picks=[...powerups].sort(()=>Math.random()-.5).slice(0,3);
     rewardChoices.innerHTML="";
     rewardScreenText.textContent="Choose one upgrade to keep forever. It only applies while you play the Boss Map.";
@@ -1298,7 +1305,12 @@ function openRewardPicker(){
         const button=document.createElement("button");
         button.className="powerChoice";
         button.innerHTML="<strong>"+up.name+"</strong>"+"<span>"+up.description+"</span>";
-        button.onclick=()=>{permanentUpgradeId=up.id;savePermanentUpgrade(up.id);playDingSound();rewardScreen.style.display="none";renderMapNodes();};
+        button.onclick=()=>{
+            if(!permanentUpgradeIds.includes(up.id)) permanentUpgradeIds.push(up.id);
+            permanentUpgradeId=permanentUpgradeIds[0]||null;
+            savePermanentUpgrade(up.id);
+            playDingSound();rewardScreen.style.display="none";renderMapNodes();
+        };
         rewardChoices.appendChild(button);
     });
     rewardScreen.style.display="flex";
@@ -1428,7 +1440,9 @@ function update(){
             else if(sb.name==="V-TWIN REVENANT") minionTypeForBoss=3;
             else if(sb.name==="WALL OF SILENCE") minionTypeForBoss=4;
             else if(sb.name==="THE BOUNCER") minionTypeForBoss=5;
-            if(sb.name!=="GRASS MONSTROSITY" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
+            else if(sb.name==="GRAVITY WELL") minionTypeForBoss=6;
+            else if(sb.name==="CHRONOS") minionTypeForBoss=7;
+            if(sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
             for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){mapSniperBosses.splice(si,1);break;}}}
         }
         separateBosses(mapSniperBosses);
@@ -1686,9 +1700,11 @@ const mapLevels=[
     {id:8,name:"WALL OF SILENCE & NEON GHOST",tag:"TAG TEAM",requires:7,slot:7,rowY:0.55},
     {id:9,name:"THE BOUNCER",tag:"",requires:8,slot:8,rowY:0.55},
     {id:10,name:"GRASS MONSTROSITY",tag:"",requires:9,slot:9,rowY:0.55},
-    {id:11,name:"GRAVITY WELL & CHRONOS",tag:"TAG TEAM",requires:10,slot:10,rowY:0.55}
+    {id:11,name:"GRAVITY WELL & CHRONOS",tag:"TAG TEAM",requires:10,slot:10,rowY:0.55},
+    {id:12,name:"ROCK BEASTS",tag:"3×",requires:11,slot:11,rowY:0.55}
 ];
 const REWARD_OWNER_LEVEL_ID=6;
+const REWARD_OWNER_LEVEL_IDS=[6,12];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
 function loadMapSave(){try{const raw=localStorage.getItem(MAP_SAVE_KEY);if(!raw) return {};const obj=JSON.parse(raw);return (obj&&typeof obj==="object")?obj:{};}catch(e){return {};}}
 function saveMapSave(obj){try{localStorage.setItem(MAP_SAVE_KEY,JSON.stringify(obj));}catch(e){}}
@@ -1725,8 +1741,8 @@ function renderMapNodes(){
         label.className="mapLevelLabel";
         label.innerHTML="<span class='lvTag'>LEVEL "+level.id+"</span><span class='lvName'>"+level.name+"</span>"+(level.tag?("<span class='lvTag' style='margin-top:2px;color:#ffe14d'>"+level.tag+"</span>"):"");
         node.appendChild(circle);node.appendChild(label);mapNodesLayer.appendChild(node);
-        if(level.id===REWARD_OWNER_LEVEL_ID){
-            const rewardUnlocked=cleared;const rewardClaimed=!!permanentUpgradeId;
+        if(REWARD_OWNER_LEVEL_IDS.includes(level.id)){
+            const rewardUnlocked=cleared;const rewardClaimed=(level.id===6&&permanentUpgradeIds.length>=1)||(level.id===12&&permanentUpgradeIds.length>=2);
             const rewardNode=document.createElement("div");
             rewardNode.className="mapRewardNode"+(rewardUnlocked?" unlocked":"")+(rewardClaimed?" claimed":"");
             rewardNode.style.left=(pos.x+46)+"px";rewardNode.style.top=(pos.y-62)+"px";
@@ -1775,7 +1791,19 @@ function startMapLevel(level){
     else if(level.id===8){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
     else if(level.id===9){sandboxBossSelect.value="5";currentBossIndex=5;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===10){currentBossIndex=bosses.findIndex(b=>b.name==="GRASS MONSTROSITY");sandboxBossSelect.value=String(currentBossIndex);spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
-    else if(level.id===11){const spawnExactMapBoss=(wantedName,x,y)=>{const template=bosses.find(b=>b.name===wantedName);if(!template)return;const newBoss={...template,x,y,timer:0,maxHp:template.hp};mapSniperBosses.push(newBoss);boss=newBoss;};spawnExactMapBoss("GRAVITY WELL",320,190);spawnExactMapBoss("CHRONOS",580,190);currentBossIndex=bosses.findIndex(b=>b.name==="CHRONOS");}
+    else if(level.id===11){const gravityIndex=6;const chronosIndex=7;sandboxBossSelect.value=String(gravityIndex);currentBossIndex=gravityIndex;spawnSandboxBoss();sandboxBossSelect.value=String(chronosIndex);currentBossIndex=chronosIndex;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=320;mapSniperBosses[0].y=190;}if(mapSniperBosses[1]){mapSniperBosses[1].x=580;mapSniperBosses[1].y=190;}}
+    else if(level.id===12){
+        const makeRockBeast=(x,y)=>({name:"ROCK BEAST",hp:800,maxHp:800,color:"#777",size:125,x,y,timer:0,update:function(){
+            if(this.timer%150===0){
+                for(let i=0;i<20;i++){const center=getAngleToPlayer(this);const a=center+(i-9.5)*0.105;fireBullet(this.x,this.y,a,4.2,"#888",8,0,5);}
+            }
+            if(this.timer%210===0){
+                fireBullet(this.x,this.y,getAngleToPlayer(this),2.1,"#aaa",30,0,15);
+            }
+        }});
+        mapSniperBosses.push(makeRockBeast(220,190),makeRockBeast(450,160),makeRockBeast(680,190));
+        currentBossIndex=0;
+    }
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
     if(level.id===11) startCavesMusic(); else startGrassyMusic();gameActive=true;updateUI();
@@ -1823,6 +1851,7 @@ mainMenu.addEventListener("pointerdown",()=>{if(document.body.classList.contains
 function fillSandboxMenus(){
     sandboxBossSelect.innerHTML="";
     bosses.forEach((b,i)=>{const option=document.createElement("option");option.value=i;option.textContent=(i+1)+" - "+b.name;sandboxBossSelect.appendChild(option);});
+    const rockOption=document.createElement("option");rockOption.value="ROCK_BEAST";rockOption.textContent="58 - ROCK BEAST";sandboxBossSelect.appendChild(rockOption);
     sandboxEnemySelect.innerHTML="";
     minionTypes.forEach((m,i)=>{const option=document.createElement("option");option.value=i;option.textContent=(i+1)+" - "+m.name;sandboxEnemySelect.appendChild(option);});
 }
@@ -1913,7 +1942,17 @@ function startSandbox(){
     currentBossIndex=0;resetPlayer();gameActive=true;startSandboxMusic();updateUI();
 }
 function spawnSandboxBoss(){
-    const index=Number(sandboxBossSelect.value);
+    const selected=sandboxBossSelect.value;
+    if(selected==="ROCK_BEAST"){
+        const rock={name:"ROCK BEAST",hp:800,maxHp:800,color:"#777",size:125,x:450,y:220,timer:0,update:function(){
+            if(this.timer%150===0){for(let i=0;i<20;i++){const center=getAngleToPlayer(this);const a=center+(i-9.5)*0.105;fireBullet(this.x,this.y,a,4.2,"#888",8,0,5);}}
+            if(this.timer%210===0) fireBullet(this.x,this.y,getAngleToPlayer(this),2.1,"#aaa",30,0,15);
+        }};
+        const count=sandboxBosses.length;const angle=count*0.9;const radius=Math.min(230,60+count*18);
+        rock.x=450+Math.cos(angle)*radius;rock.y=180+Math.sin(angle)*radius;
+        sandboxBosses.push(rock);boss=rock;currentBossIndex=0;updateUI();return;
+    }
+    const index=Number(selected);
     const template=bosses[index];currentBossIndex=index;
     const count=sandboxBosses.length;const angle=count*0.9;const radius=Math.min(230,60+count*18);
     const newBoss={...template,x:450+Math.cos(angle)*radius,y:180+Math.sin(angle)*radius,timer:0,maxHp:template.hp};
