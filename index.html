@@ -111,6 +111,10 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .levelCard button:hover{border-color:#0f0;background:#182018;}
 .levelCard .startBtn{border-color:#7fff7f;}
 .levelCard .startBtn:hover{background:#0e2a0e;}
+.levelCard .rewardBtn{border-color:#555;color:#777;cursor:not-allowed;background:#151515;}
+.levelCard .rewardBtn.ready{border-color:#ffd24d;color:#ffe89a;background:#4a3508;box-shadow:0 0 16px rgba(255,210,70,.45);cursor:pointer;animation:rewardPulse 1.6s ease-in-out infinite;}
+.levelCard .rewardBtn.ready:hover{border-color:#fff0a0;background:#654b0b;}
+.levelCard .rewardBtn.claimed{border-color:#555;color:#888;background:#202020;cursor:not-allowed;box-shadow:none;animation:none;}
 #levelCompleteScreen{display:none;position:fixed;inset:0;z-index:9600;align-items:center;justify-content:center;background:rgba(0,0,0,.72);flex-direction:column;pointer-events:none;}
 #levelCompleteScreen .completeInner{padding:26px 40px;background:rgba(8,32,8,.92);border:4px solid #7fff7f;box-shadow:0 0 34px rgba(120,255,120,.65), inset 0 0 22px rgba(0,0,0,.6);color:#eaffea;font:bold 30px 'Courier New',monospace;letter-spacing:4px;text-shadow:0 0 12px rgba(120,255,120,.7), 2px 2px #000;animation:completePop .35s ease-out;}
 @keyframes completePop{0%{transform:scale(.7);opacity:0;}100%{transform:scale(1);opacity:1;}}
@@ -153,6 +157,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
     <h3 id="levelCardBossName">THE SNIPER</h3>
     <div class="x2Text" id="levelCardTag">&times;2</div>
     <div class="startRow"><button class="startBtn" id="levelStartButton">START</button><button id="levelCancelButton">BACK</button></div>
+    <button class="rewardBtn" id="levelRewardButton" disabled>GET REWARD</button>
 </div></div>
 <div id="levelCompleteScreen"><div class="completeInner" id="levelCompleteText">LEVEL 1 COMPLETED!</div></div>
 <div id="rewardScreen">
@@ -1646,6 +1651,7 @@ const mapBackButton=document.getElementById("mapBackButton");
 const levelStartScreen=document.getElementById("levelStartScreen");
 const levelStartButton=document.getElementById("levelStartButton");
 const levelCancelButton=document.getElementById("levelCancelButton");
+const levelRewardButton=document.getElementById("levelRewardButton");
 const levelCompleteScreen=document.getElementById("levelCompleteScreen");
 const levelCompleteText=document.getElementById("levelCompleteText");
 const levelCardBossName=document.getElementById("levelCardBossName");
@@ -1768,9 +1774,29 @@ function openBossMap(){
 }
 function closeBossMapToMenu(){bossMap.style.display="none";document.body.classList.add("menuOpen");mainMenu.style.display="flex";stopMusic();}
 let pendingLevel=null;
-function openLevelStart(level){pendingLevel=level;levelCardBossName.textContent=level.name;levelCardTag.textContent=level.tag||"";levelStartScreen.style.display="flex";}
+function openLevelStart(level){
+    pendingLevel=level;
+    levelCardBossName.textContent=level.name;
+    levelCardTag.textContent=level.tag||"";
+    const rewardSlot=REWARD_OWNER_LEVEL_IDS.indexOf(level.id);
+    const hasReward=rewardSlot>=0;
+    const claimed=hasReward && !!permanentUpgradeIds[rewardSlot];
+    levelRewardButton.style.display=hasReward?"block":"none";
+    levelRewardButton.disabled=!hasReward || !mapCleared[level.id] || claimed;
+    levelRewardButton.classList.toggle("ready",hasReward && !!mapCleared[level.id] && !claimed);
+    levelRewardButton.classList.toggle("claimed",claimed);
+    levelRewardButton.textContent=claimed?"REWARD CLAIMED":(hasReward && mapCleared[level.id]?"GET REWARD":"GET REWARD");
+    levelStartScreen.style.display="flex";
+}
 function closeLevelStart(){pendingLevel=null;levelStartScreen.style.display="none";}
 levelCancelButton.onclick=closeLevelStart;
+levelRewardButton.onclick=()=>{
+    if(!pendingLevel) return;
+    const slot=REWARD_OWNER_LEVEL_IDS.indexOf(pendingLevel.id);
+    if(slot<0 || !mapCleared[pendingLevel.id] || permanentUpgradeIds[slot]) return;
+    levelStartScreen.style.display="none";
+    openRewardPicker(pendingLevel.id);
+};
 levelStartButton.onclick=()=>{if(!pendingLevel) return;const lvl=pendingLevel;closeLevelStart();startMapLevel(lvl);};
 function startMapLevel(level){
     if(ensureAudio() && audioCtx.state!=="running") audioCtx.resume().catch(()=>{});
@@ -1841,6 +1867,10 @@ function startMapLevel(level){
         const singularityIndex=bosses.findIndex(b=>b.name==="VOID SINGULARITY");
         sandboxBossSelect.value=String(singularityIndex);currentBossIndex=singularityIndex;spawnSandboxBoss();
         if(mapSniperBosses[0]){mapSniperBosses[0].x=450;mapSniperBosses[0].y=220;}
+        const voidVariant=minionTypes.find(t=>t.name==="VOIDLING");
+        if(voidVariant){
+            [[120,120],[780,120],[120,520],[780,520]].forEach(([x,y])=>minions.push({...voidVariant,x,y,hp:voidVariant.hp,maxHp:voidVariant.hp,timer:0,contactCooldown:0,splitDone:false,angle:Math.random()*Math.PI*2,targetX:x,targetY:y,dx:0,dy:0,warningTimer:0}));
+        }
     }
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
@@ -2048,4 +2078,4 @@ gameLoop();
 })();
 </script>
 </body>
-    </html>
+</html>
