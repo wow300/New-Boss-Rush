@@ -1674,6 +1674,24 @@ const MAP_SAVE_KEY="bossRushMapCleared_v1";
 function loadMapSave(){try{const raw=localStorage.getItem(MAP_SAVE_KEY);if(!raw) return {};const obj=JSON.parse(raw);return (obj&&typeof obj==="object")?obj:{};}catch(e){return {};}}
 function saveMapSave(obj){try{localStorage.setItem(MAP_SAVE_KEY,JSON.stringify(obj));}catch(e){}}
 let mapCleared=loadMapSave();
+// Remove permanent upgrades that the player has not legitimately unlocked yet.
+// Reward 1 requires Level 6 cleared, Reward 2 requires Level 12 cleared,
+// and Reward 3 requires Level 15 cleared. Locked/gray/red levels do not count.
+function sanitizePermanentUpgrades(){
+    const rewardLevels=[6,12,15];
+    let allowedCount=0;
+    for(let i=0;i<rewardLevels.length;i++){
+        if(!!mapCleared[rewardLevels[i]]) allowedCount++;
+        else break; // rewards must be earned in order
+    }
+    const valid=permanentUpgradeIds.filter(id=>!!getPowerupById(id)).slice(0,allowedCount);
+    if(valid.length!==permanentUpgradeIds.length || valid.some((id,i)=>id!==permanentUpgradeIds[i])){
+        permanentUpgradeIds=valid;
+        permanentUpgradeId=permanentUpgradeIds[0]||null;
+        savePermanentUpgrade(null);
+    }
+}
+sanitizePermanentUpgrades();
 function sizeMapCanvas(){const w=mapTrack.clientWidth,h=mapTrack.clientHeight;mapCanvas.width=Math.max(1,w);mapCanvas.height=Math.max(1,h);drawMapBackground();}
 function drawMapBackground(){
 const w=mapCanvas.width,h=mapCanvas.height,g=mapCanvas.getContext("2d");
@@ -1716,8 +1734,15 @@ function renderMapNodes(){
             const rcircle=document.createElement("button");
             rcircle.className="mapRewardCircle";rcircle.type="button";rcircle.textContent="\u2605";
             rcircle.setAttribute("aria-label","Permanent upgrade");
-            if(rewardUnlocked){rcircle.disabled=false;rcircle.style.pointerEvents="auto";rcircle.onclick=()=>openRewardPicker();}
-            else{rcircle.onclick=()=>{};rcircle.disabled=true;}
+            if(rewardUnlocked && !rewardClaimed){
+                rcircle.disabled=false;
+                rcircle.style.pointerEvents="auto";
+                rcircle.onclick=()=>openRewardPicker();
+            }else{
+                rcircle.onclick=()=>{};
+                rcircle.disabled=true;
+                rcircle.style.pointerEvents="none";
+            }
             const rtag=document.createElement("div");
             rtag.className="rewardTag";
             if(rewardClaimed){
