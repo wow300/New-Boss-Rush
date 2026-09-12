@@ -28,7 +28,7 @@ canvas{background:#000;display:block;position:fixed;left:50%;top:50%;transform:t
 #mainMenu p{color:#777;margin:0 0 28px;}
 #dlcBanner{position:fixed;top:14px;right:14px;z-index:100001;color:#ff2020;font:bold 14px 'Courier New',monospace;letter-spacing:2px;text-shadow:0 0 10px rgba(255,0,0,.7),2px 2px #000;pointer-events:none;padding:6px 10px;border:2px solid #ff2020;background:rgba(20,0,0,.75);border-radius:4px;}
 body:not(.menuOpen) #dlcBanner{display:none;}
-body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileToggle,body.menuOpen #mobileControls,body.menuOpen #sandboxMenu,body.menuOpen #rewardScreen,body.menuOpen #levelStartScreen{z-index:9999;display:none;} body.menuOpen #levelCompleteScreen{display:none !important;}
+body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileToggle,body.menuOpen #mobileControls,body.menuOpen #sandboxMenu{z-index:9999;display:none;} body.menuOpen #levelCompleteScreen{display:none !important;}
 .menuButton{width:300px;padding:16px;margin:7px;border:2px solid #444;background:#111;color:#fff;font:20px 'Courier New',monospace;cursor:pointer;transition:border-color .3s,background .3s,color .3s;position:relative;touch-action:manipulation;}
 .menuButton:hover{border-color:#0f0;background:#182018;}
 .menuButton.completed{border-color:#0f0;background:#0a1a0a;color:#0f0;box-shadow:0 0 12px rgba(0,255,0,.3);}
@@ -91,7 +91,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .mapLevelLabel .lvName{color:#ffffff;font-size:13px;display:block;}
 .mapLevelNode.cleared .mapLevelLabel .lvName{color:#bfffc1;}
 .mapLevelNode.cleared .mapLevelLabel .lvTag{color:#7fd07f;}
-.mapRewardNode{position:absolute;transform:translate(-50%,-50%);z-index:110;pointer-events:auto;display:flex;flex-direction:column;align-items:center;}
+.mapRewardNode{position:absolute;transform:translate(-50%,-50%);z-index:110;pointer-events:none;display:flex;flex-direction:column;align-items:center;}
 .mapRewardCircle{width:44px;height:44px;border-radius:50%;border:3px solid #555;background:radial-gradient(circle at 35% 30%, #2a2a2a 0%, #141414 80%);box-shadow:0 0 10px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.8);color:#888;font:bold 20px 'Courier New',monospace;cursor:not-allowed;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .12s, box-shadow .2s, border-color .2s, background .2s;}
 .mapRewardNode.unlocked .mapRewardCircle{pointer-events:auto;border-color:#ffd24d;background:radial-gradient(circle at 35% 30%, #6a4f10 0%, #2c1f05 80%);box-shadow:0 0 22px rgba(255,210,80,.85), 0 0 40px rgba(255,210,80,.4), inset 0 0 12px rgba(0,0,0,.6);color:#fff2b3;cursor:pointer;animation:rewardPulse 1.6s ease-in-out infinite;}
 .mapRewardNode.unlocked .mapRewardCircle:hover{transform:scale(1.08);}
@@ -144,7 +144,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
         <canvas id="mapCanvas"></canvas>
         <div id="mapOverlay"><div class="mapWorld2Region"><div class="mapWorld2Title">WORLD 2</div><div class="mapWorld2Sub">THE CAVES</div></div><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div>
         <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:103;pointer-events:auto;"></div>
-        <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:auto;"></div>
+        <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:none;"></div>
         <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
     </div></div>
     <button id="mapBackButton">&#8592; MAIN MENU</button>
@@ -1251,6 +1251,8 @@ const rewardChoices=document.getElementById("rewardChoices");
 const rewardBackButton=document.getElementById("rewardBackButton");
 const rewardScreenText=document.getElementById("rewardScreenText");
 function openRewardPicker(){
+    const rewardOwner=REWARD_OWNER_LEVEL_IDS[permanentUpgradeIds.length];
+    if(rewardOwner==null || !mapCleared[rewardOwner]) return;
     const claimedIds=permanentUpgradeIds.length?permanentUpgradeIds:(permanentUpgradeId?[permanentUpgradeId]:[]);
     if(claimedIds.length>=3) return;
     const claimedSet=new Set(claimedIds);
@@ -1272,6 +1274,7 @@ function openRewardPicker(){
         rewardChoices.appendChild(button);
     });
     rewardScreen.style.display="flex";
+    rewardScreen.style.zIndex="99999";
 }
 rewardBackButton.onclick=()=>{rewardScreen.style.display="none";};
 function choosePowerups(){
