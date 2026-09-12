@@ -144,7 +144,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
         <canvas id="mapCanvas"></canvas>
         <div id="mapOverlay"><div class="mapWorld2Region"><div class="mapWorld2Title">WORLD 2</div><div class="mapWorld2Sub">THE CAVES</div></div><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div>
         <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:103;pointer-events:auto;"></div>
-        <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:auto;"></div>
+        <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:104;pointer-events:auto;"></div>
         <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
     </div></div>
     <button id="mapBackButton">&#8592; MAIN MENU</button>
@@ -1393,7 +1393,7 @@ function update(){
             const sb=mapSniperBosses[si];sb.timer++;activeFiringBoss=sb;sb.update();activeFiringBoss=null;bossChase(sb);
             const spawnInterval=240,maxMinions=4;
             let minionTypeForBoss=0;
-            if(sb.name==="THE PULSAR"||sb.name==="PULSAR CORE") minionTypeForBoss=1;
+            if(sb.name==="THE PULSAR") minionTypeForBoss=1;
             else if(sb.name==="NEON GHOST") minionTypeForBoss=2;
             else if(sb.name==="V-TWIN REVENANT") minionTypeForBoss=3;
             else if(sb.name==="WALL OF SILENCE") minionTypeForBoss=4;
@@ -1401,11 +1401,17 @@ function update(){
             else if(sb.name==="GRAVITY WELL") minionTypeForBoss=6;
             else if(sb.name==="CHRONOS") minionTypeForBoss=7;
             else if(sb.name==="THE HYDRA") minionTypeForBoss=8;
-            if(sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.name!=="EMERALD KILLER" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
+            else if(sb.name==="ORBITAL STRIKE") minionTypeForBoss=9;
+            else if(sb.name==="VOID SINGULARITY") minionTypeForBoss=10;
+            else if(sb.name==="GLITCH CORE") minionTypeForBoss=11;
+            else if(sb.name==="RAIN MAKER") minionTypeForBoss=12;
+            else if(sb.name==="STAR DESTROYER") minionTypeForBoss=13;
+            else if(sb.name==="OMEGA ZERO") minionTypeForBoss=14;
+            if(sb.name!=="PULSAR CORE" && sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.name!=="EMERALD KILLER" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
             for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){if(sb.shield>0){sb.shield-=b.damage;if(sb.shield<0){sb.hp+=sb.shield;sb.shield=0;}}else sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){mapSniperBosses.splice(si,1);break;}}}
         }
         separateBosses(mapSniperBosses);
-        if(mapSniperBosses.length===0 && !levelCompletePending){levelCompletePending=true;showLevelComplete();}
+        if(mapSniperBosses.length===0 && minions.length===0 && !levelCompletePending){levelCompletePending=true;showLevelComplete();}
         for(let mi=minions.length-1;mi>=0;mi--){
             const m=minions[mi];
             if(m.kind==="splitFragment") updateSplitFragment(m);else updateMinion(m);
@@ -1665,7 +1671,8 @@ const mapLevels=[
     {id:14,name:"2\u00d7 HYDRA + THE SNIPER",tag:"",requires:13,slot:13,rowY:0.55},
     {id:15,name:"EMERALD KILLER",tag:"",requires:14,slot:14,rowY:0.55},
     {id:16,name:"3\u00d7 NEON GHOST",tag:"",requires:15,slot:15,rowY:0.55},
-    {id:17,name:"ORBITAL STRIKE & THE HYDRA",tag:"TAG TEAM",requires:16,slot:16,rowY:0.55}
+    {id:17,name:"ORBITAL STRIKE & THE HYDRA",tag:"TAG TEAM",requires:16,slot:16,rowY:0.55},
+    {id:18,name:"ORBITAL STRIKE",tag:"DRONE INVASION",requires:17,slot:17,rowY:0.55}
 ];
 const REWARD_OWNER_LEVEL_IDS=[6,12,15];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -1792,6 +1799,15 @@ function startMapLevel(level){
         sandboxBossSelect.value=String(hydraIndex);currentBossIndex=hydraIndex;spawnSandboxBoss();
         if(mapSniperBosses[0]){mapSniperBosses[0].x=320;mapSniperBosses[0].y=190;}
         if(mapSniperBosses[1]){mapSniperBosses[1].x=580;mapSniperBosses[1].y=190;}
+    }
+    else if(level.id===18){
+        const orbitalIndex=bosses.findIndex(b=>b.name==="ORBITAL STRIKE");
+        sandboxBossSelect.value=String(orbitalIndex);currentBossIndex=orbitalIndex;spawnSandboxBoss();
+        if(mapSniperBosses[0]){mapSniperBosses[0].x=450;mapSniperBosses[0].y=220;}
+        const starType=minionTypes.find(t=>t.name==="STARLING");
+        if(starType){
+            [[45,45],[855,45],[45,655],[855,655]].forEach(([x,y])=>minions.push({...starType,x,y,hp:starType.hp,maxHp:starType.hp,timer:0,contactCooldown:0,splitDone:false,angle:Math.random()*Math.PI*2,targetX:x,targetY:y,dx:0,dy:0,warningTimer:0}));
+        }
     }
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
