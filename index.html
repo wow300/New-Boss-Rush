@@ -509,7 +509,7 @@ let permanentUpgradeIds=[];
 function loadPermanentUpgrade(){try{const raw=localStorage.getItem(REWARD_SAVE_KEY);if(!raw) return null;const parsed=JSON.parse(raw);if(Array.isArray(parsed)) return parsed;return [raw];}catch(e){return null;}}
 function savePermanentUpgrade(id){try{localStorage.setItem(REWARD_SAVE_KEY,JSON.stringify(permanentUpgradeIds));}catch(e){}}
 const _loadedUpgrades=loadPermanentUpgrade();
-if(_loadedUpgrades){permanentUpgradeIds=_loadedUpgrades.filter(Boolean);permanentUpgradeId=permanentUpgradeIds[0]||null;}
+if(_loadedUpgrades){permanentUpgradeIds=Array.from({length:3},(_,i)=>_loadedUpgrades[i]||null);permanentUpgradeId=permanentUpgradeIds.find(Boolean)||null;}
 function getAngleToPlayer(origin,leadFactor=0){
     const targetX=player.x+(player.vx||0)*leadFactor;
     const targetY=player.y+(player.vy||0)*leadFactor;
@@ -1252,11 +1252,9 @@ const rewardBackButton=document.getElementById("rewardBackButton");
 const rewardScreenText=document.getElementById("rewardScreenText");
 function openRewardPicker(ownerLevelId){
     const rewardOwner=Number(ownerLevelId);
-    const rewardIndex=REWARD_OWNER_LEVEL_IDS.indexOf(rewardOwner);
-    if(rewardIndex<0 || !mapCleared[rewardOwner]) return;
-    if(rewardIndex!==permanentUpgradeIds.length) return;
-    const claimedIds=permanentUpgradeIds.length?permanentUpgradeIds:(permanentUpgradeId?[permanentUpgradeId]:[]);
-    if(claimedIds.length>=3) return;
+    const rewardSlot=REWARD_OWNER_LEVEL_IDS.indexOf(rewardOwner);
+    if(rewardSlot<0 || !mapCleared[rewardOwner] || permanentUpgradeIds[rewardSlot]) return;
+    const claimedIds=permanentUpgradeIds.filter(Boolean);
     const claimedSet=new Set(claimedIds);
     const available=powerups.filter(p=>!claimedSet.has(p.id));
     if(available.length===0) return;
@@ -1268,8 +1266,8 @@ function openRewardPicker(ownerLevelId){
         button.className="powerChoice";
         button.innerHTML="<strong>"+up.name+"</strong>"+"<span>"+up.description+"</span>";
         button.onclick=()=>{
-            if(!permanentUpgradeIds.includes(up.id)) permanentUpgradeIds.push(up.id);
-            permanentUpgradeId=permanentUpgradeIds[0]||null;
+            permanentUpgradeIds[rewardSlot]=up.id;
+            permanentUpgradeId=permanentUpgradeIds.find(Boolean)||null;
             savePermanentUpgrade(up.id);
             playDingSound();rewardScreen.style.display="none";renderMapNodes();
         };
@@ -1684,17 +1682,16 @@ let mapCleared=loadMapSave();
 // and Reward 3 requires Level 15 cleared. Locked/gray/red levels do not count.
 function sanitizePermanentUpgrades(){
     const rewardLevels=[6,12,15];
-    let allowedCount=0;
-    for(let i=0;i<rewardLevels.length;i++){
-        if(!!mapCleared[rewardLevels[i]]) allowedCount++;
-        else break; // rewards must be earned in order
-    }
-    const valid=permanentUpgradeIds.filter(id=>!!getPowerupById(id)).slice(0,allowedCount);
-    if(valid.length!==permanentUpgradeIds.length || valid.some((id,i)=>id!==permanentUpgradeIds[i])){
+    const old=Array.isArray(permanentUpgradeIds)?permanentUpgradeIds:[];
+    const valid=rewardLevels.map((levelId,i)=>{
+        const id=old[i]||null;
+        return mapCleared[levelId] && id && getPowerupById(id) ? id : null;
+    });
+    if(JSON.stringify(valid)!==JSON.stringify(old.slice(0,3))){
         permanentUpgradeIds=valid;
-        permanentUpgradeId=permanentUpgradeIds[0]||null;
+        permanentUpgradeId=permanentUpgradeIds.find(Boolean)||null;
         savePermanentUpgrade(null);
-    }
+    } else permanentUpgradeIds=valid;
 }
 sanitizePermanentUpgrades();
 function sizeMapCanvas(){const w=mapTrack.clientWidth,h=mapTrack.clientHeight;mapCanvas.width=Math.max(1,w);mapCanvas.height=Math.max(1,h);drawMapBackground();}
@@ -1732,7 +1729,7 @@ function renderMapNodes(){
         if(REWARD_OWNER_LEVEL_IDS.includes(level.id)){
             const rewardUnlocked=cleared;
             const rewardIndex=REWARD_OWNER_LEVEL_IDS.indexOf(level.id)+1;
-            const rewardClaimed=permanentUpgradeIds.length>=rewardIndex;
+            const rewardClaimed=!!permanentUpgradeIds[rewardIndex-1];
             const rewardNode=document.createElement("div");
             rewardNode.className="mapRewardNode"+(rewardUnlocked?" unlocked":"")+(rewardClaimed?" claimed":"");
             rewardNode.style.left=(pos.x+46)+"px";rewardNode.style.top=(pos.y-62)+"px";
@@ -1751,7 +1748,7 @@ function renderMapNodes(){
             const rtag=document.createElement("div");
             rtag.className="rewardTag";
             if(rewardClaimed){
-                const claimedId=permanentUpgradeIds[rewardIndex-1]||permanentUpgradeId;
+                const claimedId=permanentUpgradeIds[rewardIndex-1]||null;
                 const claimedUpgrade=getPowerupById(claimedId);
                 rtag.textContent=claimedUpgrade?claimedUpgrade.name:"CLAIMED";
                 rtag.style.whiteSpace="normal";
