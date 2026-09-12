@@ -1885,10 +1885,13 @@ function startMapLevel(level){
     }
     else if(level.id===20){
         const diamondIndex=bosses.findIndex(b=>b.name==="DIAMOND MASTERPIECE");
-        sandboxBossSelect.value=String(diamondIndex);currentBossIndex=diamondIndex;spawnSandboxBoss();
+        sandboxBossSelect.value=String(diamondIndex);currentBossIndex=diamondIndex;
+        // Diamond Masterpiece is a solo Boss Map fight: never carry over or create drones/minions.
+        minions.length=0;
+        mapSniperBosses.length=0;
+        spawnSandboxBoss();
         if(mapSniperBosses[0]){mapSniperBosses[0].x=450;mapSniperBosses[0].y=180;}
-        // No drones or minions spawn during this fight.
-        minions=[];
+        minions.length=0;
     }
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
@@ -2101,4 +2104,4 @@ gameLoop();
 })();
 </script>
 </body>
-    </html>
+</html>
