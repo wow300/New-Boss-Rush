@@ -583,6 +583,7 @@ function bossChase(b){
     if(b.name==="PULSAR CORE") speed*=0.35;
     if(b.name==="GRASS MONSTROSITY") speed*=0.4;
     if(b.name==="ROCK BEAST") speed=0.48;
+    if(b.name==="DIAMOND MASTERPIECE") speed=0.38;
     if(d>2){b.x+=dx/d*speed;b.y+=dy/d*speed;}
     const edge=Math.max(20,b.size/2);
     b.x=Math.max(edge,Math.min(canvas.width-edge,b.x));
@@ -802,6 +803,13 @@ const bosses=[
     if(this.timer%10===0){const angle=this.timer*.08;fireBullet(this.x+Math.cos(angle)*150,this.y+Math.sin(angle)*150,angle+Math.PI,3.5,"#b000b0",5);}
     if(this.timer%120===0) for(let i=0;i<8;i++) fireBullet(this.x,this.y,i*Math.PI/4,4,"#702070",7);
     if(this.timer%170===0) for(let i=0;i<16;i++) fireBullet(this.x,this.y,i*Math.PI*2/16,2.5,"#dd44dd",9);
+}},
+{name:"DIAMOND MASTERPIECE",hp:2500,color:"#00ffff",size:115,update:function(){
+    // Four rapid-fire attacks: quick, small-damage cyan projectiles.
+    if(this.timer%7===0){const a=getAngleToPlayer(this,9);fireBullet(this.x,this.y,a+(Math.random()-.5)*.16,9,"#00ffff",4,0,2);}
+    if(this.timer%32===0){const a=getAngleToPlayer(this);for(let i=-1;i<=1;i++) fireBullet(this.x,this.y,a+i*.12,7.5,"#66ffff",5,0,3);}
+    if(this.timer%55===0){for(let i=0;i<5;i++) fireBullet(this.x,this.y,this.timer*.08+i*.22,6.5,"#00dddd",4,0,2);}
+    if(this.timer%90===0){const a=Math.random()*Math.PI*2;for(let i=0;i<8;i++) fireBullet(this.x,this.y,a+i*Math.PI/4,5.5,"#baffff",5,0,3);}
 }},
 {name:"GLITCH CORE",hp:390,color:"#00ff66",size:50,update:function(){
     if(this.timer%25===0){this.x+=(Math.random()-.5)*180;this.y+=(Math.random()-.5)*100;this.x=Math.max(80,Math.min(820,this.x));this.y=Math.max(70,Math.min(300,this.y));fireBullet(this.x,this.y,getAngleToPlayer(this,5),10,"#0f6",7);}
@@ -1677,9 +1685,10 @@ const mapLevels=[
     {id:16,name:"3\u00d7 NEON GHOST",tag:"",requires:15,slot:15,rowY:0.55},
     {id:17,name:"ORBITAL STRIKE & THE HYDRA",tag:"TAG TEAM",requires:16,slot:16,rowY:0.55},
     {id:18,name:"ORBITAL STRIKE",tag:"DRONE INVASION",requires:17,slot:17,rowY:0.55},
-    {id:19,name:"VOID SINGULARITY",tag:"",requires:18,slot:18,rowY:0.55}
+    {id:19,name:"VOID SINGULARITY",tag:"",requires:18,slot:18,rowY:0.55},
+    {id:20,name:"DIAMOND MASTERPIECE",tag:"",requires:19,slot:19,rowY:0.55}
 ];
-const REWARD_OWNER_LEVEL_IDS=[6,12,15];
+const REWARD_OWNER_LEVEL_IDS=[6,12,15,20];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
 function loadMapSave(){try{const raw=localStorage.getItem(MAP_SAVE_KEY);if(!raw) return {};const obj=JSON.parse(raw);return (obj&&typeof obj==="object")?obj:{};}catch(e){return {};}}
 function saveMapSave(obj){try{localStorage.setItem(MAP_SAVE_KEY,JSON.stringify(obj));}catch(e){}}
@@ -1688,13 +1697,13 @@ let mapCleared=loadMapSave();
 // Reward 1 requires Level 6 cleared, Reward 2 requires Level 12 cleared,
 // and Reward 3 requires Level 15 cleared. Locked/gray/red levels do not count.
 function sanitizePermanentUpgrades(){
-    const rewardLevels=[6,12,15];
+    const rewardLevels=[6,12,15,20];
     const old=Array.isArray(permanentUpgradeIds)?permanentUpgradeIds:[];
     const valid=rewardLevels.map((levelId,i)=>{
         const id=old[i]||null;
         return mapCleared[levelId] && id && getPowerupById(id) ? id : null;
     });
-    if(JSON.stringify(valid)!==JSON.stringify(old.slice(0,3))){
+    if(JSON.stringify(valid)!==JSON.stringify(old.slice(0,4))){
         permanentUpgradeIds=valid;
         permanentUpgradeId=permanentUpgradeIds.find(Boolean)||null;
         savePermanentUpgrade(null);
@@ -1871,6 +1880,13 @@ function startMapLevel(level){
         if(voidVariant){
             [[120,120],[780,120],[120,520],[780,520]].forEach(([x,y])=>minions.push({...voidVariant,x,y,hp:voidVariant.hp,maxHp:voidVariant.hp,timer:0,contactCooldown:0,splitDone:false,angle:Math.random()*Math.PI*2,targetX:x,targetY:y,dx:0,dy:0,warningTimer:0}));
         }
+    }
+    else if(level.id===20){
+        const diamondIndex=bosses.findIndex(b=>b.name==="DIAMOND MASTERPIECE");
+        sandboxBossSelect.value=String(diamondIndex);currentBossIndex=diamondIndex;spawnSandboxBoss();
+        if(mapSniperBosses[0]){mapSniperBosses[0].x=450;mapSniperBosses[0].y=180;}
+        // No drones or minions spawn during this fight.
+        minions=[];
     }
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
