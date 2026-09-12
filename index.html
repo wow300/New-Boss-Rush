@@ -1725,8 +1725,14 @@ function renderMapNodes(){
             else{rcircle.onclick=()=>{};rcircle.disabled=true;}
             const rtag=document.createElement("div");
             rtag.className="rewardTag";
-            if(rewardClaimed){rtag.textContent="CLAIMED";rtag.style.whiteSpace="normal";}
-            else rtag.textContent="REWARD";
+            if(rewardClaimed){
+                const claimedId=permanentUpgradeIds[rewardIndex-1];
+                const claimedUpgrade=getPowerupById(claimedId);
+                rtag.textContent=claimedUpgrade?claimedUpgrade.name:"CLAIMED";
+                rtag.style.whiteSpace="normal";
+                rtag.style.color="#9a9a9a";
+                rcircle.classList.add("claimed");
+            }else rtag.textContent="REWARD";
             rewardNode.appendChild(rcircle);rewardNode.appendChild(rtag);mapRewardLayer.appendChild(rewardNode);
         }
     });
