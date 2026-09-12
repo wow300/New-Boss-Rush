@@ -144,7 +144,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
         <canvas id="mapCanvas"></canvas>
         <div id="mapOverlay"><div class="mapWorld2Region"><div class="mapWorld2Title">WORLD 2</div><div class="mapWorld2Sub">THE CAVES</div></div><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div>
         <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:103;pointer-events:auto;"></div>
-        <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:none;"></div>
+        <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:auto;"></div>
         <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
     </div></div>
     <button id="mapBackButton">&#8592; MAIN MENU</button>
@@ -1037,7 +1037,7 @@ const bosses=[
         for(let i=0;i<8;i++) fireUniqueBullet(Math.random()*900,0,Math.PI/2,7,c,12,15,'heavy',{life:260});
     }
 }},
-{name:"GRASS MONSTROSITY",hp:0,color:"#9cff70",size:105,shields:1000,update:function(){
+{name:"GRASS MONSTROSITY",hp:800,maxHp:800,color:"#9cff70",size:105,update:function(){
     this.x+=(450-this.x)*.004;this.y+=(210-this.y)*.004;
     if(this.timer%240===0){
         for(let i=0;i<6;i++){
@@ -1354,8 +1354,8 @@ function initBoss(){
 function updateUI(){
     uiHp.textContent=Math.max(0,Math.ceil(player.hp));
     let displayedBossHP=0;
-    if(sandboxMode) displayedBossHP=sandboxBosses.reduce((sum,b)=>sum+Math.max(0,b.hp),0);
-    else if(mapMode) displayedBossHP=mapSniperBosses.reduce((sum,b)=>sum+Math.max(0,b.hp),0);
+    if(sandboxMode) displayedBossHP=sandboxBosses.reduce((sum,b)=>sum+Math.max(0,(b.hp||0)+(b.shield||0)),0);
+    else if(mapMode) displayedBossHP=mapSniperBosses.reduce((sum,b)=>sum+Math.max(0,(b.hp||0)+(b.shield||0)),0);
     else displayedBossHP=boss?(boss.hp+Math.max(0,boss.shield||0)):0;
     uiBhp.textContent=Math.max(0,Math.ceil(displayedBossHP));
     uiPower.textContent=player.damage;
@@ -1564,7 +1564,7 @@ function draw(){
     ctx.fillRect(player.x-player.size/2,player.y-player.size/2,player.size,player.size);
     if(player.shield>0){ctx.strokeStyle="#00ffff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(player.x,player.y,27,0,Math.PI*2);ctx.stroke();ctx.fillStyle="#00ffff";ctx.font="12px Courier New";ctx.fillText("S:"+player.shield,player.x+18,player.y-20);}
     const bossesToDraw=mapMode?mapSniperBosses:(sandboxMode?sandboxBosses:(boss?[boss]:[]));
-    for(const db of bossesToDraw){ctx.fillStyle=db.color;ctx.shadowColor=db.color;ctx.shadowBlur=15;ctx.fillRect(db.x-db.size/2,db.y-db.size/2,db.size,db.size);ctx.shadowBlur=0;ctx.fillStyle="#222";ctx.fillRect(db.x-50,db.y-db.size-14,100,7);ctx.fillStyle=db.color;ctx.fillRect(db.x-50,db.y-db.size-14,Math.max(0,db.hp/db.maxHp*100),7);if(db.shield>0 && db.name!=="GRASS MONSTROSITY" && db.name!=="EMERALD KILLER"){ctx.fillStyle="#00ffff";ctx.fillRect(db.x-50,db.y-db.size-22,Math.max(0,db.shield/(db.maxShield||1)*100),6);}}
+    for(const db of bossesToDraw){ctx.fillStyle=db.color;ctx.shadowColor=db.color;ctx.shadowBlur=15;ctx.fillRect(db.x-db.size/2,db.y-db.size/2,db.size,db.size);ctx.shadowBlur=0;ctx.fillStyle="#222";ctx.fillRect(db.x-50,db.y-db.size-14,100,7);const totalNow=Math.max(0,(db.hp||0)+(db.shield||0));const totalMax=Math.max(1,(db.maxHp||0)+(db.maxShield||0));ctx.fillStyle=db.color;ctx.fillRect(db.x-50,db.y-db.size-14,Math.max(0,totalNow/totalMax*100),7);}
     minions.forEach(m=>{
         if(m.kind==="grid" && m.warningTimer>0){const pulse=0.22+0.28*Math.sin(m.warningTimer*.45)**2;ctx.save();ctx.globalAlpha=pulse;ctx.strokeStyle=m.color;ctx.shadowColor=m.color;ctx.shadowBlur=14;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(m.x,0);ctx.lineTo(m.x,canvas.height);ctx.moveTo(0,m.y);ctx.lineTo(canvas.width,m.y);ctx.stroke();ctx.globalAlpha=0.9;ctx.lineWidth=2;ctx.stroke();ctx.restore();}
         ctx.fillStyle=m.color;ctx.shadowColor=m.color;ctx.shadowBlur=10;
@@ -1713,7 +1713,7 @@ function renderMapNodes(){
             const rcircle=document.createElement("button");
             rcircle.className="mapRewardCircle";rcircle.type="button";rcircle.textContent="\u2605";
             rcircle.setAttribute("aria-label","Permanent upgrade");
-            if(rewardUnlocked && !rewardClaimed){rcircle.disabled=false;rcircle.style.pointerEvents="auto";rcircle.onclick=()=>openRewardPicker();}
+            if(rewardUnlocked){rcircle.disabled=false;rcircle.style.pointerEvents="auto";rcircle.onclick=()=>openRewardPicker();}
             else{rcircle.onclick=()=>{};rcircle.disabled=true;}
             const rtag=document.createElement("div");
             rtag.className="rewardTag";
@@ -1759,7 +1759,7 @@ function startMapLevel(level){
     else if(level.id===13){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
     else if(level.id===14){sandboxBossSelect.value="8";currentBossIndex=8;spawnSandboxBoss();spawnSandboxBoss();sandboxBossSelect.value="0";currentBossIndex=0;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=260;mapSniperBosses[0].y=180;}if(mapSniperBosses[1]){mapSniperBosses[1].x=640;mapSniperBosses[1].y=180;}if(mapSniperBosses[2]){mapSniperBosses[2].x=450;mapSniperBosses[2].y=260;}}
     else if(level.id===15){
-        const makeEmeraldKiller=(x,y)=>({name:"EMERALD KILLER",hp:0,maxHp:0,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:1.7,x,y,timer:0,update:function(){
+        const makeEmeraldKiller=(x,y)=>({name:"EMERALD KILLER",hp:2000,maxHp:2000,color:"#9cff9c",size:28,speed:1.7,x,y,timer:0,update:function(){
             const dx=player.x-this.x,dy=player.y-this.y,len=Math.hypot(dx,dy)||1;
             this.x+=dx/len*this.speed;this.y+=dy/len*this.speed;
             if(this.timer%150===0){const a=getAngleToPlayer(this);[-0.45,0,0.45].forEach(off=>fireBullet(this.x,this.y,a+off,4.5,"#9cff9c",7,0,7));}
@@ -1925,7 +1925,7 @@ function startSandbox(){
 function spawnSandboxBoss(){
     const selected=sandboxBossSelect.value;
     if(selected==="EMERALD_KILLER"){
-        const emerald={name:"EMERALD KILLER",hp:0,maxHp:0,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:1.7,x:450,y:220,timer:0,update:function(){
+        const emerald={name:"EMERALD KILLER",hp:2000,maxHp:2000,color:"#9cff9c",size:28,speed:1.7,x:450,y:220,timer:0,update:function(){
             const dx=player.x-this.x,dy=player.y-this.y,len=Math.hypot(dx,dy)||1;this.x+=dx/len*this.speed;this.y+=dy/len*this.speed;
             if(this.timer%150===0){const a=getAngleToPlayer(this);[-0.45,0,0.45].forEach(off=>fireBullet(this.x,this.y,a+off,4.5,"#9cff9c",7,0,7));}
             if(this.timer%240===0){for(let burst=0;burst<3;burst++)for(let i=0;i<5;i++){const a=(Math.PI*2*i/5)+(burst*0.16);fireBullet(this.x,this.y,a,3.2,"#9cff9c",6,0,5);}}
