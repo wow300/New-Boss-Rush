@@ -477,8 +477,8 @@ let currentBossIndex=0,keys={},mouseDown=false,gameActive=false,waitingForPoweru
 let mapMode=false,activeMapLevel=null,mapSniperBosses=[],levelCompletePending=false;
 let activeFiringBoss=null;
 let lastMouseX=450,mobileAimAngle=-Math.PI/2,lastMouseY=600;
-const NIGHTMARE_START_INDEX=41;
-const NIGHTMARE_END_INDEX=55;
+const NIGHTMARE_START_INDEX=42;
+const NIGHTMARE_END_INDEX=56;
 const COMPLETION_SAVE_KEY = "bossRushCompletion_v1";
 function loadCompletionState(){
     try{
@@ -944,12 +944,12 @@ const bosses=[
     if(this.timer%160===60) for(let x=80;x<900;x+=115) fireUniqueBullet(x,0,Math.PI/2,4.6,this.color,7,8,'trap',{life:230});
     if(this.timer%240===120) for(let y=80;y<700;y+=115) fireUniqueBullet(0,y,0,4.8,this.color,7,8,'trap',{life:230});
 }},
+{name:"THE APOCALYPSE",hp:4200,color:"#ff0055",size:110,update:function(){ newBossAttack(this,39); }},
 {name:"THE TIME BREAKER",hp:1780,color:"#bbffff",size:100,update:function(){
     if(this.timer%120===0){const phase=(this.timer/120)%2;for(let i=0;i<8;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/4+(phase?Math.PI/8:0),phase?6.2:3.2,this.color,8,10,'time',{life:240});}
     if(this.timer%180===60){const a=getAngleToPlayer(this);for(let i=-2;i<=2;i++) fireUniqueBullet(this.x,this.y,a+i*.16,7,this.color,7,11,'time',{life:180});}
     if(this.timer%300===150) for(let i=0;i<10;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/5-this.timer*.02,4.1,this.color,6,9,'time',{turn:(i%2?.025:-.025),life:300});
 }},
-{name:"THE APOCALYPSE",hp:4200,color:"#ff0055",size:110,update:function(){ newBossAttack(this,39); }},
 {name:"PULSAR CORE",hp:380,color:"#aa44ff",size:135,update:pulsarCoreUpdate},
 {name:"DROWNED",hp:1400,color:"#1a3a5c",size:88,update:function(){
     if(this.timer%80===0){for(let i=0;i<6;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/3+this.timer*.02,5.2,this.color,8,11,'homing',{life:200});}
@@ -1819,7 +1819,7 @@ function startMapLevel(level){
     if(level.id===1){spawnSandboxBoss();spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=340;mapSniperBosses[0].y=180;}if(mapSniperBosses[1]){mapSniperBosses[1].x=560;mapSniperBosses[1].y=180;}}
     else if(level.id===2){spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.hp*=2;b.maxHp*=2;b.size*=2;b.x=450;b.y=200;b.__bulletScale={size:2,damage:2};const orig=b.update.bind(b);b.update=function(){if(this.timer%2===0) orig();};}}
     else if(level.id===3){sandboxBossSelect.value="0";currentBossIndex=0;spawnSandboxBoss();sandboxBossSelect.value="1";currentBossIndex=1;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=340;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=560;mapSniperBosses[1].y=200;}}
-    else if(level.id===4){sandboxBossSelect.value="40";currentBossIndex=40;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=220;}}
+    else if(level.id===4){const pulsarCoreIndex=bosses.findIndex(b=>b.name==="PULSAR CORE");sandboxBossSelect.value=String(pulsarCoreIndex);currentBossIndex=pulsarCoreIndex;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=220;}}
     else if(level.id===5){sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
     else if(level.id===6){sandboxBossSelect.value="2";currentBossIndex=2;spawnSandboxBoss();spawnSandboxBoss();sandboxBossSelect.value="3";currentBossIndex=3;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=250;mapSniperBosses[0].y=180;}if(mapSniperBosses[1]){mapSniperBosses[1].x=650;mapSniperBosses[1].y=180;}if(mapSniperBosses[2]){mapSniperBosses[2].x=450;mapSniperBosses[2].y=250;}}
     else if(level.id===7){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();const b=mapSniperBosses[0];if(b){b.x=450;b.y=200;}}
