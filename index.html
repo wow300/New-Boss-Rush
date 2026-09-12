@@ -64,7 +64,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
     #sandboxMenu{top:48px;right:8px;width:220px;}
     #dlcBanner{font-size:10px;padding:4px 6px;}
 }
-#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:linear-gradient(180deg,#236b2a,#18551f 55%,#18551f);overflow:hidden;}
+#bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:#236b2a;overflow:hidden;}
 #mapScroll{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-color:#4f8f4f #0c2b0c;}
 #mapScroll::-webkit-scrollbar{height:14px;}
 #mapScroll::-webkit-scrollbar-track{background:#0c2b0c;border-top:2px solid #1a4a1a;}
@@ -1664,7 +1664,8 @@ const mapLevels=[
     {id:13,name:"WALL OF SILENCE",tag:"2\u00d7",requires:12,slot:12,rowY:0.55},
     {id:14,name:"2\u00d7 HYDRA + THE SNIPER",tag:"",requires:13,slot:13,rowY:0.55},
     {id:15,name:"EMERALD KILLER",tag:"",requires:14,slot:14,rowY:0.55},
-    {id:16,name:"3\u00d7 NEON GHOST",tag:"",requires:15,slot:15,rowY:0.55}
+    {id:16,name:"3\u00d7 NEON GHOST",tag:"",requires:15,slot:15,rowY:0.55},
+    {id:17,name:"ORBITAL STRIKE & THE HYDRA",tag:"TAG TEAM",requires:16,slot:16,rowY:0.55}
 ];
 const REWARD_OWNER_LEVEL_IDS=[6,12,15];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -1676,8 +1677,8 @@ function drawMapBackground(){
 const w=mapCanvas.width,h=mapCanvas.height,g=mapCanvas.getContext("2d");
 const grad=g.createLinearGradient(0,0,0,h);
 grad.addColorStop(0,"#236b2a");
-grad.addColorStop(0.55,"#18551f");
-grad.addColorStop(1,"#18551f");
+grad.addColorStop(0.55,"#236b2a");
+grad.addColorStop(1,"#236b2a");
 g.fillStyle=grad;
 g.fillRect(0,0,w,h);
 }
@@ -1783,6 +1784,14 @@ function startMapLevel(level){
         if(mapSniperBosses[0]){mapSniperBosses[0].x=250;mapSniperBosses[0].y=180;}
         if(mapSniperBosses[1]){mapSniperBosses[1].x=450;mapSniperBosses[1].y=180;}
         if(mapSniperBosses[2]){mapSniperBosses[2].x=650;mapSniperBosses[2].y=180;}
+    }
+    else if(level.id===17){
+        const orbitalIndex=bosses.findIndex(b=>b.name==="ORBITAL STRIKE");
+        const hydraIndex=bosses.findIndex(b=>b.name==="THE HYDRA");
+        sandboxBossSelect.value=String(orbitalIndex);currentBossIndex=orbitalIndex;spawnSandboxBoss();
+        sandboxBossSelect.value=String(hydraIndex);currentBossIndex=hydraIndex;spawnSandboxBoss();
+        if(mapSniperBosses[0]){mapSniperBosses[0].x=320;mapSniperBosses[0].y=190;}
+        if(mapSniperBosses[1]){mapSniperBosses[1].x=580;mapSniperBosses[1].y=190;}
     }
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
