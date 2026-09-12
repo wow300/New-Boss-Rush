@@ -1250,9 +1250,11 @@ const rewardScreen=document.getElementById("rewardScreen");
 const rewardChoices=document.getElementById("rewardChoices");
 const rewardBackButton=document.getElementById("rewardBackButton");
 const rewardScreenText=document.getElementById("rewardScreenText");
-function openRewardPicker(){
-    const rewardOwner=REWARD_OWNER_LEVEL_IDS[permanentUpgradeIds.length];
-    if(rewardOwner==null || !mapCleared[rewardOwner]) return;
+function openRewardPicker(ownerLevelId){
+    const rewardOwner=Number(ownerLevelId);
+    const rewardIndex=REWARD_OWNER_LEVEL_IDS.indexOf(rewardOwner);
+    if(rewardIndex<0 || !mapCleared[rewardOwner]) return;
+    if(rewardIndex!==permanentUpgradeIds.length) return;
     const claimedIds=permanentUpgradeIds.length?permanentUpgradeIds:(permanentUpgradeId?[permanentUpgradeId]:[]);
     if(claimedIds.length>=3) return;
     const claimedSet=new Set(claimedIds);
@@ -1740,7 +1742,7 @@ function renderMapNodes(){
             if(rewardUnlocked && !rewardClaimed){
                 rcircle.disabled=false;
                 rcircle.style.pointerEvents="auto";
-                rcircle.onclick=()=>openRewardPicker();
+                rcircle.onclick=()=>openRewardPicker(level.id);
             }else{
                 rcircle.onclick=()=>{};
                 rcircle.disabled=true;
