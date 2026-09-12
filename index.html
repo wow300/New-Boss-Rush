@@ -91,9 +91,9 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .mapLevelLabel .lvName{color:#ffffff;font-size:13px;display:block;}
 .mapLevelNode.cleared .mapLevelLabel .lvName{color:#bfffc1;}
 .mapLevelNode.cleared .mapLevelLabel .lvTag{color:#7fd07f;}
-.mapRewardNode{position:absolute;transform:translate(-50%,-50%);z-index:4;pointer-events:none;display:flex;flex-direction:column;align-items:center;}
+.mapRewardNode{position:absolute;transform:translate(-50%,-50%);z-index:110;pointer-events:auto;display:flex;flex-direction:column;align-items:center;}
 .mapRewardCircle{width:44px;height:44px;border-radius:50%;border:3px solid #555;background:radial-gradient(circle at 35% 30%, #2a2a2a 0%, #141414 80%);box-shadow:0 0 10px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.8);color:#888;font:bold 20px 'Courier New',monospace;cursor:not-allowed;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .12s, box-shadow .2s, border-color .2s, background .2s;}
-.mapRewardNode.unlocked .mapRewardCircle{border-color:#ffd24d;background:radial-gradient(circle at 35% 30%, #6a4f10 0%, #2c1f05 80%);box-shadow:0 0 22px rgba(255,210,80,.85), 0 0 40px rgba(255,210,80,.4), inset 0 0 12px rgba(0,0,0,.6);color:#fff2b3;cursor:pointer;animation:rewardPulse 1.6s ease-in-out infinite;}
+.mapRewardNode.unlocked .mapRewardCircle{pointer-events:auto;border-color:#ffd24d;background:radial-gradient(circle at 35% 30%, #6a4f10 0%, #2c1f05 80%);box-shadow:0 0 22px rgba(255,210,80,.85), 0 0 40px rgba(255,210,80,.4), inset 0 0 12px rgba(0,0,0,.6);color:#fff2b3;cursor:pointer;animation:rewardPulse 1.6s ease-in-out infinite;}
 .mapRewardNode.unlocked .mapRewardCircle:hover{transform:scale(1.08);}
 .mapRewardNode.claimed .mapRewardCircle{border-color:#555;background:radial-gradient(circle at 35% 30%, #2a2a2a 0%, #141414 80%);box-shadow:0 0 10px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.8);color:#9a9a9a;cursor:default;animation:none;}
 .mapRewardNode.claimed .mapRewardCircle:hover{transform:none;}
@@ -1037,7 +1037,7 @@ const bosses=[
         for(let i=0;i<8;i++) fireUniqueBullet(Math.random()*900,0,Math.PI/2,7,c,12,15,'heavy',{life:260});
     }
 }},
-{name:"GRASS MONSTROSITY",hp:900,color:"#9cff70",size:105,shields:1000,update:function(){
+{name:"GRASS MONSTROSITY",hp:0,color:"#9cff70",size:105,shields:1000,update:function(){
     this.x+=(450-this.x)*.004;this.y+=(210-this.y)*.004;
     if(this.timer%240===0){
         for(let i=0;i<6;i++){
@@ -1713,7 +1713,7 @@ function renderMapNodes(){
             const rcircle=document.createElement("button");
             rcircle.className="mapRewardCircle";rcircle.type="button";rcircle.textContent="\u2605";
             rcircle.setAttribute("aria-label","Permanent upgrade");
-            if(rewardUnlocked && !rewardClaimed) rcircle.onclick=()=>openRewardPicker();
+            if(rewardUnlocked && !rewardClaimed){rcircle.disabled=false;rcircle.style.pointerEvents="auto";rcircle.onclick=()=>openRewardPicker();}
             else{rcircle.onclick=()=>{};rcircle.disabled=true;}
             const rtag=document.createElement("div");
             rtag.className="rewardTag";
@@ -1759,7 +1759,7 @@ function startMapLevel(level){
     else if(level.id===13){sandboxBossSelect.value="4";currentBossIndex=4;spawnSandboxBoss();spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=300;mapSniperBosses[0].y=200;}if(mapSniperBosses[1]){mapSniperBosses[1].x=600;mapSniperBosses[1].y=200;}}
     else if(level.id===14){sandboxBossSelect.value="8";currentBossIndex=8;spawnSandboxBoss();spawnSandboxBoss();sandboxBossSelect.value="0";currentBossIndex=0;spawnSandboxBoss();if(mapSniperBosses[0]){mapSniperBosses[0].x=260;mapSniperBosses[0].y=180;}if(mapSniperBosses[1]){mapSniperBosses[1].x=640;mapSniperBosses[1].y=180;}if(mapSniperBosses[2]){mapSniperBosses[2].x=450;mapSniperBosses[2].y=260;}}
     else if(level.id===15){
-        const makeEmeraldKiller=(x,y)=>({name:"EMERALD KILLER",hp:1000,maxHp:1000,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:1.7,x,y,timer:0,update:function(){
+        const makeEmeraldKiller=(x,y)=>({name:"EMERALD KILLER",hp:0,maxHp:0,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:1.7,x,y,timer:0,update:function(){
             const dx=player.x-this.x,dy=player.y-this.y,len=Math.hypot(dx,dy)||1;
             this.x+=dx/len*this.speed;this.y+=dy/len*this.speed;
             if(this.timer%150===0){const a=getAngleToPlayer(this);[-0.45,0,0.45].forEach(off=>fireBullet(this.x,this.y,a+off,4.5,"#9cff9c",7,0,7));}
@@ -1925,7 +1925,7 @@ function startSandbox(){
 function spawnSandboxBoss(){
     const selected=sandboxBossSelect.value;
     if(selected==="EMERALD_KILLER"){
-        const emerald={name:"EMERALD KILLER",hp:1000,maxHp:1000,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:1.7,x:450,y:220,timer:0,update:function(){
+        const emerald={name:"EMERALD KILLER",hp:0,maxHp:0,shield:2000,maxShield:2000,color:"#9cff9c",size:28,speed:1.7,x:450,y:220,timer:0,update:function(){
             const dx=player.x-this.x,dy=player.y-this.y,len=Math.hypot(dx,dy)||1;this.x+=dx/len*this.speed;this.y+=dy/len*this.speed;
             if(this.timer%150===0){const a=getAngleToPlayer(this);[-0.45,0,0.45].forEach(off=>fireBullet(this.x,this.y,a+off,4.5,"#9cff9c",7,0,7));}
             if(this.timer%240===0){for(let burst=0;burst<3;burst++)for(let i=0;i<5;i++){const a=(Math.PI*2*i/5)+(burst*0.16);fireBullet(this.x,this.y,a,3.2,"#9cff9c",6,0,5);}}
