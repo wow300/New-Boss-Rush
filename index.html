@@ -477,8 +477,8 @@ let currentBossIndex=0,keys={},mouseDown=false,gameActive=false,waitingForPoweru
 let mapMode=false,activeMapLevel=null,mapSniperBosses=[],levelCompletePending=false;
 let activeFiringBoss=null;
 let lastMouseX=450,mobileAimAngle=-Math.PI/2,lastMouseY=600;
-const NIGHTMARE_START_INDEX=42;
-const NIGHTMARE_END_INDEX=56;
+const NIGHTMARE_START_INDEX=40;
+const NIGHTMARE_END_INDEX=54;
 const COMPLETION_SAVE_KEY = "bossRushCompletion_v1";
 function loadCompletionState(){
     try{
@@ -804,13 +804,6 @@ const bosses=[
     if(this.timer%120===0) for(let i=0;i<8;i++) fireBullet(this.x,this.y,i*Math.PI/4,4,"#702070",7);
     if(this.timer%170===0) for(let i=0;i<16;i++) fireBullet(this.x,this.y,i*Math.PI*2/16,2.5,"#dd44dd",9);
 }},
-{name:"DIAMOND MASTERPIECE",hp:2500,color:"#00ffff",size:115,update:function(){
-    // Four rapid-fire attacks: quick, small-damage cyan projectiles.
-    if(this.timer%7===0){const a=getAngleToPlayer(this,9);fireBullet(this.x,this.y,a+(Math.random()-.5)*.16,9,"#00ffff",4,0,2);}
-    if(this.timer%32===0){const a=getAngleToPlayer(this);for(let i=-1;i<=1;i++) fireBullet(this.x,this.y,a+i*.12,7.5,"#66ffff",5,0,3);}
-    if(this.timer%55===0){for(let i=0;i<5;i++) fireBullet(this.x,this.y,this.timer*.08+i*.22,6.5,"#00dddd",4,0,2);}
-    if(this.timer%90===0){const a=Math.random()*Math.PI*2;for(let i=0;i<8;i++) fireBullet(this.x,this.y,a+i*Math.PI/4,5.5,"#baffff",5,0,3);}
-}},
 {name:"GLITCH CORE",hp:390,color:"#00ff66",size:50,update:function(){
     if(this.timer%25===0){this.x+=(Math.random()-.5)*180;this.y+=(Math.random()-.5)*100;this.x=Math.max(80,Math.min(820,this.x));this.y=Math.max(70,Math.min(300,this.y));fireBullet(this.x,this.y,getAngleToPlayer(this,5),10,"#0f6",7);}
     if(this.timer%100===0) for(let i=0;i<15;i++) fireBullet(Math.random()*900,0,Math.PI/2+(Math.random()-.5)*.6,4,"#0f6",4);
@@ -850,6 +843,13 @@ const bosses=[
 {name:"THE HELIX",hp:490,color:"#00aaff",size:55,update:function(){
     if(this.timer%7===0) fireBullet(this.x,this.y,this.timer*.11,4.8,"#0af",5);
     if(this.timer%90===0) for(let i=0;i<8;i++) fireBullet(this.x,this.y,-this.timer*.1+i*.7,5.5,"#66ccff",5);
+}},
+{name:"DIAMOND MASTERPIECE",hp:2500,color:"#00ffff",size:115,update:function(){
+    // Four rapid-fire attacks: quick, small-damage cyan projectiles.
+    if(this.timer%7===0){const a=getAngleToPlayer(this,9);fireBullet(this.x,this.y,a+(Math.random()-.5)*.16,9,"#00ffff",4,0,2);}
+    if(this.timer%32===0){const a=getAngleToPlayer(this);for(let i=-1;i<=1;i++) fireBullet(this.x,this.y,a+i*.12,7.5,"#66ffff",5,0,3);}
+    if(this.timer%55===0){for(let i=0;i<5;i++) fireBullet(this.x,this.y,this.timer*.08+i*.22,6.5,"#00dddd",4,0,2);}
+    if(this.timer%90===0){const a=Math.random()*Math.PI*2;for(let i=0;i<8;i++) fireBullet(this.x,this.y,a+i*Math.PI/4,5.5,"#baffff",5,0,3);}
 }},
 {name:"THE LASER GRID",hp:560,color:"#ff3366",size:65,update:function(){
     if(this.timer%70===0){const x=Math.random()*800+50;for(let i=0;i<7;i++) fireBullet(x,i*100,Math.PI/2,6,"#f36",7);}
@@ -944,13 +944,12 @@ const bosses=[
     if(this.timer%160===60) for(let x=80;x<900;x+=115) fireUniqueBullet(x,0,Math.PI/2,4.6,this.color,7,8,'trap',{life:230});
     if(this.timer%240===120) for(let y=80;y<700;y+=115) fireUniqueBullet(0,y,0,4.8,this.color,7,8,'trap',{life:230});
 }},
-{name:"THE APOCALYPSE",hp:4200,color:"#ff0055",size:110,update:function(){ newBossAttack(this,39); }},
 {name:"THE TIME BREAKER",hp:1780,color:"#bbffff",size:100,update:function(){
     if(this.timer%120===0){const phase=(this.timer/120)%2;for(let i=0;i<8;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/4+(phase?Math.PI/8:0),phase?6.2:3.2,this.color,8,10,'time',{life:240});}
     if(this.timer%180===60){const a=getAngleToPlayer(this);for(let i=-2;i<=2;i++) fireUniqueBullet(this.x,this.y,a+i*.16,7,this.color,7,11,'time',{life:180});}
     if(this.timer%300===150) for(let i=0;i<10;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/5-this.timer*.02,4.1,this.color,6,9,'time',{turn:(i%2?.025:-.025),life:300});
 }},
-{name:"PULSAR CORE",hp:380,color:"#aa44ff",size:135,update:pulsarCoreUpdate},
+{name:"THE APOCALYPSE",hp:4200,color:"#ff0055",size:110,update:function(){ newBossAttack(this,39); }},
 {name:"DROWNED",hp:1400,color:"#1a3a5c",size:88,update:function(){
     if(this.timer%80===0){for(let i=0;i<6;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/3+this.timer*.02,5.2,this.color,8,11,'homing',{life:200});}
     if(this.timer%150===40){for(let i=0;i<14;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/7+this.timer*.01,4.6,this.color,7,10,'bubble',{life:220});}
@@ -1357,7 +1356,10 @@ function initBoss(){
         return;
     }
     bullets=[];enemyBullets=[];minions=[];bossHazards=[];
-    const template=bosses[currentBossIndex];
+    // Normal, No Upgrades, and Nightmare Rush exclude special Boss Map/Sandbox bosses.
+    // Removing Diamond Masterpiece keeps THE APOCALYPSE as normal boss 40.
+    const rushBosses=bosses.filter(b=>b.name!=="DIAMOND MASTERPIECE" && b.name!=="PULSAR CORE");
+    const template=(!mapMode && !sandboxMode) ? rushBosses[currentBossIndex] : bosses[currentBossIndex];
     boss={...template,x:450,y:150,timer:0,maxHp:template.hp,shield:template.shields||0,maxShield:template.shields||0};
     if(mapMode){uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);setBossCounter("");}
     else if(nightmareRush){uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1);setBossCounter("/15");}
@@ -1495,7 +1497,7 @@ function update(){
         const spawnInterval=currentBossIndex<15?240:220;
         const maxMinions=currentBossIndex<15?3:2;
         const unlimitedMinions=currentBossIndex===0;
-        if(boss.name!=="NIGHTMARE INCARNATE" && boss.timer>100 && boss.timer%spawnInterval===0 && (unlimitedMinions||minions.length<maxMinions)) spawnMinion(nightmareRush && currentBossIndex>=NIGHTMARE_START_INDEX ? currentBossIndex-1 : currentBossIndex);
+        if(boss.name!=="NIGHTMARE INCARNATE" && boss.timer>100 && boss.timer%spawnInterval===0 && (unlimitedMinions||minions.length<maxMinions)) spawnMinion(nightmareRush && currentBossIndex>=NIGHTMARE_START_INDEX ? 40 + (currentBossIndex-NIGHTMARE_START_INDEX) : currentBossIndex);
         for(let bi=bullets.length-1;bi>=0;bi--){
             const b=bullets[bi];
             if(Math.hypot(b.x-boss.x,b.y-boss.y)<boss.size/2){
@@ -1934,7 +1936,12 @@ function showMainMenuOnStartup(){
 mainMenu.addEventListener("pointerdown",()=>{if(document.body.classList.contains("menuOpen")) startMenuMusic();},{passive:true});
 function fillSandboxMenus(){
     sandboxBossSelect.innerHTML="";
-    bosses.forEach((b,i)=>{const option=document.createElement("option");option.value=i;option.textContent=(i+1)+" - "+b.name;sandboxBossSelect.appendChild(option);});
+    // Keep Diamond Masterpiece in its intended Sandbox position: boss slot 20.
+    // Its internal array index remains unchanged so spawning still uses the correct boss data.
+    const sandboxOrder=bosses.map((b,i)=>({b,i})).filter(x=>x.b.name!=="DIAMOND MASTERPIECE");
+    const diamondIndex=bosses.findIndex(b=>b.name==="DIAMOND MASTERPIECE");
+    sandboxOrder.splice(19,0,{b:bosses[diamondIndex],i:diamondIndex});
+    sandboxOrder.forEach((entry,slot)=>{const option=document.createElement("option");option.value=entry.i;option.textContent=(slot+1)+" - "+entry.b.name;sandboxBossSelect.appendChild(option);});
     const rockOption=document.createElement("option");rockOption.value="ROCK_BEAST";rockOption.textContent="58 - ROCK BEAST";sandboxBossSelect.appendChild(rockOption);
     const emeraldOption=document.createElement("option");emeraldOption.value="EMERALD_KILLER";emeraldOption.textContent="59 - EMERALD KILLER";sandboxBossSelect.appendChild(emeraldOption);
     sandboxEnemySelect.innerHTML="";
@@ -2094,4 +2101,4 @@ gameLoop();
 })();
 </script>
 </body>
-</html>
+    </html>
