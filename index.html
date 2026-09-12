@@ -91,7 +91,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .mapLevelLabel .lvName{color:#ffffff;font-size:13px;display:block;}
 .mapLevelNode.cleared .mapLevelLabel .lvName{color:#bfffc1;}
 .mapLevelNode.cleared .mapLevelLabel .lvTag{color:#7fd07f;}
-.mapRewardNode{position:absolute;transform:translate(-50%,-50%);z-index:110;pointer-events:auto;display:flex;flex-direction:column;align-items:center;}
+.mapRewardNode{position:absolute;transform:translate(-50%,-50%);z-index:110;pointer-events:none;display:flex;flex-direction:column;align-items:center;}
 .mapRewardCircle{width:44px;height:44px;border-radius:50%;border:3px solid #555;background:radial-gradient(circle at 35% 30%, #2a2a2a 0%, #141414 80%);box-shadow:0 0 10px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.8);color:#888;font:bold 20px 'Courier New',monospace;cursor:not-allowed;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .12s, box-shadow .2s, border-color .2s, background .2s;}
 .mapRewardNode.unlocked .mapRewardCircle{pointer-events:auto;border-color:#ffd24d;background:radial-gradient(circle at 35% 30%, #6a4f10 0%, #2c1f05 80%);box-shadow:0 0 22px rgba(255,210,80,.85), 0 0 40px rgba(255,210,80,.4), inset 0 0 12px rgba(0,0,0,.6);color:#fff2b3;cursor:pointer;animation:rewardPulse 1.6s ease-in-out infinite;}
 .mapRewardNode.unlocked .mapRewardCircle:hover{transform:scale(1.08);}
@@ -1721,7 +1721,7 @@ function renderMapNodes(){
             const rcircle=document.createElement("button");
             rcircle.className="mapRewardCircle";rcircle.type="button";rcircle.textContent="\u2605";
             rcircle.setAttribute("aria-label","Permanent upgrade");
-            if(rewardUnlocked){rcircle.disabled=false;rcircle.style.pointerEvents="auto";rcircle.onclick=()=>openRewardPicker();}
+            if(rewardUnlocked && !rewardClaimed){rcircle.disabled=false;rcircle.style.pointerEvents="auto";rcircle.onclick=()=>openRewardPicker();} else {rcircle.style.pointerEvents="none";}
             else{rcircle.onclick=()=>{};rcircle.disabled=true;}
             const rtag=document.createElement("div");
             rtag.className="rewardTag";
