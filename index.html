@@ -91,7 +91,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .mapLevelLabel .lvName{color:#ffffff;font-size:13px;display:block;}
 .mapLevelNode.cleared .mapLevelLabel .lvName{color:#bfffc1;}
 .mapLevelNode.cleared .mapLevelLabel .lvTag{color:#7fd07f;}
-.mapRewardNode{position:absolute;transform:translate(-50%,-50%);z-index:110;pointer-events:none;display:flex;flex-direction:column;align-items:center;}
+.mapRewardNode{position:absolute;transform:translate(-50%,-50%);z-index:110;pointer-events:auto;display:flex;flex-direction:column;align-items:center;}
 .mapRewardCircle{width:44px;height:44px;border-radius:50%;border:3px solid #555;background:radial-gradient(circle at 35% 30%, #2a2a2a 0%, #141414 80%);box-shadow:0 0 10px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.8);color:#888;font:bold 20px 'Courier New',monospace;cursor:not-allowed;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .12s, box-shadow .2s, border-color .2s, background .2s;}
 .mapRewardNode.unlocked .mapRewardCircle{pointer-events:auto;border-color:#ffd24d;background:radial-gradient(circle at 35% 30%, #6a4f10 0%, #2c1f05 80%);box-shadow:0 0 22px rgba(255,210,80,.85), 0 0 40px rgba(255,210,80,.4), inset 0 0 12px rgba(0,0,0,.6);color:#fff2b3;cursor:pointer;animation:rewardPulse 1.6s ease-in-out infinite;}
 .mapRewardNode.unlocked .mapRewardCircle:hover{transform:scale(1.08);}
@@ -144,7 +144,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
         <canvas id="mapCanvas"></canvas>
         <div id="mapOverlay"><div class="mapWorld2Region"><div class="mapWorld2Title">WORLD 2</div><div class="mapWorld2Sub">THE CAVES</div></div><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div>
         <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:103;pointer-events:auto;"></div>
-        <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:104;pointer-events:none;"></div>
+        <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:auto;"></div>
         <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
     </div></div>
     <button id="mapBackButton">&#8592; MAIN MENU</button>
@@ -1393,7 +1393,7 @@ function update(){
             const sb=mapSniperBosses[si];sb.timer++;activeFiringBoss=sb;sb.update();activeFiringBoss=null;bossChase(sb);
             const spawnInterval=240,maxMinions=4;
             let minionTypeForBoss=0;
-            if(sb.name==="THE PULSAR") minionTypeForBoss=1;
+            if(sb.name==="THE PULSAR"||sb.name==="PULSAR CORE") minionTypeForBoss=1;
             else if(sb.name==="NEON GHOST") minionTypeForBoss=2;
             else if(sb.name==="V-TWIN REVENANT") minionTypeForBoss=3;
             else if(sb.name==="WALL OF SILENCE") minionTypeForBoss=4;
@@ -1402,12 +1402,7 @@ function update(){
             else if(sb.name==="CHRONOS") minionTypeForBoss=7;
             else if(sb.name==="THE HYDRA") minionTypeForBoss=8;
             else if(sb.name==="ORBITAL STRIKE") minionTypeForBoss=9;
-            else if(sb.name==="VOID SINGULARITY") minionTypeForBoss=10;
-            else if(sb.name==="GLITCH CORE") minionTypeForBoss=11;
-            else if(sb.name==="RAIN MAKER") minionTypeForBoss=12;
-            else if(sb.name==="STAR DESTROYER") minionTypeForBoss=13;
-            else if(sb.name==="OMEGA ZERO") minionTypeForBoss=14;
-            if(sb.name!=="PULSAR CORE" && sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.name!=="EMERALD KILLER" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
+            if(sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.name!=="ROCK BEASTS" && sb.name!=="EMERALD KILLER" && sb.name!=="PULSAR CORE" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
             for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){if(sb.shield>0){sb.shield-=b.damage;if(sb.shield<0){sb.hp+=sb.shield;sb.shield=0;}}else sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){mapSniperBosses.splice(si,1);break;}}}
         }
         separateBosses(mapSniperBosses);
@@ -1721,17 +1716,16 @@ function renderMapNodes(){
             const rcircle=document.createElement("button");
             rcircle.className="mapRewardCircle";rcircle.type="button";rcircle.textContent="\u2605";
             rcircle.setAttribute("aria-label","Permanent upgrade");
-            if(rewardUnlocked && !rewardClaimed){rcircle.disabled=false;rcircle.style.pointerEvents="auto";rcircle.onclick=()=>openRewardPicker();} else {rcircle.style.pointerEvents="none";}
+            if(rewardUnlocked){rcircle.disabled=false;rcircle.style.pointerEvents="auto";rcircle.onclick=()=>openRewardPicker();}
             else{rcircle.onclick=()=>{};rcircle.disabled=true;}
             const rtag=document.createElement("div");
             rtag.className="rewardTag";
             if(rewardClaimed){
-                const claimedId=permanentUpgradeIds[rewardIndex-1];
+                const claimedId=permanentUpgradeIds[rewardIndex-1]||permanentUpgradeId;
                 const claimedUpgrade=getPowerupById(claimedId);
                 rtag.textContent=claimedUpgrade?claimedUpgrade.name:"CLAIMED";
                 rtag.style.whiteSpace="normal";
                 rtag.style.color="#9a9a9a";
-                rcircle.classList.add("claimed");
             }else rtag.textContent="REWARD";
             rewardNode.appendChild(rcircle);rewardNode.appendChild(rtag);mapRewardLayer.appendChild(rewardNode);
         }
