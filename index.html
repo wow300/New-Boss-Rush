@@ -1253,7 +1253,8 @@ const rewardScreenText=document.getElementById("rewardScreenText");
 function openRewardPicker(ownerLevelId){
     const rewardOwner=Number(ownerLevelId);
     const rewardSlot=REWARD_OWNER_LEVEL_IDS.indexOf(rewardOwner);
-    if(rewardSlot<0 || !mapCleared[rewardOwner] || permanentUpgradeIds[rewardSlot]) return;
+    // The golden button itself is the authorization: if it is visible and tapped, always open the choice.
+    if(rewardSlot<0 || permanentUpgradeIds[rewardSlot]) return;
     const claimedIds=permanentUpgradeIds.filter(Boolean);
     const claimedSet=new Set(claimedIds);
     const available=powerups.filter(p=>!claimedSet.has(p.id));
@@ -1739,7 +1740,7 @@ function renderMapNodes(){
             if(rewardUnlocked && !rewardClaimed){
                 rcircle.disabled=false;
                 rcircle.style.pointerEvents="auto";
-                rcircle.onclick=()=>openRewardPicker(level.id);
+                rcircle.onclick=(ev)=>{ev.preventDefault();ev.stopPropagation();openRewardPicker(level.id);};
             }else{
                 rcircle.onclick=()=>{};
                 rcircle.disabled=true;
