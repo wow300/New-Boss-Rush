@@ -1,1 +1,1 @@
-The latest update added World 2 to Boss Map!
+The latest update added The Abyss DLC.
