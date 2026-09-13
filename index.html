@@ -75,10 +75,23 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #mapTrack{position:relative;height:100%;min-width:100%;}
 #mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;border:none;box-shadow:none;}
 #mapOverlay{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;}
-/* ---------- WORLD 1 (GRASSY) LABEL ---------- */
+/* ---------- WORLD LABELS & REGIONS ---------- */
+
+/* World 0 (Abyss) - Pushed Left */
+.mapAbyssRegion{position:absolute;left:calc(120px + 2 * 260px - 130px);top:0;height:100%;display:flex;flex-direction:column;align-items:center;padding-top:26px;box-sizing:border-box;z-index:4;pointer-events:none;}
+.mapAbyssTitle{color:#e8e8e8;font-size:30px;letter-spacing:5px;text-shadow:0 0 18px rgba(255,255,255,.35),2px 2px #000;}
+.mapAbyssSub{color:#8a8a8a;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
+
+/* World 1 (Grassy) - Shifted Left, Text above Level 1 */
 .mapWorld1Region{position:absolute;left:calc(120px + 6 * 260px + 20px);top:0;display:flex;flex-direction:column;align-items:flex-start;padding-top:26px;box-sizing:border-box;pointer-events:none;}
 #bossMap .mapTitle{margin-top:0;color:#dfffdf;font-size:30px;letter-spacing:5px;text-shadow:0 0 14px rgba(80,255,80,.5),2px 2px #000;pointer-events:none;}
 #bossMap .mapSub{color:#8fc78f;margin:4px 0 0;font-size:14px;letter-spacing:3px;text-shadow:1px 1px #000;pointer-events:none;}
+
+/* World 2 (Caves) - Starts at Level 11 */
+.mapWorld2Region{position:absolute;left:calc(120px + 16 * 260px);top:0;height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:35px;padding-top:26px;box-sizing:border-box;z-index:2;pointer-events:none;}
+.mapWorld2Title{color:#eee;font-size:30px;letter-spacing:5px;text-shadow:2px 2px #000;}
+.mapWorld2Sub{color:#bbb;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
+
 #mapBackButton{position:fixed;top:16px;left:16px;z-index:9100;padding:10px 14px;background:#0c2b0c;color:#dfffdf;border:2px solid #4f8f4f;font:bold 14px 'Courier New',monospace;cursor:pointer;pointer-events:auto;}
 #mapBackButton:hover{border-color:#8fff8f;background:#14401a;}
 .mapLevelNode{position:absolute;transform:translate(-50%,-50%);z-index:103;display:flex;flex-direction:column;align-items:center;pointer-events:auto;width:220px;}
@@ -128,26 +141,22 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #rewardChoices{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;max-width:850px;}
 .rewardBack{margin-top:6px;padding:10px 18px;background:#111;color:#fff;border:2px solid #555;font:bold 14px 'Courier New',monospace;cursor:pointer;letter-spacing:2px;}
 .rewardBack:hover{border-color:#0f0;background:#182018;}
-/* ---------- WORLD LAYOUT ----------
-World 0 (abyss/black):    x = 0 .. calc(120px + 6*260px)  = 0 .. 1680px
-World 1 (grassy/green):   x = 1680px .. calc(120px + 22*260px) = 1680 .. 5840px
-World 2 (caves/gray):     x = calc(120px + 22*260px) .. end = 5840px ..
-Level 10 (GRASS MONSTROSITY) sits at slot 10 → world-1 position 16 → x = 4410px, safely in green.
-*/
+
+/* ---------- WORLD LAYOUT BACKGROUNDS ---------- */
+/* World 0 (abyss/black):    x = 0 .. calc(120px + 6*260px)  = 0 .. 1680px */
+/* World 1 (grassy/green):   x = 1680px .. calc(120px + 16*260px) = 1680 .. 4280px */
+/* World 2 (caves/gray):     x = calc(120px + 16*260px) .. end = 4280px .. */
+
 #mapTrack::before{content:"";position:absolute;left:0;top:0;width:calc(120px + 6 * 260px);height:100%;background:#000;z-index:1;pointer-events:none;}
-#mapTrack::after{content:"";position:absolute;left:calc(120px + 22 * 260px);top:0;right:0;height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
+#mapTrack::after{content:"";position:absolute;left:calc(120px + 16 * 260px);top:0;right:0;height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
+
 /* Abyss gradient + title: span the FULL World 0 width (0..1680px) */
 .mapAbyssGradient{position:absolute;left:0;top:0;width:calc(120px + 6 * 260px);height:100%;background:linear-gradient(90deg,#000 0%,#000 78%,rgba(0,0,0,0) 100%);z-index:2;pointer-events:none;}
-.mapAbyssRegion{position:absolute;left:0;top:0;width:calc(120px + 6 * 260px);height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:30px;padding-top:26px;box-sizing:border-box;z-index:4;pointer-events:none;}
-.mapAbyssTitle{color:#e8e8e8;font-size:30px;letter-spacing:5px;text-shadow:0 0 18px rgba(255,255,255,.35),2px 2px #000;}
-.mapAbyssSub{color:#8a8a8a;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
+
 /* Eyes: kept INSIDE the black World 0 background, pushed to its RIGHT side */
 .mapAbyssEye{position:absolute;width:16px;height:7px;background:#fff;border-radius:50%;box-shadow:0 0 16px #fff,0 0 30px rgba(255,255,255,.8);opacity:0;animation:eyeBlink 7s infinite;z-index:3;pointer-events:none;}
 @keyframes eyeBlink{0%,88%,100%{opacity:0;}90%,96%{opacity:1;}}
-/* World 2 (caves) region: pushed right so level 10 is NOT inside it */
-.mapWorld2Region{position:absolute;left:calc(120px + 22 * 260px);top:0;height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:35px;padding-top:26px;box-sizing:border-box;z-index:2;pointer-events:none;}
-.mapWorld2Title{color:#eee;font-size:30px;letter-spacing:5px;text-shadow:2px 2px #000;}
-.mapWorld2Sub{color:#bbb;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
+
 </style>
 </head>
 <body class="menuOpen" style="margin:0;">
