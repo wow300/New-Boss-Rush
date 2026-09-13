@@ -27,7 +27,8 @@ canvas{background:#000;display:block;position:fixed;left:50%;top:50%;transform:t
 #mainMenu h1{font-size:46px;letter-spacing:6px;color:#0f0;margin:0 0 10px;text-shadow:0 0 18px rgba(0,255,0,.35);}
 #mainMenu p{color:#777;margin:0 0 28px;}
 #dlcBanner{position:fixed;top:14px;right:14px;z-index:100001;color:#ff2020;font:bold 14px 'Courier New',monospace;letter-spacing:2px;text-shadow:0 0 10px rgba(255,0,0,.7),2px 2px #000;pointer-events:none;padding:6px 10px;border:2px solid #ff2020;background:rgba(20,0,0,.75);border-radius:4px;}
-body:not(.menuOpen) #dlcBanner{display:none;}
+#dlcBanner2{position:fixed;top:56px;right:14px;z-index:100001;color:#9a9a9a;font:bold 14px 'Courier New',monospace;letter-spacing:2px;text-shadow:0 0 10px rgba(160,160,160,.5),2px 2px #000;pointer-events:none;padding:6px 10px;border:2px solid #6a6a6a;background:rgba(20,20,20,.8);border-radius:4px;}
+body:not(.menuOpen) #dlcBanner,body:not(.menuOpen) #dlcBanner2{display:none;}
 body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mobileToggle,body.menuOpen #mobileControls,body.menuOpen #sandboxMenu{z-index:9999;display:none;} body.menuOpen #levelCompleteScreen{display:none !important;}
 .menuButton{width:300px;padding:16px;margin:7px;border:2px solid #444;background:#111;color:#fff;font:20px 'Courier New',monospace;cursor:pointer;transition:border-color .3s,background .3s,color .3s;position:relative;touch-action:manipulation;}
 .menuButton:hover{border-color:#0f0;background:#182018;}
@@ -63,6 +64,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
     #ui h1{font-size:18px;margin:8px 0;}
     #sandboxMenu{top:48px;right:8px;width:220px;}
     #dlcBanner{font-size:10px;padding:4px 6px;}
+    #dlcBanner2{font-size:10px;padding:4px 6px;top:46px;}
 }
 #bossMap{display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;align-items:stretch;background:#236b2a;overflow:hidden;}
 #mapScroll{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-color:#4f8f4f #0c2b0c;}
@@ -72,8 +74,9 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #mapScroll::-webkit-scrollbar-thumb:hover{background:#8fff8f;}
 #mapTrack{position:relative;height:100%;min-width:100%;}
 #mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;border:none;box-shadow:none;}
-#mapOverlay{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;pointer-events:none;}
-#bossMap .mapTitle{margin-top:26px;color:#dfffdf;font-size:30px;letter-spacing:5px;text-shadow:0 0 14px rgba(80,255,80,.5),2px 2px #000;pointer-events:none;}
+#mapOverlay{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;}
+.mapWorld1Region{position:absolute;left:calc(120px + 4 * 260px);top:0;display:flex;flex-direction:column;align-items:flex-start;padding-top:26px;box-sizing:border-box;pointer-events:none;}
+#bossMap .mapTitle{margin-top:0;color:#dfffdf;font-size:30px;letter-spacing:5px;text-shadow:0 0 14px rgba(80,255,80,.5),2px 2px #000;pointer-events:none;}
 #bossMap .mapSub{color:#8fc78f;margin:4px 0 0;font-size:14px;letter-spacing:3px;text-shadow:1px 1px #000;pointer-events:none;}
 #mapBackButton{position:fixed;top:16px;left:16px;z-index:9100;padding:10px 14px;background:#0c2b0c;color:#dfffdf;border:2px solid #4f8f4f;font:bold 14px 'Courier New',monospace;cursor:pointer;pointer-events:auto;}
 #mapBackButton:hover{border-color:#8fff8f;background:#14401a;}
@@ -124,15 +127,15 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #rewardChoices{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;max-width:850px;}
 .rewardBack{margin-top:6px;padding:10px 18px;background:#111;color:#fff;border:2px solid #555;font:bold 14px 'Courier New',monospace;cursor:pointer;letter-spacing:2px;}
 .rewardBack:hover{border-color:#0f0;background:#182018;}
-
 #mapTrack::after{content:"";position:absolute;left:calc(120px + 10 * 260px);top:0;right:0;height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
-.mapWorld2Region{position:absolute;left:calc(120px + 10 * 260px);top:0;right:0;height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:35px;padding-top:26px;box-sizing:border-box;z-index:2;pointer-events:none;}
+.mapWorld2Region{position:absolute;left:calc(120px + 10 * 260px);top:0;height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:35px;padding-top:26px;box-sizing:border-box;z-index:2;pointer-events:none;}
 .mapWorld2Title{color:#eee;font-size:30px;letter-spacing:5px;text-shadow:2px 2px #000;}
 .mapWorld2Sub{color:#bbb;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
 </style>
 </head>
 <body class="menuOpen" style="margin:0;">
 <div id="dlcBanner">NIGHTMARES AWAIT DLC ENABLED</div>
+<div id="dlcBanner2">THE ABYSS DLC ENABLED</div>
 <div id="mainMenu">
     <h1>BOSS RUSH</h1>
     <p>ULTRA ELITE</p>
@@ -146,7 +149,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 <div id="bossMap">
     <div id="mapScroll"><div id="mapTrack">
         <canvas id="mapCanvas"></canvas>
-        <div id="mapOverlay"><div class="mapWorld2Region"><div class="mapWorld2Title">WORLD 2</div><div class="mapWorld2Sub">THE CAVES</div></div><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div>
+        <div id="mapOverlay"><div class="mapWorld1Region"><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div><div class="mapWorld2Region"><div class="mapWorld2Title">WORLD 2</div><div class="mapWorld2Sub">THE CAVES</div></div></div>
         <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:103;pointer-events:auto;"></div>
         <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:none;"></div>
         <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
@@ -514,7 +517,7 @@ let permanentUpgradeIds=[];
 function loadPermanentUpgrade(){try{const raw=localStorage.getItem(REWARD_SAVE_KEY);if(!raw) return null;const parsed=JSON.parse(raw);if(Array.isArray(parsed)) return parsed;return [raw];}catch(e){return null;}}
 function savePermanentUpgrade(id){try{localStorage.setItem(REWARD_SAVE_KEY,JSON.stringify(permanentUpgradeIds));}catch(e){}}
 const _loadedUpgrades=loadPermanentUpgrade();
-if(_loadedUpgrades){permanentUpgradeIds=Array.from({length:3},(_,i)=>_loadedUpgrades[i]||null);permanentUpgradeId=permanentUpgradeIds.find(Boolean)||null;}
+if(_loadedUpgrades){permanentUpgradeIds=Array.from({length:4},(_,i)=>_loadedUpgrades[i]||null);permanentUpgradeId=permanentUpgradeIds.find(Boolean)||null;}
 function getAngleToPlayer(origin,leadFactor=0){
     const targetX=player.x+(player.vx||0)*leadFactor;
     const targetY=player.y+(player.vy||0)*leadFactor;
@@ -845,7 +848,6 @@ const bosses=[
     if(this.timer%90===0) for(let i=0;i<8;i++) fireBullet(this.x,this.y,-this.timer*.1+i*.7,5.5,"#66ccff",5);
 }},
 {name:"DIAMOND MASTERPIECE",hp:2500,color:"#00ffff",size:115,update:function(){
-    // Four rapid-fire attacks: quick, small-damage cyan projectiles.
     if(this.timer%7===0){const a=getAngleToPlayer(this,9);fireBullet(this.x,this.y,a+(Math.random()-.5)*.16,9,"#00ffff",4,0,2);}
     if(this.timer%32===0){const a=getAngleToPlayer(this);for(let i=-1;i<=1;i++) fireBullet(this.x,this.y,a+i*.12,7.5,"#66ffff",5,0,3);}
     if(this.timer%55===0){for(let i=0;i<5;i++) fireBullet(this.x,this.y,this.timer*.08+i*.22,6.5,"#00dddd",4,0,2);}
@@ -950,6 +952,7 @@ const bosses=[
     if(this.timer%300===150) for(let i=0;i<10;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/5-this.timer*.02,4.1,this.color,6,9,'time',{turn:(i%2?.025:-.025),life:300});
 }},
 {name:"THE APOCALYPSE",hp:4200,color:"#ff0055",size:110,update:function(){ newBossAttack(this,39); }},
+{name:"PULSAR CORE",hp:380,color:"#aa44ff",size:135,update:pulsarCoreUpdate},
 {name:"DROWNED",hp:1400,color:"#1a3a5c",size:88,update:function(){
     if(this.timer%80===0){for(let i=0;i<6;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/3+this.timer*.02,5.2,this.color,8,11,'homing',{life:200});}
     if(this.timer%150===40){for(let i=0;i<14;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/7+this.timer*.01,4.6,this.color,7,10,'bubble',{life:220});}
@@ -1356,8 +1359,6 @@ function initBoss(){
         return;
     }
     bullets=[];enemyBullets=[];minions=[];bossHazards=[];
-    // Normal, No Upgrades, and Nightmare Rush exclude special Boss Map/Sandbox bosses.
-    // Removing Diamond Masterpiece keeps THE APOCALYPSE as normal boss 40.
     const rushBosses=bosses.filter(b=>b.name!=="DIAMOND MASTERPIECE" && b.name!=="PULSAR CORE");
     const template=(!mapMode && !sandboxMode) ? rushBosses[currentBossIndex] : bosses[currentBossIndex];
     boss={...template,x:450,y:150,timer:0,maxHp:template.hp,shield:template.shields||0,maxShield:template.shields||0};
@@ -1695,9 +1696,6 @@ const MAP_SAVE_KEY="bossRushMapCleared_v1";
 function loadMapSave(){try{const raw=localStorage.getItem(MAP_SAVE_KEY);if(!raw) return {};const obj=JSON.parse(raw);return (obj&&typeof obj==="object")?obj:{};}catch(e){return {};}}
 function saveMapSave(obj){try{localStorage.setItem(MAP_SAVE_KEY,JSON.stringify(obj));}catch(e){}}
 let mapCleared=loadMapSave();
-// Remove permanent upgrades that the player has not legitimately unlocked yet.
-// Reward 1 requires Level 6 cleared, Reward 2 requires Level 12 cleared,
-// and Reward 3 requires Level 15 cleared. Locked/gray/red levels do not count.
 function sanitizePermanentUpgrades(){
     const rewardLevels=[6,12,15,20];
     const old=Array.isArray(permanentUpgradeIds)?permanentUpgradeIds:[];
@@ -1886,12 +1884,13 @@ function startMapLevel(level){
     else if(level.id===20){
         const diamondIndex=bosses.findIndex(b=>b.name==="DIAMOND MASTERPIECE");
         sandboxBossSelect.value=String(diamondIndex);currentBossIndex=diamondIndex;
-        // Diamond Masterpiece is a solo Boss Map fight: never carry over or create drones/minions.
-        minions.length=0;
-        mapSniperBosses.length=0;
+        minions=[]; mapSniperBosses=[]; sandboxBosses=[]; boss=null;
         spawnSandboxBoss();
-        if(mapSniperBosses[0]){mapSniperBosses[0].x=450;mapSniperBosses[0].y=180;}
-        minions.length=0;
+        mapSniperBosses=[];
+        minions=[];
+        sandboxBosses=sandboxBosses.filter(b=>b && b.name==="DIAMOND MASTERPIECE");
+        boss=sandboxBosses[0]||boss;
+        if(boss){boss.x=450;boss.y=180;}
     }
     sandboxBosses=savedSandboxBosses;
     uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
@@ -1939,8 +1938,6 @@ function showMainMenuOnStartup(){
 mainMenu.addEventListener("pointerdown",()=>{if(document.body.classList.contains("menuOpen")) startMenuMusic();},{passive:true});
 function fillSandboxMenus(){
     sandboxBossSelect.innerHTML="";
-    // Keep Diamond Masterpiece in its intended Sandbox position: boss slot 20.
-    // Its internal array index remains unchanged so spawning still uses the correct boss data.
     const sandboxOrder=bosses.map((b,i)=>({b,i})).filter(x=>x.b.name!=="DIAMOND MASTERPIECE");
     const diamondIndex=bosses.findIndex(b=>b.name==="DIAMOND MASTERPIECE");
     sandboxOrder.splice(19,0,{b:bosses[diamondIndex],i:diamondIndex});
@@ -2104,4 +2101,4 @@ gameLoop();
 })();
 </script>
 </body>
-</html>
+    </html>
