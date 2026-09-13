@@ -75,7 +75,11 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #mapTrack{position:relative;height:100%;min-width:100%;}
 #mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;border:none;box-shadow:none;}
 #mapOverlay{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;}
-.mapWorld1Region{position:absolute;left:calc(120px + 4 * 260px);top:0;display:flex;flex-direction:column;align-items:flex-start;padding-top:26px;box-sizing:border-box;pointer-events:none;}
+
+/* ---------- WORLD 1 (GRASSY) LABEL ---------- */
+/* Sits at the START of the green zone (right after the black abyss ends at calc(120px + 6*260px)) */
+.mapWorld1Region{position:absolute;left:calc(120px + 6 * 260px + 20px);top:0;display:flex;flex-direction:column;align-items:flex-start;padding-top:26px;box-sizing:border-box;pointer-events:none;}
+
 #bossMap .mapTitle{margin-top:0;color:#dfffdf;font-size:30px;letter-spacing:5px;text-shadow:0 0 14px rgba(80,255,80,.5),2px 2px #000;pointer-events:none;}
 #bossMap .mapSub{color:#8fc78f;margin:4px 0 0;font-size:14px;letter-spacing:3px;text-shadow:1px 1px #000;pointer-events:none;}
 #mapBackButton{position:fixed;top:16px;left:16px;z-index:9100;padding:10px 14px;background:#0c2b0c;color:#dfffdf;border:2px solid #4f8f4f;font:bold 14px 'Courier New',monospace;cursor:pointer;pointer-events:auto;}
@@ -127,17 +131,30 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #rewardChoices{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;max-width:850px;}
 .rewardBack{margin-top:6px;padding:10px 18px;background:#111;color:#fff;border:2px solid #555;font:bold 14px 'Courier New',monospace;cursor:pointer;letter-spacing:2px;}
 .rewardBack:hover{border-color:#0f0;background:#182018;}
-#mapTrack::after{content:"";position:absolute;left:calc(120px + 16 * 260px);top:0;right:0;height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
-.mapWorld2Region{position:absolute;left:calc(120px + 16 * 260px);top:0;height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:35px;padding-top:26px;box-sizing:border-box;z-index:2;pointer-events:none;}
-.mapWorld2Title{color:#eee;font-size:30px;letter-spacing:5px;text-shadow:2px 2px #000;}
-.mapWorld2Sub{color:#bbb;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
-#mapTrack::before{content:"";position:absolute;left:0;top:0;width:calc(120px + 5 * 260px);height:100%;background:#000;z-index:1;pointer-events:none;}
-.mapAbyssGradient{position:absolute;left:calc(120px + 1 * 260px);top:0;width:calc(5 * 260px);height:100%;background:linear-gradient(90deg,#000 0%,#000 62%,rgba(0,0,0,0) 100%);z-index:2;pointer-events:none;}
-.mapAbyssRegion{position:absolute;left:calc(120px + 1 * 260px);top:0;width:calc(5 * 260px);height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:30px;padding-top:26px;box-sizing:border-box;z-index:4;pointer-events:none;}
+
+/* ---------- WORLD LAYOUT ----------
+   World 0 (abyss/black):    x = 0 .. calc(120px + 6*260px)  = 0 .. 1680px
+   World 1 (grassy/green):   x = 1680px .. calc(120px + 17*260px) = 1680 .. 4540px
+   World 2 (caves/gray):     x = calc(120px + 17*260px) .. end = 4540px ..
+   Level 10 (GRASS MONSTROSITY) sits at slot 10 → world-1 position 16 → x = 4410px, safely in green.
+*/
+#mapTrack::before{content:"";position:absolute;left:0;top:0;width:calc(120px + 6 * 260px);height:100%;background:#000;z-index:1;pointer-events:none;}
+#mapTrack::after{content:"";position:absolute;left:calc(120px + 17 * 260px);top:0;right:0;height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
+
+/* Abyss gradient + title: span the FULL World 0 width (0..1680px) */
+.mapAbyssGradient{position:absolute;left:0;top:0;width:calc(120px + 6 * 260px);height:100%;background:linear-gradient(90deg,#000 0%,#000 78%,rgba(0,0,0,0) 100%);z-index:2;pointer-events:none;}
+.mapAbyssRegion{position:absolute;left:0;top:0;width:calc(120px + 6 * 260px);height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:30px;padding-top:26px;box-sizing:border-box;z-index:4;pointer-events:none;}
 .mapAbyssTitle{color:#e8e8e8;font-size:30px;letter-spacing:5px;text-shadow:0 0 18px rgba(255,255,255,.35),2px 2px #000;}
 .mapAbyssSub{color:#8a8a8a;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
+
+/* Eyes: kept INSIDE the black World 0 background, pushed to its RIGHT side */
 .mapAbyssEye{position:absolute;width:16px;height:7px;background:#fff;border-radius:50%;box-shadow:0 0 16px #fff,0 0 30px rgba(255,255,255,.8);opacity:0;animation:eyeBlink 7s infinite;z-index:3;pointer-events:none;}
 @keyframes eyeBlink{0%,88%,100%{opacity:0;}90%,96%{opacity:1;}}
+
+/* World 2 (caves) region: pushed right so level 10 is NOT inside it */
+.mapWorld2Region{position:absolute;left:calc(120px + 17 * 260px);top:0;height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:35px;padding-top:26px;box-sizing:border-box;z-index:2;pointer-events:none;}
+.mapWorld2Title{color:#eee;font-size:30px;letter-spacing:5px;text-shadow:2px 2px #000;}
+.mapWorld2Sub{color:#bbb;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
 </style>
 </head>
 <body class="menuOpen" style="margin:0;">
@@ -156,13 +173,18 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 <div id="bossMap">
     <div id="mapScroll"><div id="mapTrack">
         <div class="mapAbyssGradient"></div>
-        <div class="mapAbyssEye" style="left:180px;top:36%;animation-delay:0s;"></div>
-        <div class="mapAbyssEye" style="left:200px;top:37%;animation-delay:.12s;"></div>
-        <div class="mapAbyssEye" style="left:150px;top:63%;animation-delay:2.6s;"></div>
-        <div class="mapAbyssEye" style="left:240px;top:74%;animation-delay:4.4s;"></div>
-        <div class="mapAbyssEye" style="left:320px;top:22%;animation-delay:5.8s;"></div>
+        <!-- Eyes now sit on the right side of the black World 0 background (still black, not green) -->
+        <div class="mapAbyssEye" style="left:1420px;top:36%;animation-delay:0s;"></div>
+        <div class="mapAbyssEye" style="left:1440px;top:37%;animation-delay:.12s;"></div>
+        <div class="mapAbyssEye" style="left:1480px;top:63%;animation-delay:2.6s;"></div>
+        <div class="mapAbyssEye" style="left:1540px;top:74%;animation-delay:4.4s;"></div>
+        <div class="mapAbyssEye" style="left:1600px;top:22%;animation-delay:5.8s;"></div>
         <canvas id="mapCanvas"></canvas>
-        <div id="mapOverlay"><div class="mapAbyssRegion"><div class="mapAbyssTitle">WORLD 0</div><div class="mapAbyssSub">THE ABYSS</div></div><div class="mapWorld1Region"><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div><div class="mapWorld2Region"><div class="mapWorld2Title">WORLD 2</div><div class="mapWorld2Sub">THE CAVES</div></div></div>
+        <div id="mapOverlay">
+            <div class="mapAbyssRegion"><div class="mapAbyssTitle">WORLD 0</div><div class="mapAbyssSub">THE ABYSS</div></div>
+            <div class="mapWorld1Region"><div class="mapTitle">WORLD 1</div><div class="mapSub">THE GRASSY PLAINS</div></div>
+            <div class="mapWorld2Region"><div class="mapWorld2Title">WORLD 2</div><div class="mapWorld2Sub">THE CAVES</div></div>
+        </div>
         <div id="mapNodesLayer" style="position:absolute;inset:0;z-index:103;pointer-events:auto;"></div>
         <div id="mapRewardLayer" style="position:absolute;inset:0;z-index:100;pointer-events:none;"></div>
         <div id="mapScrollHint">&#8592; SCROLL &#8594;</div>
@@ -1700,28 +1722,35 @@ const levelCardBossName=document.getElementById("levelCardBossName");
 const levelCardTag=document.getElementById("levelCardTag");
 let mobileEnabled=false,mobileMoveX=0,mobileMoveY=0,mobileFireDown=false;
 const SCROLL_SLOT_PX=260,SCROLL_PADDING_PX=120,ABYSS_SLOTS=6;
+
+/* ---------- LEVEL LAYOUT ----------
+   world:0 → slots are absolute inside World 0 (abyss)
+   world:1 → slots are offset by ABYSS_SLOTS so World 1 starts after the abyss
+   Level 0 (DISMAL) is the only world:0 level → it sits at slot 2 (x≈770px, inside black)
+   Level 10 (GRASS MONSTROSITY) has world:1 slot:10 → position 16 → x≈4410px, still green
+*/
 const mapLevels=[
-    {id:0,name:"DISMAL",tag:"",requires:null,slot:0,rowY:0.55},
-    {id:1,name:"THE SNIPER",tag:"\u00d72",requires:0,slot:1,rowY:0.55},
-    {id:2,name:"THE SNIPER",tag:"2\u00d7 HEALTH",requires:1,slot:2,rowY:0.55},
-    {id:3,name:"THE SNIPER & THE PULSAR",tag:"TAG TEAM",requires:2,slot:3,rowY:0.55},
-    {id:4,name:"PULSAR CORE",tag:"",requires:3,slot:4,rowY:0.55},
-    {id:5,name:"NEON GHOST",tag:"",requires:4,slot:5,rowY:0.55},
-    {id:6,name:"2\u00d7 NEON GHOST + V-TWIN",tag:"",requires:5,slot:6,rowY:0.55},
-    {id:7,name:"WALL OF SILENCE",tag:"",requires:6,slot:7,rowY:0.55},
-    {id:8,name:"WALL OF SILENCE & NEON GHOST",tag:"TAG TEAM",requires:7,slot:8,rowY:0.55},
-    {id:9,name:"THE BOUNCER",tag:"",requires:8,slot:9,rowY:0.55},
-    {id:10,name:"GRASS MONSTROSITY",tag:"",requires:9,slot:10,rowY:0.55},
-    {id:11,name:"GRAVITY WELL & CHRONOS",tag:"TAG TEAM",requires:10,slot:11,rowY:0.55},
-    {id:12,name:"ROCK BEASTS",tag:"3\u00d7",requires:11,slot:12,rowY:0.55},
-    {id:13,name:"WALL OF SILENCE",tag:"2\u00d7",requires:12,slot:13,rowY:0.55},
-    {id:14,name:"2\u00d7 HYDRA + THE SNIPER",tag:"",requires:13,slot:14,rowY:0.55},
-    {id:15,name:"EMERALD KILLER",tag:"",requires:14,slot:15,rowY:0.55},
-    {id:16,name:"3\u00d7 NEON GHOST",tag:"",requires:15,slot:16,rowY:0.55},
-    {id:17,name:"ORBITAL STRIKE & THE HYDRA",tag:"TAG TEAM",requires:16,slot:17,rowY:0.55},
-    {id:18,name:"ORBITAL STRIKE",tag:"DRONE INVASION",requires:17,slot:18,rowY:0.55},
-    {id:19,name:"VOID SINGULARITY",tag:"",requires:18,slot:19,rowY:0.55},
-    {id:20,name:"DIAMOND MASTERPIECE",tag:"",requires:19,slot:20,rowY:0.55}
+    {id:0,name:"DISMAL",tag:"",requires:null,slot:2,rowY:0.55,world:0},
+    {id:1,name:"THE SNIPER",tag:"\u00d72",requires:0,slot:1,rowY:0.55,world:1},
+    {id:2,name:"THE SNIPER",tag:"2\u00d7 HEALTH",requires:1,slot:2,rowY:0.55,world:1},
+    {id:3,name:"THE SNIPER & THE PULSAR",tag:"TAG TEAM",requires:2,slot:3,rowY:0.55,world:1},
+    {id:4,name:"PULSAR CORE",tag:"",requires:3,slot:4,rowY:0.55,world:1},
+    {id:5,name:"NEON GHOST",tag:"",requires:4,slot:5,rowY:0.55,world:1},
+    {id:6,name:"2\u00d7 NEON GHOST + V-TWIN",tag:"",requires:5,slot:6,rowY:0.55,world:1},
+    {id:7,name:"WALL OF SILENCE",tag:"",requires:6,slot:7,rowY:0.55,world:1},
+    {id:8,name:"WALL OF SILENCE & NEON GHOST",tag:"TAG TEAM",requires:7,slot:8,rowY:0.55,world:1},
+    {id:9,name:"THE BOUNCER",tag:"",requires:8,slot:9,rowY:0.55,world:1},
+    {id:10,name:"GRASS MONSTROSITY",tag:"",requires:9,slot:10,rowY:0.55,world:1},
+    {id:11,name:"GRAVITY WELL & CHRONOS",tag:"TAG TEAM",requires:10,slot:11,rowY:0.55,world:1},
+    {id:12,name:"ROCK BEASTS",tag:"3\u00d7",requires:11,slot:12,rowY:0.55,world:1},
+    {id:13,name:"WALL OF SILENCE",tag:"2\u00d7",requires:12,slot:13,rowY:0.55,world:1},
+    {id:14,name:"2\u00d7 HYDRA + THE SNIPER",tag:"",requires:13,slot:14,rowY:0.55,world:1},
+    {id:15,name:"EMERALD KILLER",tag:"",requires:14,slot:15,rowY:0.55,world:1},
+    {id:16,name:"3\u00d7 NEON GHOST",tag:"",requires:15,slot:16,rowY:0.55,world:1},
+    {id:17,name:"ORBITAL STRIKE & THE HYDRA",tag:"TAG TEAM",requires:16,slot:17,rowY:0.55,world:1},
+    {id:18,name:"ORBITAL STRIKE",tag:"DRONE INVASION",requires:17,slot:18,rowY:0.55,world:1},
+    {id:19,name:"VOID SINGULARITY",tag:"",requires:18,slot:19,rowY:0.55,world:1},
+    {id:20,name:"DIAMOND MASTERPIECE",tag:"",requires:19,slot:20,rowY:0.55,world:1}
 ];
 const REWARD_OWNER_LEVEL_IDS=[0,6,12,15,20];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -1754,7 +1783,10 @@ g.fillRect(0,0,w,h);
 }
 window.addEventListener("resize",()=>{if(bossMap.style.display==="flex"){sizeMapCanvas();renderMapNodes();}});
 function computeTrackWidth(){const maxSlot=mapLevels.reduce((m,l)=>Math.max(m,l.slot),0);const needed=(maxSlot+1+ABYSS_SLOTS)*SCROLL_SLOT_PX+SCROLL_PADDING_PX*2;return Math.max(window.innerWidth,needed);}
-function levelNodePosition(level){return {x:SCROLL_PADDING_PX+(level.slot+ABYSS_SLOTS)*SCROLL_SLOT_PX+SCROLL_SLOT_PX/2,y:level.rowY*mapTrack.clientHeight};}
+function levelNodePosition(level){
+    const slot=(level.world===0?0:ABYSS_SLOTS)+level.slot;
+    return {x:SCROLL_PADDING_PX+slot*SCROLL_SLOT_PX+SCROLL_SLOT_PX/2,y:level.rowY*mapTrack.clientHeight};
+}
 function renderMapNodes(){
     mapTrack.style.width=computeTrackWidth()+"px";mapTrack.style.height="100%";sizeMapCanvas();
     mapNodesLayer.innerHTML="";mapRewardLayer.innerHTML="";
