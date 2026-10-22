@@ -220,7 +220,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 <p><span class="label">Tier:</span> <span id="bossNum">1</span><span id="bossTotal">/40</span> | <span class="label">Shields:</span> <span id="bhp" class="stat">100</span></p>
 <p><span class="label">Pilot Integrity:</span> <span id="hp" class="stat">100</span>% | <span class="label">Damage:</span> <span id="power" class="stat">5</span></p>
 </div>
-<div id="msg">WASD to Move | Click to Shoot | SPACE to Dash if unlocked</div>
+<div id="msg">WASD to Move | Click or E to Shoot | SPACE to Dash if unlocked</div>
 <div id="powerupScreen"><h2>BOSS DEFEATED!</h2><p>Choose one upgrade before the next fight.</p><div id="powerupChoices"></div></div>
 <canvas id="gameCanvas"></canvas>
 <script>
@@ -1460,7 +1460,7 @@ player.x=Math.max(player.size,Math.min(canvas.width-player.size,player.x));
 player.y=Math.max(player.size,Math.min(canvas.height-player.size,player.y));
 if(player.fireCooldown>0) player.fireCooldown--;
 if(player.dashCooldown>0) player.dashCooldown--;
-if(mouseDown||mobileFireDown) shoot();
+if(mouseDown||mobileFireDown||keys["e"]) shoot();
 for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;if(b.x<-30||b.x>canvas.width+30||b.y<-30||b.y>canvas.height+30) bullets.splice(i,1);}
 if(mapMode){
 for(let si=mapSniperBosses.length-1;si>=0;si--){
