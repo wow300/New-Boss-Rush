@@ -157,6 +157,30 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 .mapAbyssEye{position:absolute;width:16px;height:7px;background:#fff;border-radius:50%;box-shadow:0 0 16px #fff,0 0 30px rgba(255,255,255,.8);opacity:0;animation:eyeBlink 7s infinite;z-index:3;pointer-events:none;}
 @keyframes eyeBlink{0%,88%,100%{opacity:0;}90%,96%{opacity:1;}}
 
+
+#twoPlayerSelectScreen{display:none;position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,.97);overflow:auto;padding:22px;box-sizing:border-box;flex-direction:column;align-items:center;}
+#twoPlayerSelectScreen h2{color:#0f0;letter-spacing:3px;margin:8px 0;}
+#twoPlayerSelectScreen p{color:#aaa;max-width:800px;line-height:1.5;}
+#twoPlayerBossGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px;width:min(1050px,100%);margin:16px auto;}
+.twoBossCard{background:#101010;color:#fff;border:2px solid #444;min-height:132px;padding:12px 7px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;cursor:pointer;font: bold 12px 'Courier New',monospace;}
+.twoBossCard:hover{border-color:#0f0;background:#102010;transform:translateY(-2px);}
+.twoBossIcon{width:var(--boss-icon-size,43px);height:var(--boss-icon-size,43px);box-sizing:border-box;border:0;border-radius:0!important;box-shadow:0 0 12px currentColor;display:block;flex:none;}
+.twoBossCard span:last-child{text-align:center;overflow-wrap:anywhere;line-height:1.35;}
+#twoPlayerHud{display:none;position:fixed;right:12px;top:105px;width:280px;max-height:calc(100vh - 125px);overflow-y:auto;z-index:12;text-align:left;background:rgba(0,0,0,.88);border:2px solid #555;padding:10px;box-sizing:border-box;font:12px 'Courier New',monospace;pointer-events:auto;}
+#twoPlayerHud h3{margin:2px 0 8px;color:#0f0;font-size:14px;}
+#twoPlayerHud .twoHudStat{color:#ddd;margin:4px 0;line-height:1.4;}#twoPlayerHealthLine{display:none!important;}
+#twoAttackButtons{display:flex;flex-direction:column;gap:6px;margin-top:9px;}
+.twoAttackButton{width:100%;text-align:left;background:#111;color:#fff;border:1px solid #555;padding:7px;font:12px 'Courier New',monospace;cursor:pointer;}
+.twoAttackButton:disabled{color:#888;border-color:#333;cursor:default;}
+.twoAttackButton b{color:#0f0;display:inline-block;min-width:22px;}
+#twoDroneButton{width:100%;margin-top:8px;padding:8px;background:#101820;color:#bdefff;border:1px solid #3a8299;font:bold 12px 'Courier New',monospace;cursor:pointer;}
+#twoDroneButton:disabled{opacity:.5;cursor:default;}
+#twoPlayerResult{display:none;position:fixed;inset:0;z-index:100020;background:rgba(0,0,0,.94);align-items:center;justify-content:center;flex-direction:column;gap:20px;font-family:'Courier New',monospace;}
+#twoPlayerResult h2{font-size:clamp(28px,6vw,58px);margin:0;text-shadow:0 0 20px currentColor;}
+#twoPlayerResult p{color:#aaa;}
+#twoPlayerResult button{padding:13px 25px;background:#111;border:2px solid #0f0;color:#0f0;font:bold 16px 'Courier New',monospace;cursor:pointer;}
+@media(max-width:700px){#twoPlayerHud{right:4px;top:80px;width:210px;padding:7px;max-height:calc(100vh - 90px);font-size:10px}.twoAttackButton{font-size:10px;padding:5px}.twoBossIcon{max-width:48px;max-height:48px}}
+
 </style>
 </head>
 <body class="menuOpen" style="margin:0;">
@@ -166,12 +190,16 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 <h1>BOSS RUSH</h1>
 <p>ULTRA ELITE</p>
 <button class="menuButton" id="startGameButton">START GAME</button>
+<button class="menuButton" id="startTwoPlayerButton" style="border-color:#00aaff">2 PLAYER MODE</button>
 <button class="menuButton" id="startNoUpgradeButton">NO UPGRADES MODE</button>
 <button class="menuButton" id="startNightmareRushButton">NIGHTMARE RUSH</button>
 <button class="menuButton" id="startBossMapButton">BOSS MAP</button>
 <button class="menuButton" id="startSandboxButton">START SANDBOX MODE</button>
 <button class="menuButton" id="enemyMadnessButton">ENEMY MADNESS<span class="miniLabel">MINIGAME</span></button>
 </div>
+<div id="twoPlayerSelectScreen"><h2>2 PLAYER MODE</h2><p>Player 1: move with WASD and aim/shoot with the mouse or E. Player 2: choose a boss icon below, move with the arrow keys, use number keys for attacks, and summon a drone with 0. Boss Map-only and DLC bosses are excluded.</p><div id="twoPlayerBossGrid"></div><button class="menuButton" id="twoPlayerBackButton">BACK TO MENU</button></div>
+<div id="twoPlayerHud"><h3 id="twoPlayerBossTitle">PLAYER 2 BOSS</h3><div class="twoHudStat" id="twoPlayerHealthLine">Boss health: 0</div><div class="twoHudStat" id="twoPlayerShieldLine">Boss shields: 0</div><div class="twoHudStat" id="twoPlayerDroneLine">Drone summon: Ready</div><div id="twoAttackButtons"></div><button id="twoDroneButton">0 — SUMMON DRONE</button></div>
+<div id="twoPlayerResult"><h2 id="twoPlayerResultTitle">PLAYER WINS!</h2><p id="twoPlayerResultSub">Returning to the main menu...</p><button id="twoPlayerResultMenu">MAIN MENU</button></div>
 <div id="bossMap">
 <div id="mapScroll"><div id="mapTrack">
 <div class="mapAbyssGradient"></div>
@@ -528,6 +556,7 @@ let bullets=[],enemyBullets=[],minions=[],boss=null,sandboxBosses=[];
 let currentBossIndex=0,keys={},mouseDown=false,gameActive=false,waitingForPowerup=false,sandboxMode=false,noUpgradeMode=false,nightmareRush=false,enemyMadness=false,enemyMadnessDefeated=0,enemyMadnessSpawnTimer=0;
 let mapMode=false,activeMapLevel=null,mapSniperBosses=[],levelCompletePending=false;
 let activeFiringBoss=null;
+let twoPlayerMode=false,twoPlayerBossIndex=-1,twoPlayerAttackDefs=[],twoPlayerAttackCooldowns=[],twoPlayerDroneCooldown=0,twoPlayerContactCooldown=0,twoPlayerEnding=false,twoPlayerEndTimer=null;
 let lastMouseX=450,mobileAimAngle=-Math.PI/2,lastMouseY=600;
 const NIGHTMARE_START_INDEX=40;
 const NIGHTMARE_END_INDEX=54;
@@ -1154,6 +1183,9 @@ const minionTypes=[
 {name:"SILENCE WALLER",kind:"wall",color:"#777",size:19,hp:30,speed:1.2},
 {name:"BOUNCER",kind:"bouncer",color:"#00ff00",size:18,hp:26,speed:2.8},
 {name:"GRAVITY DRONE",kind:"gravity",color:"#ff00ff",size:20,hp:32,speed:1.4},
+{name:"ANGERED GRAVITY DRONE",kind:"gravity",color:"#bb55ff",size:24,hp:48,speed:1.8},
+{name:"METEOR KING DRONE",kind:"firework",color:"#ff8844",size:24,hp:46,speed:2.0},
+{name:"SPIKE FORTRESS DRONE",kind:"bouncer",color:"#88ff44",size:24,hp:48,speed:2.4},
 {name:"CHRONO DRONE",kind:"chrono",color:"#fff",size:17,hp:25,speed:1.6},
 {name:"HYDRA HEAD",kind:"hydra",color:"#00aa00",size:20,hp:35,speed:1.7},
 {name:"STRIKE DRONE",kind:"strike",color:"#ff5500",size:19,hp:30,speed:1.5},
@@ -1203,8 +1235,16 @@ const minionTypes=[
 {name:"PALE DRONE",kind:"nightmareDrone",variant:13,color:"#e8e8e8",size:21,hp:92,speed:2.0},
 {name:"NIGHTMARE SPECK",kind:"nightmareDrone",variant:14,color:"#ff00aa",size:23,hp:110,speed:2.2}
 ];
-function spawnMinion(typeIndex=currentBossIndex){
+function droneTypeIndexForBoss(name,fallbackIndex=0){
+ const map={
+ "THE SNIPER":"SNIPER DRONE","THE PULSAR":"PULSARLING","NEON GHOST":"GHOSTLING","V-TWIN REVENANT":"TWIN DRONE","WALL OF SILENCE":"SILENCE WALLER","THE BOUNCER":"BOUNCER","GRAVITY WELL":"GRAVITY DRONE","CHRONOS":"CHRONO DRONE","THE HYDRA":"HYDRA HEAD","ORBITAL STRIKE":"STRIKE DRONE","VOID SINGULARITY":"VOIDLING","GLITCH CORE":"GLITCHLING","RAIN MAKER":"RAIN DRONE","STAR DESTROYER":"STARLING","OMEGA ZERO":"OMEGA DRONE","THE MINELAYER":"MINI MINELAYER","THE SPLITTER":"SPLITTER","THE HUNTER":"HUNTER DRONE","THE HELIX":"HELIX DRONE","THE LASER GRID":"GRID DRONE","THE TELEPORTER":"TELEPORT DRONE","THE FIREWORK":"FIREWORK DRONE","THE TIDAL WAVE":"TIDAL DRONE","THE MIRROR":"MIRROR DRONE","THE ABSOLUTE":"ABSOLUTE DRONE","THE THUNDER LORD":"STORM HERALD","THE RINGMASTER":"CARNIVAL ORB","THE BEAM CORE":"PRISM LANCE","THE INFERNO":"EMBER WYRM","THE FROZEN ONE":"GLACIER WISP","ANGERED GRAVITY WELL":"ANGERED GRAVITY DRONE","THE LASER SWEEPER":"REDLINE SWEEPER","THE METEOR KING":"METEOR KING DRONE","THE SPIKE FORTRESS":"SPIKE FORTRESS DRONE","THE BOOMERANG":"RETURNING RAZOR","THE CLOSER":"CLOSING MAW","THE MINEFIELD":"MINE MONGER","THE TRAPPER":"SNARE WITCH","THE TIME BREAKER":"CLOCKBREAKER"
+ };
+ const wanted=map[name];if(wanted){const idx=minionTypes.findIndex(m=>m.name===wanted);if(idx>=0)return idx;}
+ return Math.max(0,Math.min(minionTypes.length-1,fallbackIndex|0));
+}
+function spawnMinion(typeIndex=null){
 if(!boss && !sandboxMode && !mapMode) return;
+if(typeIndex===null||typeIndex===undefined)typeIndex=droneTypeIndexForBoss(boss&&boss.name,currentBossIndex);
 const baseType=minionTypes[typeIndex];
 if(!baseType) return;
 const nightmareNames=["DREADSCUTTER","VOID CHOIR","GLASSWRAITH","SIREN OF ASH","RED WATCHER","MASK OF THE ABYSS","SEAMRIPPER","CINDER HOUND","PALEFROST","SWARM OF NONE","WHISPER KNIFE","DEVOURING ECHO","IRON TETHER","MOONLESS SHADE","FINAL OMEN"];
@@ -1307,8 +1347,119 @@ if(player.shield>0) player.shield--;else player.hp-=5;
 m.contactCooldown=45;updateUI();if(player.hp<=0) playerDefeated();
 }
 }
+function twoPlayerEligibleBosses(){
+const blocked=new Set(["GRASS MONSTROSITY","DISMAL","SHADOW GHOST","DIAMOND MASTERPIECE","PULSAR CORE"]);
+return bosses.map((b,i)=>({...b,__index:i})).filter(b=>b.__index<40&&!blocked.has(b.name));
+}
+function buildTwoPlayerBossPicker(){
+const grid=document.getElementById("twoPlayerBossGrid");if(!grid)return;grid.innerHTML="";
+for(const b of twoPlayerEligibleBosses()){
+ const card=document.createElement("button");card.className="twoBossCard";card.type="button";card.title="Play as "+b.name;
+ const icon=document.createElement("span");icon.className="twoBossIcon";icon.style.background=b.color||"#888";icon.style.color=b.color||"#888";icon.style.setProperty("--boss-icon-size",Math.max(30,Math.min(52,Math.round((b.size||40)*0.48)))+"px");icon.setAttribute("aria-label",b.name+" boss icon");
+ const name=document.createElement("span");name.textContent=b.name;
+ card.appendChild(icon);card.appendChild(name);card.onclick=()=>startTwoPlayerMode(b.__index);grid.appendChild(card);
+}
+}
+function inferTwoPlayerAttacks(index,template){
+ const src=template.update.toString();
+ if(index===0 && template.name==="THE SNIPER") return [
+  {period:75,triggerTick:75,offset:75,label:"BIG SNIPER BULLET"},
+  {period:130,triggerTick:130,offset:130,label:"TWIN SIDE BULLETS"}
+ ];
+ // Treat each timer condition as one attack. Pick a timer value that triggers
+ // this condition without also triggering another attack condition.
+ const rx=/this\.timer\s*%\s*(\d+)\s*===\s*(\d+)/g, conditions=[];let m;
+ while((m=rx.exec(src))){const period=Number(m[1]),offset=Number(m[2]);if(period<2||offset<0||offset>=period)continue;
+  if(!conditions.some(c=>c.period===period&&c.offset===offset))conditions.push({period,offset,at:m.index});
+ }
+ const kindLabels={homing:"HOMING VOLLEY",spiral:"SPIRAL SHOTS",fan:"FAN BURST",bomb:"BOMB BLAST",wave:"WAVE SHOT",heavy:"HEAVY SHOT",ring:"BULLET RING",split:"SPLITTING SHOTS",reverse:"REVERSE SHOTS",orbit:"ORBITAL SHOTS",burst:"BURST FIRE",beam:"BEAM STRIKE",fire:"FIRE BURST",frost:"FROST VOLLEY",mine:"MINE DROP",teleport:"TELEPORT STRIKE",sweep:"SWEEP ATTACK",meteor:"METEOR STRIKE",spikeTriangle:"SPIKE BARRAGE",boomer:"BOOMERANG VOLLEY",closer:"CLOSING WALL",gravity:"GRAVITY SHOTS",thunder:"THUNDER STRIKE",zigzag:"ZIGZAG SHOTS",sine:"WAVING SHOT",grow:"GROWING SHOT",wall:"WALL BARRAGE",rain:"BULLET RAIN",slow:"SLOW SHOT",trap:"TRAP SHOTS",time:"TIME SHOTS",drown:"DROWN SHOTS",bubble:"BUBBLE VOLLEY",flame:"FLAME BURST",shackle:"SHACKLE SHOTS",spear:"SPEAR VOLLEY",laser:"LASER ATTACK",bounce:"BOUNCING SHOTS"};
+ const defs=[];
+ for(const c of conditions){let triggerTick=null;
+  for(let t=Math.max(1,c.offset);t<=20000;t++){
+   if(t%c.period!==c.offset)continue;
+   const matching=conditions.filter(o=>t%o.period===o.offset);
+   if(matching.length===1&&matching[0]===c){triggerTick=t;break;}
+  }
+  // If conditions are mathematically inseparable by timer, use the earliest
+  // valid tick; the attack still receives its own button and cooldown.
+  if(triggerTick===null){for(let t=Math.max(1,c.offset);t<=20000;t++)if(t%c.period===c.offset){triggerTick=t;break;}}
+  let next=src.indexOf('this.timer%',c.at+8);if(next<0)next=src.length;
+  const chunk=src.slice(c.at,Math.min(src.length,Math.max(next,c.at+240)));
+  const km=chunk.match(/['"](homing|spiral|fan|bomb|wave|heavy|ring|split|reverse|orbit|burst|beam|fire|frost|mine|teleport|sweep|meteor|spikeTriangle|boomer|closer|gravity|thunder|zigzag|sine|grow|wall|rain|slow|trap|time|drown|bubble|flame|shackle|spear|laser|bounce)['"]/i);
+  let label=km?(kindLabels[km[1]]||km[1].toUpperCase()+" ATTACK"):"";
+  if(!label){if(/aimSpread|aimUnique|getAngleToPlayer/.test(chunk))label="AIMED SHOT";else if(/radialUnique|Math\.PI\s*\*\s*2/.test(chunk))label="RADIAL BURST";else if(/for\s*\(/.test(chunk))label="PROJECTILE VOLLEY";else label="BULLET STRIKE";}
+  defs.push({period:c.period,triggerTick,offset:triggerTick,label});
+ }
+ if(!defs.length)defs.push({period:120,triggerTick:120,offset:120,label:template.name+" SPECIAL ATTACK"});
+ const seen=new Set();defs.forEach((d,i)=>{if(seen.has(d.label))d.label+=" "+(i+1);seen.add(d.label);});
+ return defs.slice(0,9);
+}
+function showTwoPlayerHud(){
+ const hud=document.getElementById("twoPlayerHud");hud.style.display="block";
+ document.getElementById("twoPlayerBossTitle").textContent="PLAYER 2: "+boss.name;
+ const list=document.getElementById("twoAttackButtons");list.innerHTML="";
+ twoPlayerAttackDefs.forEach((a,i)=>{const btn=document.createElement("button");btn.className="twoAttackButton";btn.id="twoAttackBtn"+i;btn.innerHTML='<b>'+(i<9?i+1:'•')+'</b> '+a.label+' <span id="twoAttackCd'+i+'">READY</span><div style="color:#777;font-size:10px;margin-top:3px">Cooldown: '+(a.period/60).toFixed(2)+'s</div>';btn.onclick=()=>useTwoPlayerAttack(i);list.appendChild(btn);});
+ updateTwoPlayerHud();
+}
+function updateTwoPlayerHud(){
+ if(!twoPlayerMode||!boss)return;
+ document.getElementById("twoPlayerHealthLine").style.display="none";
+ document.getElementById("twoPlayerShieldLine").textContent="Boss shields: "+Math.max(0,Math.ceil(boss.shield||0));
+ document.getElementById("twoPlayerDroneLine").textContent=twoPlayerDroneCooldown>0?"Drone summon: "+(twoPlayerDroneCooldown/60).toFixed(1)+"s":"Drone summon: Ready";
+ twoPlayerAttackDefs.forEach((a,i)=>{const cd=twoPlayerAttackCooldowns[i]||0;const el=document.getElementById("twoAttackCd"+i),btn=document.getElementById("twoAttackBtn"+i);if(el)el.textContent=cd>0?(cd/60).toFixed(1)+"s":"READY";if(btn)btn.disabled=cd>0||twoPlayerEnding;});
+ const drone=document.getElementById("twoDroneButton");if(drone){drone.disabled=twoPlayerDroneCooldown>0||twoPlayerEnding||boss.name==="DISMAL"||boss.name==="NIGHTMARE INCARNATE";drone.textContent=twoPlayerDroneCooldown>0?"0 — SUMMON DRONE ("+(twoPlayerDroneCooldown/60).toFixed(1)+"s)":"0 — SUMMON DRONE";}
+}
+function useTwoPlayerAttack(i){
+ if(!twoPlayerMode||!gameActive||twoPlayerEnding||!boss||!twoPlayerAttackDefs[i]||(twoPlayerAttackCooldowns[i]||0)>0)return;
+ const a=twoPlayerAttackDefs[i],oldTimer=boss.timer,before=bossHazards.length;activeFiringBoss=boss;
+ try{
+  if(boss.name==="THE SNIPER"){
+   // Fire only the selected attack; never call the full update function here,
+   // because that would also trigger the Sniper's other attack at timer zero.
+   if(i===0){fireBullet(boss.x,boss.y,getAngleToPlayer(boss,12),11,"#f44",7,0,12);}
+   else if(i===1){fireBullet(0,boss.y,Math.atan2(player.y-boss.y,player.x),6,"#ff8888",6,0,6);fireBullet(900,boss.y,Math.atan2(player.y-boss.y,player.x-900),6,"#ff8888",6,0,6);}
+  }else{boss.timer=a.triggerTick??a.offset;boss.update.call(boss);}
+ }catch(e){console.warn("2-player attack failed",e);}finally{activeFiringBoss=null;boss.timer=oldTimer;}
+ // Warning hazards are fired immediately in versus mode, while retaining the boss's original attack pattern.
+ for(let j=bossHazards.length-1;j>=before;j--){const h=bossHazards[j];if(h&&h.type==="bulletWarn"&&typeof h.fireFn==="function"){try{h.fireFn();}catch(e){}bossHazards.splice(j,1);}}
+ twoPlayerAttackCooldowns[i]=a.period;updateTwoPlayerHud();
+}
+function summonTwoPlayerDrone(){
+ if(!twoPlayerMode||!gameActive||twoPlayerEnding||twoPlayerDroneCooldown>0||!boss)return;
+ const originalIndex=twoPlayerBossIndex;
+ if(boss.name==="DISMAL"||boss.name==="NIGHTMARE INCARNATE")return;
+ const previous=boss;const oldCurrent=currentBossIndex;currentBossIndex=originalIndex;
+ // Each boss uses the same 240/220-frame drone interval as its regular fight.
+ const rushList=bosses.filter(b=>b.name!=="DIAMOND MASTERPIECE"&&b.name!=="PULSAR CORE"&&b.name!=="DISMAL");const rushIndex=rushList.findIndex(b=>b.name===boss.name);const interval=(rushIndex>=0&&rushIndex<15)?240:220;twoPlayerDroneCooldown=interval;
+ const droneIndex=droneTypeIndexForBoss(boss.name,originalIndex);
+ const base=minionTypes[droneIndex]||minionTypes[0];const x=Math.max(30,Math.min(870,boss.x+(Math.random()-.5)*100));const y=Math.max(50,Math.min(650,boss.y+60));
+ minions.push({...base,x,y,hp:base.hp,maxHp:base.hp,timer:0,contactCooldown:0,splitDone:false,angle:Math.random()*Math.PI*2,targetX:x,targetY:y,dx:Math.cos(Math.random()*Math.PI*2),dy:Math.sin(Math.random()*Math.PI*2),warningTimer:0});
+ currentBossIndex=oldCurrent;updateTwoPlayerHud();
+}
+function startTwoPlayerMode(index){
+ unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+ twoPlayerMode=true;twoPlayerEnding=false;twoPlayerBossIndex=index;twoPlayerDroneCooldown=0;twoPlayerContactCooldown=0;
+ document.getElementById("twoPlayerSelectScreen").style.display="none";document.getElementById("twoPlayerResult").style.display="none";
+ mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
+ sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;waitingForPowerup=false;
+ resetPlayer();player.x=450;player.y=590;player.hp=100;player.maxHp=100;player.shield=0;
+ bullets=[];enemyBullets=[];minions=[];bossHazards=[];currentBossIndex=index;
+ const t=bosses[index];boss={...t,x:450,y:145,timer:0,maxHp:t.hp,shield:t.shields||0,maxShield:t.shields||0};
+ twoPlayerAttackDefs=inferTwoPlayerAttacks(index,t);twoPlayerAttackCooldowns=twoPlayerAttackDefs.map(()=>0);
+ gameActive=true;startBossMusic(index);uiName.textContent=boss.name;uiBoss.textContent="VERSUS";setBossCounter("");showTwoPlayerHud();updateUI();
+}
+function finishTwoPlayerMode(winner){
+ if(!twoPlayerMode||twoPlayerEnding)return;twoPlayerEnding=true;gameActive=false;mouseDown=false;mobileFireDown=false;
+ const result=document.getElementById("twoPlayerResult");const title=document.getElementById("twoPlayerResultTitle");title.textContent=winner==="player"?"Player Wins!":boss.name+" Wins!";title.style.color=winner==="player"?"#00ff66":(boss.color||"#ff4444");
+ document.getElementById("twoPlayerResultSub").textContent="Returning to the main menu...";result.style.display="flex";
+ document.getElementById("twoPlayerHud").style.display="none";stopMusic();
+ if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=setTimeout(()=>{document.getElementById("twoPlayerResult").style.display="none";exitToMainMenu();},2800);
+}
+function exitTwoPlayerToMenu(){if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);document.getElementById("twoPlayerResult").style.display="none";document.getElementById("twoPlayerHud").style.display="none";twoPlayerMode=false;twoPlayerEnding=false;exitToMainMenu();}
+function openTwoPlayerPicker(){buildTwoPlayerBossPicker();mainMenu.style.display="none";document.getElementById("twoPlayerSelectScreen").style.display="flex";stopMusic();}
 function playerDefeated(){
 if(!gameActive) return;
+if(twoPlayerMode){finishTwoPlayerMode("boss");return;}
 gameActive=false;
 if(mapMode){exitMapLevelToMap();return;}
 if(nightmareRush){alert("NIGHTMARE CONSUMED YOU.\nYou reached Nightmare Boss "+(currentBossIndex-NIGHTMARE_START_INDEX+1)+" of 15.");exitToMainMenu();return;}
@@ -1418,6 +1569,7 @@ canvas.addEventListener("mousedown",()=>{mouseDown=true;});
 window.addEventListener("mouseup",()=>{mouseDown=false;});
 window.addEventListener("keydown",e=>{
 keys[e.key.toLowerCase()]=true;
+if(twoPlayerMode&&gameActive&&!twoPlayerEnding){if(e.key>="1"&&e.key<="9")useTwoPlayerAttack(Number(e.key)-1);if(e.key==="0")summonTwoPlayerDrone();if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key))e.preventDefault();return;}
 if(e.code==="Space"&&player.dashPower>0&&player.dashCooldown<=0&&gameActive&&!waitingForPowerup) performDash();
 });
 window.addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
@@ -1442,6 +1594,7 @@ updateUI();
 }
 function updateUI(){
 uiHp.textContent=Math.max(0,Math.ceil(player.hp));
+if(twoPlayerMode&&boss){uiName.textContent=boss.name;uiBoss.textContent="VERSUS";setBossCounter("");uiBhp.textContent=Math.max(0,Math.ceil(boss.shield||0))+" | HP "+Math.max(0,Math.ceil(boss.hp))+"/"+boss.maxHp;uiPower.textContent=player.damage;return;}
 let displayedBossHP=0;
 if(sandboxMode) displayedBossHP=sandboxBosses.reduce((sum,b)=>sum+Math.max(0,(b.hp||0)+(b.shield||0)),0);
 else if(mapMode) displayedBossHP=mapSniperBosses.reduce((sum,b)=>sum+Math.max(0,(b.hp||0)+(b.shield||0)),0);
@@ -1467,30 +1620,54 @@ if(t) minions.push({...t,x:30+Math.random()*840,y:40+Math.random()*500,hp:t.hp,m
 }
 player.vx=0;player.vy=0;
 if(mobileEnabled){player.x+=mobileMoveX*player.speed;player.y+=mobileMoveY*player.speed;player.vx=mobileMoveX*player.speed;player.vy=mobileMoveY*player.speed;}
-if(keys["w"]||keys["arrowup"]){player.y-=player.speed;player.vy=-player.speed;}
-if(keys["s"]||keys["arrowdown"]){player.y+=player.speed;player.vy=player.speed;}
-if(keys["a"]||keys["arrowleft"]){player.x-=player.speed;player.vx=-player.speed;}
-if(keys["d"]||keys["arrowright"]){player.x+=player.speed;player.vx=player.speed;}
+if(keys["w"]||(!twoPlayerMode&&keys["arrowup"])){player.y-=player.speed;player.vy=-player.speed;}
+if(keys["s"]||(!twoPlayerMode&&keys["arrowdown"])){player.y+=player.speed;player.vy=player.speed;}
+if(keys["a"]||(!twoPlayerMode&&keys["arrowleft"])){player.x-=player.speed;player.vx=-player.speed;}
+if(keys["d"]||(!twoPlayerMode&&keys["arrowright"])){player.x+=player.speed;player.vx=player.speed;}
 player.x=Math.max(player.size,Math.min(canvas.width-player.size,player.x));
 player.y=Math.max(player.size,Math.min(canvas.height-player.size,player.y));
 if(player.fireCooldown>0) player.fireCooldown--;
 if(player.dashCooldown>0) player.dashCooldown--;
 if(mouseDown||mobileFireDown||keys["e"]) shoot();
 for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;if(b.x<-30||b.x>canvas.width+30||b.y<-30||b.y>canvas.height+30) bullets.splice(i,1);}
+if(twoPlayerMode){
+ if(!boss||twoPlayerEnding)return;
+ // Player 2 controls the boss with arrow keys; Player 1 keeps WASD + mouse/E.
+ const bs=Math.max(2,Math.min(5.5,2.8+(boss.size||40)*.012));
+ if(keys["arrowup"])boss.y-=bs;if(keys["arrowdown"])boss.y+=bs;if(keys["arrowleft"])boss.x-=bs;if(keys["arrowright"])boss.x+=bs;
+ const edge=Math.max(18,(boss.size||40)/2);boss.x=Math.max(edge,Math.min(canvas.width-edge,boss.x));boss.y=Math.max(edge,Math.min(canvas.height-edge,boss.y));
+ // Preserve the Gravity Well pull in versus mode. Normal boss.update() is
+ // intentionally not run continuously here because attacks are activated
+ // individually, so gravity movement must be applied explicitly.
+ if(boss.name==="GRAVITY WELL"){
+  const gdx=boss.x-player.x,gdy=boss.y-player.y,gdist=Math.hypot(gdx,gdy);
+  if(gdist>1&&gdist<300){player.x+=gdx/180;player.y+=gdy/180;}
+ }else if(boss.name==="ANGERED GRAVITY WELL"){
+  const gdx=boss.x-player.x,gdy=boss.y-player.y,gdist=Math.hypot(gdx,gdy);
+  if(gdist>1&&gdist<420){const force=Math.min(2.5,(420-gdist)/105);player.x+=gdx/gdist*force;player.y+=gdy/gdist*force;}
+ }
+ player.x=Math.max(player.size/2,Math.min(canvas.width-player.size/2,player.x));player.y=Math.max(player.size/2,Math.min(canvas.height-player.size/2,player.y));
+ boss.timer++;
+ if(twoPlayerDroneCooldown>0)twoPlayerDroneCooldown--;if(twoPlayerContactCooldown>0)twoPlayerContactCooldown--;
+ if(mouseDown||keys["e"])shoot();
+ for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];if(Math.hypot(b.x-boss.x,b.y-boss.y)<(boss.size||40)/2){if(boss.shield>0){boss.shield-=b.damage;if(boss.shield<0){boss.hp+=boss.shield;boss.shield=0;}}else boss.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(i,1);if(boss.hp<=0){finishTwoPlayerMode("player");return;}}}
+ // Enemy projectiles and summoned drones still threaten Player 1.
+ for(let mi=minions.length-1;mi>=0;mi--){const m=minions[mi];if(m.kind==="splitFragment")updateSplitFragment(m);else updateMinion(m);for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-m.x,b.y-m.y)<m.size/2+3){m.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(m.hp<=0){minions.splice(mi,1);break;}}}}
+ for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.age=(b.age||0)+1;if(b.bomb){b.timer=(b.timer||0)+1;const d=Math.hypot(b.x-player.x,b.y-player.y);if(d<player.size/2+b.size||(b.timer>=b.fuse&&d<=(b.blastRadius||0))){if(player.shield>0)player.shield--;else player.hp-=b.damage||8;enemyBullets.splice(i,1);if(player.hp<=0){finishTwoPlayerMode("boss");return;}continue;}if(b.timer>=b.fuse){enemyBullets.splice(i,1);continue;}}
+  if(b.speed!==0){if(b.kind==="spiral"||b.kind==="reverse"){const turn=b.turn||0.035,dx=b.dx,dy=b.dy;b.dx=dx*Math.cos(turn)-dy*Math.sin(turn);b.dy=dx*Math.sin(turn)+dy*Math.cos(turn);}if(b.kind==="homing"){const a=Math.atan2(player.y-b.y,player.x-b.x);b.dx=b.dx*.94+Math.cos(a)*.06;b.dy=b.dy*.94+Math.sin(a)*.06;const l=Math.hypot(b.dx,b.dy)||1;b.dx/=l;b.dy/=l;}b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;}
+  if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){if(player.shield>0)player.shield--;else player.hp-=b.damage||5;enemyBullets.splice(i,1);if(player.hp<=0){finishTwoPlayerMode("boss");return;}continue;}if(b.age>(b.life||900)||b.x<-100||b.x>1000||b.y<-100||b.y>800)enemyBullets.splice(i,1);
+ }
+ if(twoPlayerContactCooldown<=0&&Math.hypot(player.x-boss.x,player.y-boss.y)<player.size/2+(boss.size||40)/2){if(player.shield>0)player.shield--;else player.hp-=8;twoPlayerContactCooldown=35;if(player.hp<=0){finishTwoPlayerMode("boss");return;}}
+ twoPlayerAttackCooldowns=twoPlayerAttackCooldowns.map(v=>Math.max(0,v-1));updateTwoPlayerHud();updateUI();return;
+}
 if(mapMode){
 for(let si=mapSniperBosses.length-1;si>=0;si--){
-const sb=mapSniperBosses[si];sb.timer++;activeFiringBoss=sb;sb.update();activeFiringBoss=null;bossChase(sb);
+const sb=mapSniperBosses[si];
+if(activeMapLevel&&activeMapLevel.id===23){sb.timer++;activeFiringBoss=sb;sb.update();sb.timer++;activeFiringBoss=sb;sb.update();activeFiringBoss=null;}
+else{sb.timer++;activeFiringBoss=sb;sb.update();activeFiringBoss=null;}
+bossChase(sb);
 const spawnInterval=240,maxMinions=activeMapLevel && activeMapLevel.id===21?12:4;
-let minionTypeForBoss=0;
-if(sb.name==="THE PULSAR"||sb.name==="PULSAR CORE") minionTypeForBoss=1;
-else if(sb.name==="NEON GHOST") minionTypeForBoss=2;
-else if(sb.name==="V-TWIN REVENANT") minionTypeForBoss=3;
-else if(sb.name==="WALL OF SILENCE") minionTypeForBoss=4;
-else if(sb.name==="THE BOUNCER") minionTypeForBoss=5;
-else if(sb.name==="GRAVITY WELL"||sb.name==="ANGERED GRAVITY WELL") minionTypeForBoss=6;
-else if(sb.name==="CHRONOS") minionTypeForBoss=7;
-else if(sb.name==="THE HYDRA") minionTypeForBoss=8;
-else if(sb.name==="ORBITAL STRIKE") minionTypeForBoss=9;
+const minionTypeForBoss=droneTypeIndexForBoss(sb.name,currentBossIndex);
 if(!(activeMapLevel && activeMapLevel.id<=-1) && sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.name!=="ROCK BEASTS" && sb.name!=="EMERALD KILLER" && sb.name!=="PULSAR CORE" && sb.name!=="DISMAL" && sb.name!=="DIAMOND MASTERPIECE" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
 for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){if(sb.shield>0){sb.shield-=b.damage;if(sb.shield<0){sb.hp+=sb.shield;sb.shield=0;}}else sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){mapSniperBosses.splice(si,1);break;}}}
 }
@@ -1569,7 +1746,7 @@ bossChase(boss);
 const spawnInterval=currentBossIndex<15?240:220;
 const maxMinions=currentBossIndex<15?3:2;
 const unlimitedMinions=currentBossIndex===0;
-if(boss.name!=="NIGHTMARE INCARNATE" && boss.name!=="DISMAL" && boss.timer>100 && boss.timer%spawnInterval===0 && (unlimitedMinions||minions.length<maxMinions)) spawnMinion(nightmareRush && currentBossIndex>=NIGHTMARE_START_INDEX ? 40 + (currentBossIndex-NIGHTMARE_START_INDEX) : currentBossIndex);
+if(boss.name!=="NIGHTMARE INCARNATE" && boss.name!=="DISMAL" && boss.timer>100 && boss.timer%spawnInterval===0 && (unlimitedMinions||minions.length<maxMinions)) spawnMinion(nightmareRush && currentBossIndex>=NIGHTMARE_START_INDEX ? 40 + (currentBossIndex-NIGHTMARE_START_INDEX) : droneTypeIndexForBoss(boss.name,currentBossIndex));
 for(let bi=bullets.length-1;bi>=0;bi--){
 const b=bullets[bi];
 if(Math.hypot(b.x-boss.x,b.y-boss.y)<boss.size/2){
@@ -1655,7 +1832,7 @@ ctx.fillStyle="#0f0";ctx.shadowBlur=15;ctx.shadowColor="#0f0";
 ctx.fillRect(player.x-player.size/2,player.y-player.size/2,player.size,player.size);
 if(player.shield>0){ctx.strokeStyle="#00ffff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(player.x,player.y,27,0,Math.PI*2);ctx.stroke();ctx.fillStyle="#00ffff";ctx.font="12px Courier New";ctx.fillText("S:"+player.shield,player.x+18,player.y-20);}
 const bossesToDraw=mapMode?mapSniperBosses:(sandboxMode?sandboxBosses:(boss?[boss]:[]));
-for(const db of bossesToDraw){ctx.fillStyle=db.color;ctx.shadowColor=db.color;ctx.shadowBlur=15;ctx.fillRect(db.x-db.size/2,db.y-db.size/2,db.size,db.size);ctx.shadowBlur=0;ctx.fillStyle="#222";ctx.fillRect(db.x-50,db.y-db.size-14,100,7);const totalNow=Math.max(0,(db.hp||0)+(db.shield||0));const totalMax=Math.max(1,(db.maxHp||0)+(db.maxShield||0));ctx.fillStyle=db.color;ctx.fillRect(db.x-50,db.y-db.size-14,Math.max(0,totalNow/totalMax*100),7);}
+for(const db of bossesToDraw){ctx.fillStyle=db.color;ctx.shadowColor=db.color;ctx.shadowBlur=15;ctx.fillRect(db.x-db.size/2,db.y-db.size/2,db.size,db.size);ctx.shadowBlur=0;ctx.fillStyle="#222";ctx.fillRect(db.x-50,db.y-db.size-14,100,7);const totalNow=Math.max(0,(db.hp||0)+(db.shield||0));const totalMax=Math.max(1,(db.maxHp||0)+(db.maxShield||0));ctx.fillStyle=db.color;ctx.fillRect(db.x-50,db.y-db.size-14,Math.max(0,totalNow/totalMax*100),7);if(twoPlayerMode&&db.shield>0){ctx.fillStyle="#00ffff";ctx.font="12px Courier New";ctx.fillText("SHIELD "+Math.ceil(db.shield),db.x-38,db.y-db.size-20);}}
 minions.forEach(m=>{
 if(m.kind==="grid" && m.warningTimer>0){const pulse=0.22+0.28*Math.sin(m.warningTimer*.45)**2;ctx.save();ctx.globalAlpha=pulse;ctx.strokeStyle=m.color;ctx.shadowColor=m.color;ctx.shadowBlur=14;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(m.x,0);ctx.lineTo(m.x,canvas.height);ctx.moveTo(0,m.y);ctx.lineTo(canvas.width,m.y);ctx.stroke();ctx.globalAlpha=0.9;ctx.lineWidth=2;ctx.stroke();ctx.restore();}
 ctx.fillStyle=m.color;ctx.shadowColor=m.color;ctx.shadowBlur=10;
@@ -2026,9 +2203,7 @@ const idx=bosses.findIndex(b=>b.name==="THE PULSAR");
 sandboxBossSelect.value=String(idx);currentBossIndex=idx;spawnSandboxBoss();
 const b=mapSniperBosses[0];if(b){
 b.x=450;b.y=200;b.hp*=3;b.maxHp*=3;
-b.__bulletScale={damage:2,speed:0.65};
-const originalUpdate=b.update.bind(b);
-b.update=function(){originalUpdate();originalUpdate();};
+b.__bulletScale={damage:2,speed:2};
 }
 }
 sandboxBosses=savedSandboxBosses;
@@ -2206,7 +2381,7 @@ sandboxBosses.push(newBoss);boss=newBoss;updateUI();
 function spawnSandboxEnemy(){const index=Number(sandboxEnemySelect.value);spawnMinion(index);}
 function clearSandbox(){boss=null;sandboxBosses=[];bullets=[];enemyBullets=[];minions=[];updateUI();}
 function exitToMainMenu(){
-setMobileEnabled(false);stopMusic();document.body.classList.add("menuOpen");
+setMobileEnabled(false);twoPlayerMode=false;twoPlayerEnding=false;document.getElementById("twoPlayerHud").style.display="none";document.getElementById("twoPlayerSelectScreen").style.display="none";document.getElementById("twoPlayerResult").style.display="none";stopMusic();document.body.classList.add("menuOpen");
 sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;gameActive=false;waitingForPowerup=false;
 boss=null;sandboxBosses=[];mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];
 sandboxMenu.style.display="none";powerupScreen.style.display="none";bossMap.style.display="none";
@@ -2215,6 +2390,10 @@ mainMenu.style.display="flex";
 updateMenuButtonStates();updateUI();
 }
 startGameButton.onclick=startGame;
+document.getElementById("startTwoPlayerButton").onclick=openTwoPlayerPicker;
+document.getElementById("twoPlayerBackButton").onclick=()=>{document.getElementById("twoPlayerSelectScreen").style.display="none";mainMenu.style.display="flex";startMenuMusic();};
+document.getElementById("twoDroneButton").onclick=summonTwoPlayerDrone;
+document.getElementById("twoPlayerResultMenu").onclick=exitTwoPlayerToMenu;
 startNoUpgradeButton.onclick=startNoUpgradeMode;
 startNightmareRushButton.onclick=startNightmareRush;
 startBossMapButton.onclick=openBossMap;
