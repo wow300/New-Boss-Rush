@@ -1133,6 +1133,17 @@ fireUniqueBullet(tx,by,Math.PI/2,4.5,"#7fe04a",6,7,"grassTreeBullet",{life:260})
 if(this.timer%18===0){const a=getAngleToPlayer(this,14);for(let i=-1;i<=1;i++) fireBullet(this.x,this.y,a+i*.10,11,"#e8e8e8",6,0,9);}
 if(this.timer%40===0){const a=getAngleToPlayer(this,10);fireBullet(this.x,this.y,a,13,"#ffffff",7,0,11);fireBullet(this.x,this.y,a+Math.PI,13,"#ffffff",7,0,11);}
 if(this.timer%90===0){for(let i=0;i<12;i++) fireBullet(this.x,this.y,i*Math.PI/6+this.timer*.04,9,"#bdbdbd",5,0,7);}
+}},
+{name:"SHADOW GHOST",hp:660,color:"#888888",size:34,update:function(){
+const aim=getAngleToPlayer(this,9);
+// Harder Neon Ghost-style aimed spreads: wider, denser, and more frequent.
+if(this.timer%72===0){for(let i=-4;i<=4;i++)fireBullet(this.x,this.y,aim+i*.115,8.2,"#888888",6,0,14);}
+// More gray mines, arranged in a moving ring and with a shorter fuse.
+if(this.timer%58===0){const count=10;for(let i=0;i<count;i++){const a=(Math.PI*2*i/count)+this.timer*.035;enemyBullets.push({x:this.x+Math.cos(a)*105,y:this.y+Math.sin(a)*78,dx:Math.cos(a)*.65,dy:Math.sin(a)*.65,speed:0,color:"#999999",size:15,bounce:0,damage:18,bomb:true,timer:0,fuse:72,blastRadius:88});}}
+// Extra fast gray aimed bursts between the main spreads.
+if(this.timer%96===0){for(let i=-2;i<=2;i++)fireBullet(this.x,this.y,aim+i*.22,12,"#666666",7,0,18);}
+// Dense rotating gray bullet ring.
+if(this.timer%110===0){for(let i=0;i<18;i++)fireBullet(this.x,this.y,i*Math.PI/9+this.timer*.055,6.2,"#aaaaaa",5,0,12);}
 }}
 ];
 const minionTypes=[
@@ -1480,11 +1491,12 @@ else if(sb.name==="GRAVITY WELL"||sb.name==="ANGERED GRAVITY WELL") minionTypeFo
 else if(sb.name==="CHRONOS") minionTypeForBoss=7;
 else if(sb.name==="THE HYDRA") minionTypeForBoss=8;
 else if(sb.name==="ORBITAL STRIKE") minionTypeForBoss=9;
-if(sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.name!=="ROCK BEASTS" && sb.name!=="EMERALD KILLER" && sb.name!=="PULSAR CORE" && sb.name!=="DISMAL" && sb.name!=="DIAMOND MASTERPIECE" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
+if(!(activeMapLevel && activeMapLevel.id<=-1) && sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.name!=="ROCK BEASTS" && sb.name!=="EMERALD KILLER" && sb.name!=="PULSAR CORE" && sb.name!=="DISMAL" && sb.name!=="DIAMOND MASTERPIECE" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
 for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){if(sb.shield>0){sb.shield-=b.damage;if(sb.shield<0){sb.hp+=sb.shield;sb.shield=0;}}else sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){mapSniperBosses.splice(si,1);break;}}}
 }
 separateBosses(mapSniperBosses);
 if(mapSniperBosses.length===0 && minions.length===0 && !levelCompletePending){levelCompletePending=true;showLevelComplete();}
+if(mapMode && activeMapLevel && activeMapLevel.id<=-1) minions=[];
 for(let mi=minions.length-1;mi>=0;mi--){
 const m=minions[mi];
 if(m.kind==="splitFragment") updateSplitFragment(m);else updateMinion(m);
@@ -1735,6 +1747,8 @@ Level 0 (DISMAL) is the only world:0 level → it sits at slot 2 (x≈770px, ins
 Level 10 (GRASS MONSTROSITY) has world:1 slot:10 → position 16 → x≈4410px, still green
 */
 const mapLevels=[
+{id:-2,name:"SHADOW GHOST",tag:"",requires:-1,slot:0,rowY:0.55,world:0},
+{id:-1,name:"DISMAL",tag:"2× HEALTH",requires:0,slot:1,rowY:0.55,world:0},
 {id:0,name:"DISMAL",tag:"",requires:null,slot:2,rowY:0.55,world:0},
 {id:1,name:"THE SNIPER",tag:"\u00d72",requires:null,slot:1,rowY:0.55,world:1},
 {id:2,name:"THE SNIPER",tag:"2\u00d7 HEALTH",requires:1,slot:2,rowY:0.55,world:1},
@@ -1888,7 +1902,23 @@ resetPlayer();applyPermanentUpgradeToPlayer();
 bullets=[];enemyBullets=[];minions=[];bossHazards=[];mapSniperBosses=[];sandboxBosses=[];
 const savedSandboxBosses=sandboxBosses;sandboxBosses=mapSniperBosses;
 sandboxBossSelect.value="0";currentBossIndex=0;
-if(level.id===0){
+if(level.id===-2){
+const shadowIndex=bosses.findIndex(b=>b.name==="SHADOW GHOST");
+sandboxBossSelect.value=String(shadowIndex);currentBossIndex=shadowIndex;
+sandboxBosses=mapSniperBosses;spawnSandboxBoss();
+const shadow=mapSniperBosses.find(b=>b&&b.name==="SHADOW GHOST");
+if(shadow){shadow.x=450;shadow.y=200;shadow.hp=660;shadow.maxHp=660;}
+minions=[];
+}
+else if(level.id===-1){
+const dismalIndex=bosses.findIndex(b=>b.name==="DISMAL");
+sandboxBossSelect.value=String(dismalIndex);currentBossIndex=dismalIndex;
+sandboxBosses=mapSniperBosses;spawnSandboxBoss();
+const d=mapSniperBosses.find(b=>b && b.name==="DISMAL");
+if(d){d.x=450;d.y=200;d.hp*=2;d.maxHp*=2;d.size*=2;d.__bulletScale={damage:2,speed:0.65};}
+minions=[];
+}
+else if(level.id===0){
 const dismalIndex=bosses.findIndex(b=>b.name==="DISMAL");
 sandboxBossSelect.value=String(dismalIndex);currentBossIndex=dismalIndex;
 sandboxBosses=mapSniperBosses;
@@ -2003,7 +2033,7 @@ b.update=function(){originalUpdate();originalUpdate();};
 }
 sandboxBosses=savedSandboxBosses;
 uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
-if(level.id===0) startAbyssMusic(); else if(level.id>=11) startCavesMusic(); else startGrassyMusic();
+if(level.id<=0) startAbyssMusic(); else if(level.id>=11) startCavesMusic(); else startGrassyMusic();
 gameActive=true;updateUI();
 }
 function showLevelComplete(){
