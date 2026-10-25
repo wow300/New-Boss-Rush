@@ -655,7 +655,8 @@ updateMenuButtonStates();
 const ACHIEVEMENTS_SAVE_KEY="bossRushAchievements_v1";
 const CLEAN_RUN_MARKER_KEY="bossRushDedicationCleanRun_v1";
 const ACHIEVEMENTS=[
-  {id:"dedication",name:"DEDICATION",description:"Complete a normal run without taking damage."}
+  {id:"dedication",name:"DEDICATION",description:"Complete a normal run without taking damage."},
+  {id:"perseverance",name:"PERSEVERANCE",description:"Reach wave 15 in Endless Mode."}
 ];
 function loadAchievements(){
   try{
@@ -2739,6 +2740,7 @@ function spawnEndlessLevel(){
 if(!endlessMode)return;
 if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;
 endlessLevel=Math.max(1,endlessLevel);saveEndlessRecord(endlessLevel);
+if(endlessLevel>=15)unlockAchievement("perseverance");
 activeMapLevel={id:1000+endlessLevel,name:"ENDLESS LEVEL "+endlessLevel,tag:""};levelCompletePending=false;waitingForPowerup=false;powerupScreen.style.display="none";
 bullets=[];enemyBullets=[];minions=[];bossHazards=[];mapSniperBosses=[];sandboxBosses=[];boss=null;
 chooseEndlessModifiers();
