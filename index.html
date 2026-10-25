@@ -424,6 +424,14 @@ const endlessIntenseMusic=expandTheme([176,49,[0,1,3,5,6,8,10],
  3,6,8,10,13,10,8,6,5,8,11,13,12,11,8,5,0,3,7,10,12,10,7,3,1,6,8,11,13,11,8,6,
  0,5,8,10,12,10,8,5,3,6,10,12,15,12,10,6,5,8,12,15,13,12,8,5,0,4,7,11,13,11,7,4,
  1,3,6,9,11,9,6,3,0,3,6,8,10,8,6,3,1,5,8,10,13,10,8,5,3,6,10,13,15,13,10,6]],7);
+// EXTREME endless theme (level 25+): longer 192-step motif, 184 BPM, dense chromatic motion.
+const endlessExtremeMusic=expandTheme([184,49,[0,1,3,5,6,8,10],
+[0,3,6,8,10,8,6,3,1,5,8,11,10,8,5,3,0,4,7,10,12,10,7,4,1,5,8,11,10,8,5,1,
+ 3,6,8,10,13,10,8,6,5,8,11,13,12,11,8,5,0,3,7,10,12,10,7,3,1,6,8,11,13,11,8,6,
+ 0,5,8,10,12,10,8,5,3,6,10,12,15,12,10,6,5,8,12,15,13,12,8,5,0,4,7,11,13,11,7,4,
+ 1,3,6,9,11,9,6,3,0,3,6,8,10,8,6,3,1,5,8,10,13,10,8,5,3,6,10,13,15,13,10,6,
+ 2,5,9,12,14,12,9,5,4,7,11,14,16,14,11,7,6,9,13,16,18,16,13,9,8,11,15,18,20,18,15,11,
+ 3,7,10,13,17,13,10,7,5,9,12,15,19,15,12,9,7,11,14,17,21,17,14,11,9,13,16,19,23,19,16,13]],9);
 const skyMusic=expandTheme([132,246,[0,2,4,5,7,9,11],[0,4,7,9,7,4,2,5,9,11,9,5,4,7,11,9,7,5,2,4,7,9,11,9,7,4,2,5,7,9,5,2]],4);
 function ensureAudio(){
 if(!audioCtx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;audioCtx=new AC();}
@@ -655,6 +663,89 @@ if(key==="endless-intense"){
     if(s%4===0)playSnare(when,.04);
   }
 }
+if(key==="endless-extreme"){
+  // Extreme arrangement (level 25+): 6-phase structure, layered arps, chromatic runs, dense polyrhythms.
+  const phase=Math.floor(s/192)%6;
+  const sub=Math.floor(s/24)%8;
+  const climax=(section>=56);
+  const leadOct2=climax?12:0;
+
+  // --- Root pedal + driving 16th-note bass ostinato ---
+  if(s%2===0){
+    const bassDeg=scale[(Math.floor(s/2)+(phase*3))%scale.length];
+    playTone(noteFreq(root,bassDeg-12),d*2.4,.044,"triangle",when,.004,.06);
+    // Chromatic bass pickup on off-beats
+    if(s%4===2) playTone(noteFreq(root,bassDeg-11),d*1.2,.026,"sawtooth",when,.002,.035);
+  }
+
+  // --- Main lead with octave stack ---
+  const leadDeg=scale[idx%scale.length];
+  playTone(noteFreq(root,leadDeg+24+leadOct2),d*1.4,.052,"square",when,.002,.035,(s%4===0?-3:3));
+  playTone(noteFreq(root,leadDeg+36),d*1.1,.020,"sawtooth",when,.002,.03);
+  if(climax) playTone(noteFreq(root,leadDeg+48),d*.7,.014,"triangle",when,.001,.02);
+
+  // --- Phase-based counter layers ---
+  if(phase===0){
+    if(s%2===0)playArp(noteFreq(root,scale[(idx+4+sub)%scale.length]+24),d*.7,.032,when);
+    if(s%4===3)playTone(noteFreq(root,scale[(idx+6)%scale.length]+36),d*.35,.022,"square",when,.001,.02);
+  }else if(phase===1){
+    // Chromatic neighbor runs
+    if(s%2===0){
+      const chr=scale[(idx+ (s%16<8 ? 7 : 8))%scale.length];
+      playTone(noteFreq(root,chr+24),d*.5,.030,"sawtooth",when,.002,.025);
+    }
+    if(beat===14||beat===15)playTom(when,.045);
+  }else if(phase===2){
+    // High sparkle arps
+    for(let k=0;k<2;k++){
+      const hk=scale[(idx+3+k*4+sub)%scale.length]+36;
+      playTone(noteFreq(root,hk),d*.42,.020,"triangle",when+k*d*.25,.001,.02,5);
+    }
+  }else if(phase===3){
+    // Descending tension line
+    const descDeg=scale[(11-idx+phase)%scale.length];
+    if(s%2===1)playTone(noteFreq(root,descDeg+24),d*.55,.028,"square",when,.002,.025,(s%2?8:-8));
+  }else if(phase===4){
+    // Doubled counter-melody call-and-response
+    if(s%4===0)playTone(noteFreq(root,scale[(idx+5)%scale.length]+24),d*1.4,.038,"sawtooth",when,.001,.03);
+    if(s%4===2)playTone(noteFreq(root,scale[(idx+9)%scale.length]+36),d*1.0,.026,"triangle",when,.001,.025);
+  }else{
+    // Full chromatic lead harmonization
+    if(s%2===0)playTone(noteFreq(root,scale[(idx+7)%scale.length]+36),d*.6,.030,"sawtooth",when,.001,.02,(s%4?12:-12));
+  }
+
+  // --- Pad anchor every 8 steps ---
+  if(s%8===0){
+    const padDeg=scale[(Math.floor(s/8)*3+phase)%scale.length];
+    playTone(noteFreq(root,padDeg+12),d*7,.015,"triangle",when,.03,.2);
+    playTone(noteFreq(root,padDeg+19),d*6,.010,"sine",when,.03,.2);
+    playTone(noteFreq(root,padDeg+24),d*5,.007,"sine",when,.03,.2);
+  }
+
+  // --- Dense percussion with polyrhythm ---
+  if(beat===0||beat===4||beat===8||beat===12||(climax&&beat===14))playKick(when,.09+(climax?.02:0));
+  if(beat===3||beat===6||beat===11||beat===14)playSnare(when,.045+(climax?.015:0));
+  if(beat%2===0)playHat(when,.014);
+  else if(climax)playHat(when,.018);
+  if(beat===2||beat===7||beat===10)playTom(when,.026);
+  // Off-beat 3:4 polyrhythm layer on hat
+  if(s%3===1)playHat(when,.010);
+
+  // --- Transition accents ---
+  if(s%32===0)playTone(noteFreq(root,scale[0]-24),d*5,.052,"triangle",when,.02,.2);
+  if(s%64===0&&section>0){
+    noiseHit(when,.055,.2);
+    playTone(noteFreq(root,scale[9%scale.length]+48),d*2,.042,"square",when,.002,.08);
+    playTone(noteFreq(root,scale[11%scale.length]+36),d*1.5,.03,"sawtooth",when,.002,.07);
+  }
+
+  // --- Mini-fill in last 16 steps of each 192-movement ---
+  if(s%192>=176){
+    if(s%2===0)playTone(noteFreq(root,scale[(idx+11)%scale.length]+36),d*.4,.035,"sawtooth",when,.001,.02);
+    if(s%4===0)playSnare(when,.042);
+    if(s%8===0)playTom(when,.035);
+  }
+}
 if(key==="abyss"){
 const aLead=noteFreq(root,scale[(idx+11)%scale.length]+12);
 playTone(aLead,d*2.4,.055,"triangle",when,.02,.22,-6);
@@ -681,7 +772,11 @@ function startGrassyMusic(){startMusic(longGrassyMusic,"grassy");}
 function startCavesMusic(){startMusic(cavesMusic,"caves");}
 function startAbyssMusic(){startMusic(abyssMusic,"abyss");}
 function startSkyMusic(){startMusic(skyMusic,"world3-sky");}
-function startEndlessMusic(){if(endlessLevel>=10)startMusic(endlessIntenseMusic,"endless-intense");else startMusic(endlessMusic,"endless");}
+function startEndlessMusic(){
+  if(endlessLevel>=25)startMusic(endlessExtremeMusic,"endless-extreme");
+  else if(endlessLevel>=10)startMusic(endlessIntenseMusic,"endless-intense");
+  else startMusic(endlessMusic,"endless");
+}
 document.addEventListener("pointerdown",()=>{
 if(!audioCtx) ensureAudio();
 if(!audioCtx) return;
@@ -2234,7 +2329,7 @@ function stepBouncingBullet(b){
   }
 }
 function draw(){
-if((mapMode && activeMapLevel && (activeMapLevel.id===26||activeMapLevel.id===27))||(sandboxMode&&sandboxBosses.some(b=>b.name==="CLOUD MASTER"))){
+if((mapMode && activeMapLevel && (activeMapLevel.id===26||activeMapLevel.id===27||activeMapLevel.id===28))||(sandboxMode&&sandboxBosses.some(b=>b.name==="CLOUD MASTER"))){
 ctx.fillStyle="#168bd7";ctx.fillRect(0,0,canvas.width,canvas.height);
 const frame=performance.now()/1000;
 for(let i=0;i<9;i++){
@@ -2271,6 +2366,21 @@ if(mapMode && activeMapLevel && activeMapLevel.id===27){
 if(endlessMode && endlessLevel>=10){
   const redPulse=.085+.025*(.5+.5*Math.sin(performance.now()/900));
   ctx.fillStyle=`rgba(145,12,24,${redPulse})`;ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+if(endlessMode && endlessLevel>=25){
+  // EXTREME red overlay: heavier vignette, brighter pulse, and edge glow.
+  const t=performance.now()/1000;
+  const strongPulse=.16+.06*(.5+.5*Math.sin(t*1.4));
+  ctx.fillStyle=`rgba(180,10,18,${strongPulse})`;ctx.fillRect(0,0,canvas.width,canvas.height);
+  const vig=ctx.createRadialGradient(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*.28,canvas.width/2,canvas.height/2,Math.max(canvas.width,canvas.height)*.72);
+  vig.addColorStop(0,"rgba(0,0,0,0)");
+  vig.addColorStop(1,`rgba(90,0,6,${.55+.12*Math.sin(t*1.1)})`);
+  ctx.fillStyle=vig;ctx.fillRect(0,0,canvas.width,canvas.height);
+  // Thin red edge scanline glow
+  const glowAlpha=.32+.18*(.5+.5*Math.sin(t*2.2));
+  ctx.strokeStyle=`rgba(255,60,70,${glowAlpha})`;
+  ctx.lineWidth=6;
+  ctx.strokeRect(3,3,canvas.width-6,canvas.height-6);
 }
 if(endlessMode && endlessActiveModifiers.some(m=>m.id==="windstorm")){
   const frame=performance.now()/1000;ctx.save();
@@ -2412,7 +2522,7 @@ const mapLevels=[
 {id:25,name:"THE SNIPER",tag:"5×",requires:24,slot:25,rowY:0.55,world:2},
 {id:26,name:"CLOUD MASTER",tag:"",requires:25,slot:26,rowY:0.55,world:3},
 {id:27,name:"RAIN MAKER",tag:"WINDSTORM|3× HEALTH",requires:26,slot:27,rowY:0.55,world:3},
-{id:28,name:"3× RAIN MAKER",tag:"3×",requires:27,slot:28,rowY:0.55,world:3}
+{id:28,name:"RAIN MAKER",tag:"3×",requires:27,slot:28,rowY:0.55,world:3}
 ];
 const REWARD_OWNER_LEVEL_IDS=[0,6,12,15,20,25];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
