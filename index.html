@@ -225,7 +225,7 @@ body.twoPlayerTouch #mobileControls.enabled{z-index:35;pointer-events:none;}
 <button class="menuButton" id="achievementsBackButton">BACK TO MENU</button>
 </div>
 <div id="achievementToast"><span class="big" id="achievementToastTitle">ACHIEVEMENT UNLOCKED!</span><span id="achievementToastName"></span></div>
-<div id="dedicationToast"><span class="big">DEDICATION FAILED</span><span>You took damage this run. The normal clear still counts, but this achievement won't unlock.</span></div>
+<div id="dedicationToast"><span class="big" id="cleanRunFailedTitle">DEDICATION FAILED</span><span id="cleanRunFailedMessage">You took damage this run. The normal clear still counts, but this achievement won't unlock.</span></div>
 <div id="twoPlayerSelectScreen"><h2>2 PLAYER MODE</h2><p>Player 1: move with WASD and aim/shoot with the mouse or E. Player 2: choose a boss icon below, move with the arrow keys, use number keys for attacks, and summon a drone with 0. Boss Map-only and DLC bosses are excluded.</p><div id="twoPlayerBossGrid"></div><button class="menuButton" id="twoPlayerBackButton">BACK TO MENU</button></div>
 <div id="twoPlayerHud"><h3 id="twoPlayerBossTitle">PLAYER 2 BOSS</h3><div class="twoHudStat" id="twoPlayerHealthLine">Boss health: 0</div><div class="twoHudStat" id="twoPlayerShieldLine">Boss shields: 0</div><div class="twoHudStat" id="twoPlayerDroneLine">Drone summon: Ready</div><div id="twoAttackButtons"></div><button id="twoDroneButton">0 — SUMMON DRONE</button></div>
 <div id="twoPlayerResult"><h2 id="twoPlayerResultTitle">PLAYER WINS!</h2><p id="twoPlayerResultSub">Returning to the main menu...</p><button id="twoPlayerResultMenu">MAIN MENU</button></div>
@@ -656,6 +656,7 @@ const ACHIEVEMENTS_SAVE_KEY="bossRushAchievements_v1";
 const CLEAN_RUN_MARKER_KEY="bossRushDedicationCleanRun_v1";
 const ACHIEVEMENTS=[
   {id:"dedication",name:"DEDICATION",description:"Complete a normal run without taking damage."},
+  {id:"insanity",name:"INSANITY",description:"Beat No Upgrades mode without taking any damage."},
   {id:"perseverance",name:"PERSEVERANCE",description:"Reach wave 15 in Endless Mode."}
 ];
 function loadAchievements(){
@@ -712,6 +713,15 @@ function showDedicationFailedToast(){
   dedicationToastShown = true;
   const toast = document.getElementById("dedicationToast");
   if(!toast) return;
+  const title = document.getElementById("cleanRunFailedTitle");
+  const message = document.getElementById("cleanRunFailedMessage");
+  if(noUpgradeMode){
+    if(title) title.textContent = "INSANITY FAILED";
+    if(message) message.textContent = "You took damage during No Upgrades Mode. INSANITY will not unlock this run.";
+  }else{
+    if(title) title.textContent = "DEDICATION FAILED";
+    if(message) message.textContent = "You took damage this run. The normal clear still counts, but this achievement won't unlock.";
+  }
   toast.classList.add("show");
   playDedicationFailedSound();
   if(dedicationToastTimer) clearTimeout(dedicationToastTimer);
@@ -719,7 +729,7 @@ function showDedicationFailedToast(){
 }
 function markPlayerDamaged(){
   runTookDamage = true;
-  if(isNormalStartGameRun()) showDedicationFailedToast();
+  if(isNormalStartGameRun() || (gameActive && noUpgradeMode && !twoPlayerMode)) showDedicationFailedToast();
 }
 function applyPlayerDamage(amount){
   const beforeHp = player.hp;
@@ -2046,7 +2056,7 @@ const endIndex=nightmareRush?NIGHTMARE_END_INDEX+1:40;
 if(currentBossIndex>=endIndex){
 gameActive=false;
 if(nightmareRush){markCompleted("nightmare");alert("NIGHTMARES CONQUERED!\nYou cleared all 15 Nightmare bosses!");}
-else if(noUpgradeMode){markCompleted("noUpgrade");alert("GOD SLAYER!\nYou cleared all 40 bosses!");}
+else if(noUpgradeMode){markCompleted("noUpgrade");if(!runTookDamage)unlockAchievement("insanity");alert("GOD SLAYER!\nYou cleared all 40 bosses!");}
 else{markCompleted("normal");if(!runTookDamage){unlockAchievement("dedication");try{localStorage.setItem(CLEAN_RUN_MARKER_KEY,"1");}catch(e){}}alert("GOD SLAYER!\nYou cleared all 40 bosses!");}
 exitToMainMenu();
 return;
@@ -2867,6 +2877,9 @@ gameActive=true;initBoss();updateUI();
 }
 function startNoUpgradeMode(){
 unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+runTookDamage=false;
+dedicationToastShown=false;
+const dt=document.getElementById("dedicationToast");if(dt)dt.classList.remove("show");
 if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
 resetTimeControl();
 endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];twoPlayerMode=false;twoPlayerEnding=false;document.body.classList.remove("twoPlayerTouch");activeMapLevel=null;mapSniperBosses=[];sandboxBosses=[];bossHazards=[];
@@ -3001,4 +3014,4 @@ window.addEventListener("resize",repairMobileLayer);
 })();
 </script>
 </body>
- </html>
+                       </html>
