@@ -16,6 +16,7 @@ canvas{background:#000;display:block;position:fixed;left:50%;top:50%;transform:t
 #power{color:#ff0}
 .label{color:#aaa;font-size:.8em;text-transform:uppercase;}
 #msg{position:absolute;bottom:20px;width:100%;color:#777;z-index:5;}
+#endlessModifierHud{display:none;max-height:calc(100vh - 125px);overflow-y:auto;pointer-events:auto;box-sizing:border-box;position:fixed;right:12px;top:105px;z-index:8;max-width:255px;padding:10px 12px;background:rgba(8,5,16,.88);border:1px solid #ffe45c;border-radius:6px;color:#ffe45c;text-align:left;font:12px/1.45 'Courier New',monospace;pointer-events:none;box-shadow:0 0 12px rgba(255,225,50,.18)}#endlessModifierHud strong{display:block;color:#ffe45c;font-size:13px;margin-bottom:4px} @media(max-width:650px){#endlessModifierHud{top:115px;right:6px;max-width:165px;padding:6px 8px;font-size:10px;}}
 #powerupScreen{display:none;position:absolute;inset:0;background:rgba(0,0,0,.9);z-index:20;align-items:center;justify-content:center;flex-direction:column;}
 #powerupScreen h2{color:#0f0;font-size:32px;margin-bottom:8px;}
 #powerupChoices{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;max-width:850px;}
@@ -37,6 +38,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #enemyMadnessButton:hover{border-color:#0f0;background:#182018;color:#fff;}
 #enemyMadnessButton .miniLabel{display:block;color:#777;font-size:12px;margin-top:5px;letter-spacing:1px;}
 .menuButton.completed::after{content:" COMPLETED!";font-size:.75em;color:#0f0;display:block;margin-top:4px;letter-spacing:2px;pointer-events:none;}
+#startEndlessButton:hover{border-color:#e0a0ff;background:#190020;color:#f1caff;}
 #startNightmareRushButton{border-color:#801010;}
 #startNightmareRushButton:hover{border-color:#ff2020;background:#200808;color:#ff8080;}
 #startNightmareRushButton.completed{border-color:#ff2020;background:#200808;color:#ff6060;box-shadow:0 0 14px rgba(255,32,32,.5);}
@@ -73,7 +75,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #mapScroll::-webkit-scrollbar-thumb{background:#4f8f4f;border:2px solid #0c2b0c;border-radius:8px;}
 #mapScroll::-webkit-scrollbar-thumb:hover{background:#8fff8f;}
 #mapTrack{position:relative;height:100%;min-width:100%;}
-#mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;border:none;box-shadow:none;}
+#mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;border:none;box-shadow:none;transform:none;margin:0;box-sizing:border-box;z-index:0;}
 #mapOverlay{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;}
 /* ---------- WORLD LABELS & REGIONS ---------- */
 
@@ -148,7 +150,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 /* World 2 (caves/gray):     x = calc(120px + 17*260px) .. end = 4540px .. */
 
 #mapTrack::before{content:"";position:absolute;left:0;top:0;width:calc(120px + 6 * 260px);height:100%;background:#000;z-index:1;pointer-events:none;}
-#mapTrack::after{content:"";position:absolute;left:calc(120px + 17 * 260px);top:0;right:0;height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
+#mapTrack::after{content:"";position:absolute;left:calc(120px + 17 * 260px);top:0;width:3900px;right:auto;height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
 
 /* Abyss gradient + title: span the FULL World 0 width (0..1680px) */
 .mapAbyssGradient{position:absolute;left:0;top:0;width:calc(120px + 6 * 260px);height:100%;background:linear-gradient(90deg,#000 0%,#000 78%,rgba(0,0,0,0) 100%);z-index:2;pointer-events:none;}
@@ -181,6 +183,29 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #twoPlayerResult button{padding:13px 25px;background:#111;border:2px solid #0f0;color:#0f0;font:bold 16px 'Courier New',monospace;cursor:pointer;}
 @media(max-width:700px){#twoPlayerHud{right:4px;top:80px;width:210px;padding:7px;max-height:calc(100vh - 90px);font-size:10px}.twoAttackButton{font-size:10px;padding:5px}.twoBossIcon{max-width:48px;max-height:48px}}
 
+#bossMobileJoystick{display:none;position:fixed;right:24px;bottom:24px;width:150px;height:150px;border:3px solid #ff7777;border-radius:50%;background:rgba(255,60,60,.13);z-index:50;touch-action:none;user-select:none;box-sizing:border-box;pointer-events:auto;}
+#bossMobileJoystick::after{content:"BOSS MOVE";position:absolute;left:0;right:0;top:12px;text-align:center;color:#ffaaaa;font:bold 11px 'Courier New',monospace;pointer-events:none;}
+#bossMobileStick{position:absolute;width:62px;height:62px;left:41px;top:41px;border:2px solid #ff7777;border-radius:50%;background:rgba(255,65,65,.5);box-sizing:border-box;pointer-events:none;}
+body.twoPlayerTouch.mobileModeEnabled #bossMobileJoystick{display:block;}
+
+
+
+/* Versus mobile: independent simultaneous player and boss touch controls. */
+body.twoPlayerTouch #twoPlayerHud{z-index:65;pointer-events:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
+body.twoPlayerTouch .twoAttackButton,body.twoPlayerTouch #twoDroneButton{min-height:42px;touch-action:manipulation;pointer-events:auto;user-select:none;-webkit-user-select:none;}
+body.twoPlayerTouch #bossMobileJoystick{left:18px;right:auto;top:76px;bottom:auto;z-index:55;}
+body.twoPlayerTouch #mobileControls.enabled{z-index:35;pointer-events:none;}
+@media(max-width:700px){
+ body.twoPlayerTouch #twoPlayerHud{top:65px;right:4px;width:min(185px,38vw);max-height:calc(100dvh - 250px);padding:6px;}
+ body.twoPlayerTouch .twoAttackButton{font-size:10px;padding:6px 4px;}
+ body.twoPlayerTouch #bossMobileJoystick{width:105px;height:105px;left:8px;right:auto;top:65px;bottom:auto;}
+ body.twoPlayerTouch #bossMobileJoystick::after{font-size:9px;top:5px;}
+ body.twoPlayerTouch #bossMobileStick{width:44px;height:44px;left:28px;top:28px;}
+ body.twoPlayerTouch #mobileJoystick,body.twoPlayerTouch #mobileAim{width:105px;height:105px;bottom:15px;}
+ body.twoPlayerTouch #mobileJoystick{left:8px;}body.twoPlayerTouch #mobileAim{right:8px;}
+ body.twoPlayerTouch #mobileStick,body.twoPlayerTouch #mobileAimStick{width:44px;height:44px;left:28px;top:28px;}
+ body.twoPlayerTouch #mobileDashButton{width:55px;height:55px;bottom:127px;left:55px;font-size:10px;}
+}
 </style>
 </head>
 <body class="menuOpen" style="margin:0;">
@@ -190,6 +215,8 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 <h1>BOSS RUSH</h1>
 <p>ULTRA ELITE</p>
 <button class="menuButton" id="startGameButton">START GAME</button>
+<button class="menuButton" id="startEndlessButton" style="border-color:#a000ff">ENDLESS MODE</button>
+<div id="endlessRecord" style="color:#c7a0ff;font:bold 15px Courier New,monospace;margin:0 0 8px;text-shadow:0 0 8px #7000aa">HIGHEST LEVEL REACHED: 0</div>
 <button class="menuButton" id="startTwoPlayerButton" style="border-color:#00aaff">2 PLAYER MODE</button>
 <button class="menuButton" id="startNoUpgradeButton">NO UPGRADES MODE</button>
 <button class="menuButton" id="startNightmareRushButton">NIGHTMARE RUSH</button>
@@ -242,6 +269,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 <button class="sandboxDanger" id="exitSandboxButton">BACK TO MAIN MENU</button>
 </div>
 <button id="mobileToggle">ENABLE MOBILE</button>
+<div id="bossMobileJoystick"><div id="bossMobileStick"></div></div>
 <div id="mobileControls"><div id="mobileJoystick"><div id="mobileStick"></div></div><div id="mobileAim"><div id="mobileAimStick"></div></div><button id="mobileDashButton" type="button">DASH</button></div>
 <div id="ui">
 <h1 style="letter-spacing:5px">BOSS RUSH: <span id="bossName" style="color:#fff">Name</span></h1>
@@ -249,6 +277,7 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 <p><span class="label">Pilot Integrity:</span> <span id="hp" class="stat">100</span>% | <span class="label">Damage:</span> <span id="power" class="stat">5</span></p>
 </div>
 <div id="msg">WASD to Move | Click or E to Shoot | SPACE to Dash if unlocked</div>
+<div id="endlessModifierHud"><strong>ACTIVE MODIFIERS</strong><span id="endlessModifierList">None</span></div>
 <div id="powerupScreen"><h2>BOSS DEFEATED!</h2><p>Choose one upgrade before the next fight.</p><div id="powerupChoices"></div></div>
 <canvas id="gameCanvas"></canvas>
 <script>
@@ -368,6 +397,8 @@ const longSandboxMusic=expandTheme(sandboxMusic,2);
 const longGrassyMusic=expandTheme(grassyMusic,0);
 const cavesMusic=expandTheme([150,110,[0,1,3,6,8,10,11],[0,3,6,8,11,8,6,3,1,0,4,7,10,7,4,2,5,9,11,9,5,2,0,3,6,10,8,5,1,4,7,10,6]],2);
 const abyssMusic=expandTheme([72,82,[0,1,3,4,6,7,9],[0,1,0,3,0,4,0,6,0,7,0,4,0,3,0,1,0,0,3,4,6,7,6,4,3,0,1,0,0,3,4,6]],5);
+const endlessMusic=expandTheme([164,55,[0,1,3,5,6,8,10],[0,3,5,6,3,1,5,8,6,5,3,1,0,5,8,10,8,6,5,3,1,3,6,8,10,8,6,5,3,1,0,6]],7);
+const skyMusic=expandTheme([132,246,[0,2,4,5,7,9,11],[0,4,7,9,7,4,2,5,9,11,9,5,4,7,11,9,7,5,2,4,7,9,11,9,7,4,2,5,7,9,5,2]],4);
 function ensureAudio(){
 if(!audioCtx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;audioCtx=new AC();}
 if(audioCtx.state!=="running") audioCtx.resume().catch(()=>{});
@@ -417,10 +448,13 @@ o1.start(t);o1.stop(t+0.36);o2.start(t);o2.stop(t+0.36);
 });
 }catch(e){}
 }
+/* FIX #3 & #4: single delegated click listener. #twoDroneButton is
+   intentionally NOT included, so the drone button (and the 0 key path)
+   stay silent. All other menu buttons play the chime exactly once. */
 document.addEventListener("click",e=>{
 const t=e.target;
 if(!t) return;
-if(t.closest && t.closest("#startGameButton, #startNoUpgradeButton, #startBossMapButton, #startSandboxButton, #startNightmareRushButton, #enemyMadnessButton")){
+if(t.closest && t.closest("#startGameButton, #startNoUpgradeButton, #startBossMapButton, #startSandboxButton, #startNightmareRushButton, #enemyMadnessButton, #startEndlessButton, #startTwoPlayerButton, #twoPlayerBackButton, #twoPlayerResultMenu, #mapBackButton, #levelStartButton, #levelCancelButton, #levelRewardButton")){
 playMenuChime();
 }
 },true);
@@ -531,6 +565,8 @@ function startBossMusic(index){startMusic(longBossMusicThemes[index%longBossMusi
 function startGrassyMusic(){startMusic(longGrassyMusic,"grassy");}
 function startCavesMusic(){startMusic(cavesMusic,"caves");}
 function startAbyssMusic(){startMusic(abyssMusic,"abyss");}
+function startSkyMusic(){startMusic(skyMusic,"world3-sky");}
+function startEndlessMusic(){startMusic(endlessMusic,"endless");}
 document.addEventListener("pointerdown",()=>{
 if(!audioCtx) ensureAudio();
 if(!audioCtx) return;
@@ -555,8 +591,15 @@ let player={x:450,y:600,size:18,hp:100,maxHp:100,speed:6,damage:5,fireRate:10,fi
 let bullets=[],enemyBullets=[],minions=[],boss=null,sandboxBosses=[];
 let currentBossIndex=0,keys={},mouseDown=false,gameActive=false,waitingForPowerup=false,sandboxMode=false,noUpgradeMode=false,nightmareRush=false,enemyMadness=false,enemyMadnessDefeated=0,enemyMadnessSpawnTimer=0;
 let mapMode=false,activeMapLevel=null,mapSniperBosses=[],levelCompletePending=false;
+let endlessMode=false,endlessLevel=0,endlessAdvanceTimer=null,endlessPendingUpgrades=0;
+let endlessActiveModifiers=[];
+const ENDLESS_RECORD_KEY="bossRushEndlessHighest_v1";
+function loadEndlessRecord(){try{return Math.max(0,Number(localStorage.getItem(ENDLESS_RECORD_KEY))||0);}catch(e){return 0;}}
+let endlessHighestLevel=loadEndlessRecord();
+function saveEndlessRecord(level){if(level>endlessHighestLevel){endlessHighestLevel=level;try{localStorage.setItem(ENDLESS_RECORD_KEY,String(level));}catch(e){};}updateEndlessRecord();}
+function updateEndlessRecord(){const el=document.getElementById("endlessRecord");if(el)el.textContent="HIGHEST LEVEL REACHED: "+endlessHighestLevel;}
 let activeFiringBoss=null;
-let twoPlayerMode=false,twoPlayerBossIndex=-1,twoPlayerAttackDefs=[],twoPlayerAttackCooldowns=[],twoPlayerDroneCooldown=0,twoPlayerContactCooldown=0,twoPlayerEnding=false,twoPlayerEndTimer=null;
+let twoPlayerMode=false,twoPlayerBossIndex=-1,twoPlayerAttackDefs=[],twoPlayerAttackCooldowns=[],starDestroyerBarrage=0,twoPlayerDroneCooldown=0,twoPlayerContactCooldown=0,twoPlayerEnding=false,twoPlayerEndTimer=null;
 let lastMouseX=450,mobileAimAngle=-Math.PI/2,lastMouseY=600;
 const NIGHTMARE_START_INDEX=40;
 const NIGHTMARE_END_INDEX=54;
@@ -595,7 +638,7 @@ let permanentUpgradeIds=[];
 function loadPermanentUpgrade(){try{const raw=localStorage.getItem(REWARD_SAVE_KEY);if(!raw) return null;const parsed=JSON.parse(raw);if(Array.isArray(parsed)) return parsed;return [raw];}catch(e){return null;}}
 function savePermanentUpgrade(id){try{localStorage.setItem(REWARD_SAVE_KEY,JSON.stringify(permanentUpgradeIds));}catch(e){}}
 const _loadedUpgrades=loadPermanentUpgrade();
-if(_loadedUpgrades){permanentUpgradeIds=Array.from({length:5},(_,i)=>_loadedUpgrades[i]||null);permanentUpgradeId=permanentUpgradeIds.find(Boolean)||null;}
+if(_loadedUpgrades){permanentUpgradeIds=Array.from({length:6},(_,i)=>_loadedUpgrades[i]||null);permanentUpgradeId=permanentUpgradeIds.find(Boolean)||null;}
 function getAngleToPlayer(origin,leadFactor=0){
 const targetX=player.x+(player.vx||0)*leadFactor;
 const targetY=player.y+(player.vy||0)*leadFactor;
@@ -668,6 +711,7 @@ if(b.name==="GRASS MONSTROSITY") speed*=0.4;
 if(b.name==="ROCK BEAST") speed=0.48;
 if(b.name==="DIAMOND MASTERPIECE") speed=0.38;
 if(b.name==="DISMAL") speed=1.1;
+if(endlessMode && b.__endlessChaseScale) speed*=b.__endlessChaseScale;
 if(d>2){b.x+=dx/d*speed;b.y+=dy/d*speed;}
 const edge=Math.max(20,b.size/2);
 b.x=Math.max(edge,Math.min(canvas.width-edge,b.x));
@@ -1033,6 +1077,10 @@ if(this.timer%240===120) for(let y=80;y<700;y+=115) fireUniqueBullet(0,y,0,4.8,t
 if(this.timer%120===0){const phase=(this.timer/120)%2;for(let i=0;i<8;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/4+(phase?Math.PI/8:0),phase?6.2:3.2,this.color,8,10,'time',{life:240});}
 if(this.timer%180===60){const a=getAngleToPlayer(this);for(let i=-2;i<=2;i++) fireUniqueBullet(this.x,this.y,a+i*.16,7,this.color,7,11,'time',{life:180});}
 if(this.timer%300===150) for(let i=0;i<10;i++) fireUniqueBullet(this.x,this.y,i*Math.PI/5-this.timer*.02,4.1,this.color,6,9,'time',{turn:(i%2?.025:-.025),life:300});
+// FIX #1: Time Breaker's speed/slow effects trigger in every mode via the
+// shared simulation gate.
+if(this.timer%240===1) activateTimeEffect("speed");
+if(this.timer%240===121) activateTimeEffect("slow");
 }},
 {name:"THE APOCALYPSE",hp:4200,color:"#ff0055",size:110,update:function(){ newBossAttack(this,39); }},
 {name:"PULSAR CORE",hp:380,color:"#aa44ff",size:135,update:pulsarCoreUpdate},
@@ -1165,13 +1213,9 @@ if(this.timer%90===0){for(let i=0;i<12;i++) fireBullet(this.x,this.y,i*Math.PI/6
 }},
 {name:"SHADOW GHOST",hp:660,color:"#888888",size:34,update:function(){
 const aim=getAngleToPlayer(this,9);
-// Harder Neon Ghost-style aimed spreads: wider, denser, and more frequent.
 if(this.timer%72===0){for(let i=-4;i<=4;i++)fireBullet(this.x,this.y,aim+i*.115,8.2,"#888888",6,0,14);}
-// More gray mines, arranged in a moving ring and with a shorter fuse.
 if(this.timer%58===0){const count=10;for(let i=0;i<count;i++){const a=(Math.PI*2*i/count)+this.timer*.035;enemyBullets.push({x:this.x+Math.cos(a)*105,y:this.y+Math.sin(a)*78,dx:Math.cos(a)*.65,dy:Math.sin(a)*.65,speed:0,color:"#999999",size:15,bounce:0,damage:18,bomb:true,timer:0,fuse:72,blastRadius:88});}}
-// Extra fast gray aimed bursts between the main spreads.
 if(this.timer%96===0){for(let i=-2;i<=2;i++)fireBullet(this.x,this.y,aim+i*.22,12,"#666666",7,0,18);}
-// Dense rotating gray bullet ring.
 if(this.timer%110===0){for(let i=0;i<18;i++)fireBullet(this.x,this.y,i*Math.PI/9+this.timer*.055,6.2,"#aaaaaa",5,0,12);}
 }}
 ];
@@ -1185,7 +1229,7 @@ const minionTypes=[
 {name:"GRAVITY DRONE",kind:"gravity",color:"#ff00ff",size:20,hp:32,speed:1.4},
 {name:"ANGERED GRAVITY DRONE",kind:"gravity",color:"#bb55ff",size:24,hp:48,speed:1.8},
 {name:"METEOR KING DRONE",kind:"firework",color:"#ff8844",size:24,hp:46,speed:2.0},
-{name:"SPIKE FORTRESS DRONE",kind:"bouncer",color:"#88ff44",size:24,hp:48,speed:2.4},
+{name:"SPIKE FORTRESS DRONE",kind:"spikeFortress",color:"#88ff44",size:24,hp:48,speed:2.4},
 {name:"CHRONO DRONE",kind:"chrono",color:"#fff",size:17,hp:25,speed:1.6},
 {name:"HYDRA HEAD",kind:"hydra",color:"#00aa00",size:20,hp:35,speed:1.7},
 {name:"STRIKE DRONE",kind:"strike",color:"#ff5500",size:19,hp:30,speed:1.5},
@@ -1237,7 +1281,7 @@ const minionTypes=[
 ];
 function droneTypeIndexForBoss(name,fallbackIndex=0){
  const map={
- "THE SNIPER":"SNIPER DRONE","THE PULSAR":"PULSARLING","NEON GHOST":"GHOSTLING","V-TWIN REVENANT":"TWIN DRONE","WALL OF SILENCE":"SILENCE WALLER","THE BOUNCER":"BOUNCER","GRAVITY WELL":"GRAVITY DRONE","CHRONOS":"CHRONO DRONE","THE HYDRA":"HYDRA HEAD","ORBITAL STRIKE":"STRIKE DRONE","VOID SINGULARITY":"VOIDLING","GLITCH CORE":"GLITCHLING","RAIN MAKER":"RAIN DRONE","STAR DESTROYER":"STARLING","OMEGA ZERO":"OMEGA DRONE","THE MINELAYER":"MINI MINELAYER","THE SPLITTER":"SPLITTER","THE HUNTER":"HUNTER DRONE","THE HELIX":"HELIX DRONE","THE LASER GRID":"GRID DRONE","THE TELEPORTER":"TELEPORT DRONE","THE FIREWORK":"FIREWORK DRONE","THE TIDAL WAVE":"TIDAL DRONE","THE MIRROR":"MIRROR DRONE","THE ABSOLUTE":"ABSOLUTE DRONE","THE THUNDER LORD":"STORM HERALD","THE RINGMASTER":"CARNIVAL ORB","THE BEAM CORE":"PRISM LANCE","THE INFERNO":"EMBER WYRM","THE FROZEN ONE":"GLACIER WISP","ANGERED GRAVITY WELL":"ANGERED GRAVITY DRONE","THE LASER SWEEPER":"REDLINE SWEEPER","THE METEOR KING":"METEOR KING DRONE","THE SPIKE FORTRESS":"SPIKE FORTRESS DRONE","THE BOOMERANG":"RETURNING RAZOR","THE CLOSER":"CLOSING MAW","THE MINEFIELD":"MINE MONGER","THE TRAPPER":"SNARE WITCH","THE TIME BREAKER":"CLOCKBREAKER"
+ "THE SNIPER":"SNIPER DRONE","THE PULSAR":"PULSARLING","NEON GHOST":"GHOSTLING","V-TWIN REVENANT":"TWIN DRONE","WALL OF SILENCE":"SILENCE WALLER","THE BOUNCER":"BOUNCER","GRAVITY WELL":"GRAVITY DRONE","CHRONOS":"CHRONO DRONE","THE HYDRA":"HYDRA HEAD","ORBITAL STRIKE":"STRIKE DRONE","VOID SINGULARITY":"VOIDLING","GLITCH CORE":"GLITCHLING","RAIN MAKER":"RAIN DRONE","STAR DESTROYER":"STARLING","OMEGA ZERO":"OMEGA DRONE","THE MINELAYER":"MINI MINELAYER","THE SPLITTER":"SPLITTER","THE HUNTER":"HUNTER DRONE","THE HELIX":"HELIX DRONE","THE LASER GRID":"GRID DRONE","THE TELEPORTER":"TELEPORT DRONE","THE FIREWORK":"FIREWORK DRONE","THE TIDAL WAVE":"TIDAL DRONE","THE MIRROR":"MIRROR DRONE","THE ABSOLUTE":"ABSOLUTE DRONE","THE THUNDER LORD":"STORM HERALD","THE RINGMASTER":"CARNIVAL ORB","THE BEAM CORE":"PRISM LANCE","THE INFERNO":"EMBER WYRM","THE FROZEN ONE":"GLACIER WISP","ANGERED GRAVITY WELL":"ANGERED GRAVITY DRONE","THE LASER SWEEPER":"REDLINE SWEEPER","THE METEOR KING":"METEOR KING DRONE","THE SPIKE FORTRESS":"THORN BASTION","THE BOOMERANG":"RETURNING RAZOR","THE CLOSER":"CLOSING MAW","THE MINEFIELD":"MINE MONGER","THE TRAPPER":"SNARE WITCH","THE TIME BREAKER":"CLOCKBREAKER"
  };
  const wanted=map[name];if(wanted){const idx=minionTypes.findIndex(m=>m.name===wanted);if(idx>=0)return idx;}
  return Math.max(0,Math.min(minionTypes.length-1,fallbackIndex|0));
@@ -1296,6 +1340,7 @@ else if(m.kind==="ghost"){m.x+=Math.cos(m.timer*.04)*1.2;m.y+=(player.y-m.y)*.00
 else if(m.kind==="twin"){m.x+=(player.x-m.x)*.002;if(m.timer%75===0){const a=getAngleToPlayer(m);fireBullet(m.x,m.y,a-.22,6,m.color,5);fireBullet(m.x,m.y,a+.22,6,m.color,5);}}
 else if(m.kind==="wall"){m.x+=m.speed;if(m.x>canvas.width+30) m.x=-30;if(m.timer%95===0) fireBullet(m.x,0,Math.PI/2,4.5,m.color,7);if(m.timer%150===0){const miniCount=8,miniGap=canvas.height/(miniCount+1);for(let i=1;i<=miniCount;i++) fireBullet(-8,i*miniGap,0,3.2,m.color,5,0,3);const miniGapX=canvas.width/(miniCount+1);for(let i=1;i<=miniCount;i++) fireBullet(i*miniGapX,-8,Math.PI/2,3.2,m.color,5,0,3);}}
 else if(m.kind==="bouncer"){m.x+=m.dx*m.speed;m.y+=m.dy*m.speed;if(m.x<20||m.x>880) m.dx*=-1;if(m.y<20||m.y>680) m.dy*=-1;if(m.timer%100===0) for(let i=0;i<4;i++) fireBullet(m.x,m.y,getAngleToPlayer(m)+(i-1.5)*.2,5.5,m.color,5);}
+else if(m.kind==="spikeFortress"){m.x+=m.dx*m.speed;m.y+=m.dy*m.speed;if(m.x<24||m.x>canvas.width-24)m.dx*=-1;if(m.y<24||m.y>canvas.height-24)m.dy*=-1;if(m.timer%105===0){const a=getAngleToPlayer(m);for(let i=-1;i<=1;i++)fireUniqueBullet(m.x,m.y,a+i*.24,5.2,m.color,8,9,"spikeTriangle",{bounce:2,life:190});}if(m.timer%170===60){const gapY=100+((Math.floor(m.timer/170)%4)*125);for(let y=40;y<canvas.height;y+=70)if(Math.abs(y-gapY)>55)fireUniqueBullet(m.x,m.y,Math.atan2(y-m.y,0),4.3,m.color,7,8,"spikeTriangle",{bounce:2,life:180});}}
 else if(m.kind==="gravity"){const dx=m.x-player.x,dy=m.y-player.y,d=Math.hypot(dx,dy);if(d>1&&d<330){const force=Math.min(1.5,(330-d)/150);player.x+=dx/d*force;player.y+=dy/d*force;}m.x+=(player.x-m.x)*.002;m.y+=(player.y-m.y)*.002;if(m.timer%85===0) fireBullet(m.x,m.y,getAngleToPlayer(m),5,m.color,6,0,6);}
 else if(m.kind==="chrono"){m.y+=Math.sin(m.timer*.05)*.7;if(m.timer%100===0){m.x=Math.random()*760+70;m.y=Math.random()*300+50;for(let i=0;i<6;i++) fireBullet(m.x,m.y,i*Math.PI/3,4,m.color,4);}}
 else if(m.kind==="hydra"){m.x+=(player.x-m.x)*.003;if(m.timer%80===0) aimSpread(m,3,.25,5.5,m.color,5,6);}
@@ -1366,8 +1411,17 @@ function inferTwoPlayerAttacks(index,template){
   {period:75,triggerTick:75,offset:75,label:"BIG SNIPER BULLET"},
   {period:130,triggerTick:130,offset:130,label:"TWIN SIDE BULLETS"}
  ];
- // Treat each timer condition as one attack. Pick a timer value that triggers
- // this condition without also triggering another attack condition.
+ if(template.name==="STAR DESTROYER") return [
+  {period:300,triggerTick:0,label:"STAR BARRAGE",sustained:true},
+  {period:70,triggerTick:70,label:"WHITE STAR SHOT"},
+  {period:130,triggerTick:130,label:"GOLDEN 16-BULLET RING"}
+ ];
+ if(template.name==="THE TIME BREAKER") return [
+  {period:120,triggerTick:120,label:"TIME RING",timeAttack:"ring"},
+  {period:180,triggerTick:60,label:"TIME BREAKER VOLLEY",timeAttack:"volley"},
+  {period:240,triggerTick:0,label:"SPEED UP TIME",timeAbility:"speed"},
+  {period:240,triggerTick:0,label:"SLOW DOWN TIME",timeAbility:"slow"}
+ ];
  const rx=/this\.timer\s*%\s*(\d+)\s*===\s*(\d+)/g, conditions=[];let m;
  while((m=rx.exec(src))){const period=Number(m[1]),offset=Number(m[2]);if(period<2||offset<0||offset>=period)continue;
   if(!conditions.some(c=>c.period===period&&c.offset===offset))conditions.push({period,offset,at:m.index});
@@ -1380,8 +1434,6 @@ function inferTwoPlayerAttacks(index,template){
    const matching=conditions.filter(o=>t%o.period===o.offset);
    if(matching.length===1&&matching[0]===c){triggerTick=t;break;}
   }
-  // If conditions are mathematically inseparable by timer, use the earliest
-  // valid tick; the attack still receives its own button and cooldown.
   if(triggerTick===null){for(let t=Math.max(1,c.offset);t<=20000;t++)if(t%c.period===c.offset){triggerTick=t;break;}}
   let next=src.indexOf('this.timer%',c.at+8);if(next<0)next=src.length;
   const chunk=src.slice(c.at,Math.min(src.length,Math.max(next,c.at+240)));
@@ -1396,9 +1448,9 @@ function inferTwoPlayerAttacks(index,template){
 }
 function showTwoPlayerHud(){
  const hud=document.getElementById("twoPlayerHud");hud.style.display="block";
- document.getElementById("twoPlayerBossTitle").textContent="PLAYER 2: "+boss.name;
+ document.getElementById("twoPlayerBossTitle").textContent="PLAYER 2: "+boss.name+(timeEffectActive()?(timeEffectKind==="speed"?" — TIME ACCELERATED":" — TIME SLOWED") : "");
  const list=document.getElementById("twoAttackButtons");list.innerHTML="";
- twoPlayerAttackDefs.forEach((a,i)=>{const btn=document.createElement("button");btn.className="twoAttackButton";btn.id="twoAttackBtn"+i;btn.innerHTML='<b>'+(i<9?i+1:'•')+'</b> '+a.label+' <span id="twoAttackCd'+i+'">READY</span><div style="color:#777;font-size:10px;margin-top:3px">Cooldown: '+(a.period/60).toFixed(2)+'s</div>';btn.onclick=()=>useTwoPlayerAttack(i);list.appendChild(btn);});
+ twoPlayerAttackDefs.forEach((a,i)=>{const btn=document.createElement("button");btn.className="twoAttackButton";btn.id="twoAttackBtn"+i;btn.innerHTML='<b>'+(i<9?i+1:'•')+'</b> '+a.label+' <span id="twoAttackCd'+i+'">READY</span><div style="color:#777;font-size:10px;margin-top:3px">Cooldown: '+(a.period/60).toFixed(2)+'s</div>';btn.type="button";btn.style.touchAction="manipulation";btn.onclick=e=>{e.stopPropagation();useTwoPlayerAttack(i);};list.appendChild(btn);});
  updateTwoPlayerHud();
 }
 function updateTwoPlayerHud(){
@@ -1413,14 +1465,23 @@ function useTwoPlayerAttack(i){
  if(!twoPlayerMode||!gameActive||twoPlayerEnding||!boss||!twoPlayerAttackDefs[i]||(twoPlayerAttackCooldowns[i]||0)>0)return;
  const a=twoPlayerAttackDefs[i],oldTimer=boss.timer,before=bossHazards.length;activeFiringBoss=boss;
  try{
-  if(boss.name==="THE SNIPER"){
-   // Fire only the selected attack; never call the full update function here,
-   // because that would also trigger the Sniper's other attack at timer zero.
+  if(boss.name==="THE TIME BREAKER"&&a.timeAbility){
+   activateTimeEffect(a.timeAbility);
+  }else if(boss.name==="THE TIME BREAKER"&&a.timeAttack==="ring"){
+   const phase=(Math.floor(oldTimer/120)%2);
+   for(let k=0;k<8;k++)fireUniqueBullet(boss.x,boss.y,k*Math.PI/4+(phase?Math.PI/8:0),phase?6.2:3.2,boss.color,8,10,"time",{life:240});
+  }else if(boss.name==="THE TIME BREAKER"&&a.timeAttack==="volley"){
+   const angle=getAngleToPlayer(boss);
+   for(let k=-2;k<=2;k++)fireUniqueBullet(boss.x,boss.y,angle+k*0.16,7,boss.color,7,11,"time",{life:180});
+  }else if(boss.name==="THE SNIPER"){
    if(i===0){fireBullet(boss.x,boss.y,getAngleToPlayer(boss,12),11,"#f44",7,0,12);}
    else if(i===1){fireBullet(0,boss.y,Math.atan2(player.y-boss.y,player.x),6,"#ff8888",6,0,6);fireBullet(900,boss.y,Math.atan2(player.y-boss.y,player.x-900),6,"#ff8888",6,0,6);}
+  }else if(boss.name==="STAR DESTROYER"){
+   if(i===0)starDestroyerBarrage=180;
+   else if(i===1)fireBullet(boss.x,boss.y,getAngleToPlayer(boss,10),12,"#fff",10,0,15);
+   else if(i===2)for(let k=0;k<16;k++)fireBullet(boss.x,boss.y,k*Math.PI/8+.2,5,"#ffd700",6);
   }else{boss.timer=a.triggerTick??a.offset;boss.update.call(boss);}
  }catch(e){console.warn("2-player attack failed",e);}finally{activeFiringBoss=null;boss.timer=oldTimer;}
- // Warning hazards are fired immediately in versus mode, while retaining the boss's original attack pattern.
  for(let j=bossHazards.length-1;j>=before;j--){const h=bossHazards[j];if(h&&h.type==="bulletWarn"&&typeof h.fireFn==="function"){try{h.fireFn();}catch(e){}bossHazards.splice(j,1);}}
  twoPlayerAttackCooldowns[i]=a.period;updateTwoPlayerHud();
 }
@@ -1428,8 +1489,7 @@ function summonTwoPlayerDrone(){
  if(!twoPlayerMode||!gameActive||twoPlayerEnding||twoPlayerDroneCooldown>0||!boss)return;
  const originalIndex=twoPlayerBossIndex;
  if(boss.name==="DISMAL"||boss.name==="NIGHTMARE INCARNATE")return;
- const previous=boss;const oldCurrent=currentBossIndex;currentBossIndex=originalIndex;
- // Each boss uses the same 240/220-frame drone interval as its regular fight.
+ const oldCurrent=currentBossIndex;currentBossIndex=originalIndex;
  const rushList=bosses.filter(b=>b.name!=="DIAMOND MASTERPIECE"&&b.name!=="PULSAR CORE"&&b.name!=="DISMAL");const rushIndex=rushList.findIndex(b=>b.name===boss.name);const interval=(rushIndex>=0&&rushIndex<15)?240:220;twoPlayerDroneCooldown=interval;
  const droneIndex=droneTypeIndexForBoss(boss.name,originalIndex);
  const base=minionTypes[droneIndex]||minionTypes[0];const x=Math.max(30,Math.min(870,boss.x+(Math.random()-.5)*100));const y=Math.max(50,Math.min(650,boss.y+60));
@@ -1437,8 +1497,13 @@ function summonTwoPlayerDrone(){
  currentBossIndex=oldCurrent;updateTwoPlayerHud();
 }
 function startTwoPlayerMode(index){
- unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
- twoPlayerMode=true;twoPlayerEnding=false;twoPlayerBossIndex=index;twoPlayerDroneCooldown=0;twoPlayerContactCooldown=0;
+ unlockAndPlayMusic();setMobileEnabled(window.matchMedia("(pointer: coarse)").matches || window.innerWidth<=700);document.body.classList.remove("menuOpen");
+ if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
+ resetTimeControl();
+ endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];levelCompletePending=false;activeMapLevel=null;
+ const modifierHud=document.getElementById("endlessModifierHud");if(modifierHud)modifierHud.style.display="none";
+ mapSniperBosses=[];sandboxBosses=[];bossHazards=[];bullets=[];enemyBullets=[];minions=[];boss=null;
+ twoPlayerMode=true;starDestroyerBarrage=0;document.body.classList.add("twoPlayerTouch");twoPlayerEnding=false;twoPlayerBossIndex=index;twoPlayerDroneCooldown=0;twoPlayerContactCooldown=0;
  document.getElementById("twoPlayerSelectScreen").style.display="none";document.getElementById("twoPlayerResult").style.display="none";
  mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
  sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;waitingForPowerup=false;
@@ -1449,18 +1514,19 @@ function startTwoPlayerMode(index){
  gameActive=true;startBossMusic(index);uiName.textContent=boss.name;uiBoss.textContent="VERSUS";setBossCounter("");showTwoPlayerHud();updateUI();
 }
 function finishTwoPlayerMode(winner){
- if(!twoPlayerMode||twoPlayerEnding)return;twoPlayerEnding=true;gameActive=false;mouseDown=false;mobileFireDown=false;
+ if(!twoPlayerMode||twoPlayerEnding)return;resetTimeControl();twoPlayerEnding=true;resetBossMobileStick();document.body.classList.remove("twoPlayerTouch");gameActive=false;mouseDown=false;mobileFireDown=false;
  const result=document.getElementById("twoPlayerResult");const title=document.getElementById("twoPlayerResultTitle");title.textContent=winner==="player"?"Player Wins!":boss.name+" Wins!";title.style.color=winner==="player"?"#00ff66":(boss.color||"#ff4444");
  document.getElementById("twoPlayerResultSub").textContent="Returning to the main menu...";result.style.display="flex";
  document.getElementById("twoPlayerHud").style.display="none";stopMusic();
- if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=setTimeout(()=>{document.getElementById("twoPlayerResult").style.display="none";exitToMainMenu();},2800);
+ if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=setTimeout(()=>{document.getElementById("twoPlayerResult").style.display="none";exitTwoPlayerToMenu();},2800);
 }
-function exitTwoPlayerToMenu(){if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);document.getElementById("twoPlayerResult").style.display="none";document.getElementById("twoPlayerHud").style.display="none";twoPlayerMode=false;twoPlayerEnding=false;exitToMainMenu();}
+function exitTwoPlayerToMenu(){resetTimeControl();if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);document.getElementById("twoPlayerResult").style.display="none";document.getElementById("twoPlayerHud").style.display="none";twoPlayerMode=false;resetBossMobileStick();document.body.classList.remove("twoPlayerTouch");twoPlayerEnding=false;exitToMainMenu();}
 function openTwoPlayerPicker(){buildTwoPlayerBossPicker();mainMenu.style.display="none";document.getElementById("twoPlayerSelectScreen").style.display="flex";stopMusic();}
 function playerDefeated(){
 if(!gameActive) return;
 if(twoPlayerMode){finishTwoPlayerMode("boss");return;}
 gameActive=false;
+if(endlessMode){saveEndlessRecord(endlessLevel);if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;alert("ENDLESS MODE OVER!\nYou reached Level "+endlessLevel+".");exitEndlessToMenu();return;}
 if(mapMode){exitMapLevelToMap();return;}
 if(nightmareRush){alert("NIGHTMARE CONSUMED YOU.\nYou reached Nightmare Boss "+(currentBossIndex-NIGHTMARE_START_INDEX+1)+" of 15.");exitToMainMenu();return;}
 alert("SYSTEM FAILURE.\nYou reached Boss "+(currentBossIndex+1)+".");
@@ -1515,7 +1581,10 @@ rewardScreen.style.zIndex="99999";
 rewardBackButton.onclick=()=>{rewardScreen.style.display="none";};
 function choosePowerups(){
 waitingForPowerup=true;
-minions=[];bullets=[];enemyBullets=[];
+if(!endlessMode) minions=[];
+bullets=[];enemyBullets=[];
+const powerupSubtitle=powerupScreen.querySelector("p");
+if(powerupSubtitle) powerupSubtitle.textContent=endlessMode?"Level cleared! Choose one upgrade before the next level.":"Choose one upgrade before the next fight.";
 powerupScreen.style.display="flex";
 powerupChoices.innerHTML="";
 let choices;
@@ -1527,9 +1596,17 @@ button.className="powerChoice";
 button.innerHTML="<strong>"+upgrade.name+"</strong>"+"<span>"+upgrade.description+"</span>";
 button.onclick=()=>{
 if(typeof upgrade.apply==="function") upgrade.apply();
+if(endlessMode) endlessPendingUpgrades=0;
 waitingForPowerup=false;
 powerupScreen.style.display="none";
-bullets=[];enemyBullets=[];minions=[];
+bullets=[];enemyBullets=[];
+if(endlessMode){
+  const powerupSubtitle=powerupScreen.querySelector("p");if(powerupSubtitle)powerupSubtitle.textContent="Choose one upgrade before the next level.";
+  updateUI();
+  advanceEndlessLevel();
+  return;
+}
+minions=[];
 updateUI();
 initBoss();
 };
@@ -1584,7 +1661,8 @@ bullets=[];enemyBullets=[];minions=[];bossHazards=[];
 const rushBosses=bosses.filter(b=>b.name!=="DIAMOND MASTERPIECE" && b.name!=="PULSAR CORE" && b.name!=="DISMAL");
 const template=(!mapMode && !sandboxMode) ? rushBosses[currentBossIndex] : bosses[currentBossIndex];
 boss={...template,x:450,y:150,timer:0,maxHp:template.hp,shield:template.shields||0,maxShield:template.shields||0};
-if(mapMode){uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);setBossCounter("");}
+if(endlessMode){uiBoss.textContent="ENDLESS LEVEL: "+endlessLevel;setBossCounter("");}
+else if(mapMode){uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);setBossCounter("");}
 else if(nightmareRush){uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1);setBossCounter("/15");}
 else if(enemyMadness){uiBoss.textContent="DRONES: "+enemyMadnessDefeated;setBossCounter("/50");}
 else {uiBoss.textContent=currentBossIndex+1;setBossCounter("/40");}
@@ -1601,12 +1679,42 @@ else if(mapMode) displayedBossHP=mapSniperBosses.reduce((sum,b)=>sum+Math.max(0,
 else displayedBossHP=boss?(boss.hp+Math.max(0,boss.shield||0)):0;
 uiBhp.textContent=Math.max(0,Math.ceil(displayedBossHP));
 uiPower.textContent=player.damage;
-if(mapMode){uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);setBossCounter("");}
+if(endlessMode){uiBoss.textContent="ENDLESS LEVEL: "+endlessLevel;setBossCounter("");}
+else if(mapMode){uiBoss.textContent="MAP LEVEL: "+(activeMapLevel?activeMapLevel.id:1);setBossCounter("");}
 else if(nightmareRush){uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_START_INDEX+1);setBossCounter("/15");}
 else if(enemyMadness){uiBoss.textContent="DRONES: "+enemyMadnessDefeated;setBossCounter("/50");}
 else setBossCounter("/40");
 }
+
+/* ============================================================
+   FIX #1: REAL-TIME SIMULATION SPEED CONTROL (all six modes)
+   ============================================================ */
+let timeScale = 1;
+let timeScaleRealEnd = 0;
+let timeEffectKind = "";
+let _timeAccumulator = 0;
+function activateTimeEffect(kind){
+  if(kind === "speed"){
+    timeScale = 2;
+    timeEffectKind = "speed";
+    timeScaleRealEnd = performance.now() + (1 + Math.random()*2) * 1000;
+  } else {
+    timeScale = 0.4;
+    timeEffectKind = "slow";
+    timeScaleRealEnd = performance.now() + (1 + Math.random()*1) * 1000;
+  }
+}
+function resetTimeControl(){ timeScale = 1; timeEffectKind = ""; timeScaleRealEnd = 0; _timeAccumulator = 0; }
+function timeEffectActive(){ return timeScale !== 1 && performance.now() < timeScaleRealEnd; }
 function update(){
+  if(timeScale !== 1 && performance.now() >= timeScaleRealEnd){ resetTimeControl(); }
+  if(timeScale === 1){ updateCore(); return; }
+  _timeAccumulator += timeScale;
+  const steps = Math.floor(_timeAccumulator);
+  _timeAccumulator -= steps;
+  for(let i = 0; i < steps; i++) updateCore();
+}
+function updateCore(){
 if(!gameActive||waitingForPowerup) return;
 if(mapMode && levelCompletePending) return;
 if(enemyMadness){
@@ -1632,13 +1740,10 @@ if(mouseDown||mobileFireDown||keys["e"]) shoot();
 for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;if(b.x<-30||b.x>canvas.width+30||b.y<-30||b.y>canvas.height+30) bullets.splice(i,1);}
 if(twoPlayerMode){
  if(!boss||twoPlayerEnding)return;
- // Player 2 controls the boss with arrow keys; Player 1 keeps WASD + mouse/E.
  const bs=Math.max(2,Math.min(5.5,2.8+(boss.size||40)*.012));
  if(keys["arrowup"])boss.y-=bs;if(keys["arrowdown"])boss.y+=bs;if(keys["arrowleft"])boss.x-=bs;if(keys["arrowright"])boss.x+=bs;
+ boss.x+=bossMobileMoveX*bs;boss.y+=bossMobileMoveY*bs;
  const edge=Math.max(18,(boss.size||40)/2);boss.x=Math.max(edge,Math.min(canvas.width-edge,boss.x));boss.y=Math.max(edge,Math.min(canvas.height-edge,boss.y));
- // Preserve the Gravity Well pull in versus mode. Normal boss.update() is
- // intentionally not run continuously here because attacks are activated
- // individually, so gravity movement must be applied explicitly.
  if(boss.name==="GRAVITY WELL"){
   const gdx=boss.x-player.x,gdy=boss.y-player.y,gdist=Math.hypot(gdx,gdy);
   if(gdist>1&&gdist<300){player.x+=gdx/180;player.y+=gdy/180;}
@@ -1648,13 +1753,22 @@ if(twoPlayerMode){
  }
  player.x=Math.max(player.size/2,Math.min(canvas.width-player.size/2,player.x));player.y=Math.max(player.size/2,Math.min(canvas.height-player.size/2,player.y));
  boss.timer++;
+ if(boss.name==="STAR DESTROYER"&&starDestroyerBarrage>0){
+  const angle=(180-starDestroyerBarrage)*.045;
+  fireBullet(boss.x+Math.cos(angle)*55,boss.y+Math.sin(angle)*55,angle,4.5,"#ff0",6);
+  fireBullet(boss.x-Math.cos(angle)*55,boss.y-Math.sin(angle)*55,angle+Math.PI,4.5,"#ff0",6);
+  starDestroyerBarrage--;
+ }
  if(twoPlayerDroneCooldown>0)twoPlayerDroneCooldown--;if(twoPlayerContactCooldown>0)twoPlayerContactCooldown--;
  if(mouseDown||keys["e"])shoot();
  for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];if(Math.hypot(b.x-boss.x,b.y-boss.y)<(boss.size||40)/2){if(boss.shield>0){boss.shield-=b.damage;if(boss.shield<0){boss.hp+=boss.shield;boss.shield=0;}}else boss.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(i,1);if(boss.hp<=0){finishTwoPlayerMode("player");return;}}}
- // Enemy projectiles and summoned drones still threaten Player 1.
  for(let mi=minions.length-1;mi>=0;mi--){const m=minions[mi];if(m.kind==="splitFragment")updateSplitFragment(m);else updateMinion(m);for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-m.x,b.y-m.y)<m.size/2+3){m.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(m.hp<=0){minions.splice(mi,1);break;}}}}
  for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.age=(b.age||0)+1;if(b.bomb){b.timer=(b.timer||0)+1;const d=Math.hypot(b.x-player.x,b.y-player.y);if(d<player.size/2+b.size||(b.timer>=b.fuse&&d<=(b.blastRadius||0))){if(player.shield>0)player.shield--;else player.hp-=b.damage||8;enemyBullets.splice(i,1);if(player.hp<=0){finishTwoPlayerMode("boss");return;}continue;}if(b.timer>=b.fuse){enemyBullets.splice(i,1);continue;}}
-  if(b.speed!==0){if(b.kind==="spiral"||b.kind==="reverse"){const turn=b.turn||0.035,dx=b.dx,dy=b.dy;b.dx=dx*Math.cos(turn)-dy*Math.sin(turn);b.dy=dx*Math.sin(turn)+dy*Math.cos(turn);}if(b.kind==="homing"){const a=Math.atan2(player.y-b.y,player.x-b.x);b.dx=b.dx*.94+Math.cos(a)*.06;b.dy=b.dy*.94+Math.sin(a)*.06;const l=Math.hypot(b.dx,b.dy)||1;b.dx/=l;b.dy/=l;}b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;}
+  if(b.speed!==0){
+   if(b.kind==="spiral"||b.kind==="reverse"){const turn=b.turn||0.035,dx=b.dx,dy=b.dy;b.dx=dx*Math.cos(turn)-dy*Math.sin(turn);b.dy=dx*Math.sin(turn)+dy*Math.cos(turn);}
+   if(b.kind==="homing"){const a=Math.atan2(player.y-b.y,player.x-b.x);b.dx=b.dx*.94+Math.cos(a)*.06;b.dy=b.dy*.94+Math.sin(a)*.06;const l=Math.hypot(b.dx,b.dy)||1;b.dx/=l;b.dy/=l;}
+   stepBouncingBullet(b);
+  }
   if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){if(player.shield>0)player.shield--;else player.hp-=b.damage||5;enemyBullets.splice(i,1);if(player.hp<=0){finishTwoPlayerMode("boss");return;}continue;}if(b.age>(b.life||900)||b.x<-100||b.x>1000||b.y<-100||b.y>800)enemyBullets.splice(i,1);
  }
  if(twoPlayerContactCooldown<=0&&Math.hypot(player.x-boss.x,player.y-boss.y)<player.size/2+(boss.size||40)/2){if(player.shield>0)player.shield--;else player.hp-=8;twoPlayerContactCooldown=35;if(player.hp<=0){finishTwoPlayerMode("boss");return;}}
@@ -1663,16 +1777,19 @@ if(twoPlayerMode){
 if(mapMode){
 for(let si=mapSniperBosses.length-1;si>=0;si--){
 const sb=mapSniperBosses[si];
-if(activeMapLevel&&activeMapLevel.id===23){sb.timer++;activeFiringBoss=sb;sb.update();sb.timer++;activeFiringBoss=sb;sb.update();activeFiringBoss=null;}
-else{sb.timer++;activeFiringBoss=sb;sb.update();activeFiringBoss=null;}
+const endlessAttackBase=endlessMode?Math.max(1,Math.min(3,Math.floor((endlessLevel-1)/10)+1)):1;const attackTicks=endlessMode&&endlessActiveModifiers.some(m=>m.attackSpeed===2&&m.__targetBossIndex===si)?Math.min(6,endlessAttackBase*2):(endlessMode?endlessAttackBase:((activeMapLevel&&activeMapLevel.id===23)?2:1));
+for(let tick=0;tick<attackTicks;tick++){sb.timer++;activeFiringBoss=sb;sb.update();activeFiringBoss=null;}
 bossChase(sb);
-const spawnInterval=240,maxMinions=activeMapLevel && activeMapLevel.id===21?12:4;
+const droneMod=endlessMode?endlessActiveModifiers.find(m=>m.droneRate):null;const spawnInterval=endlessMode?Math.max(120,Math.floor(Math.max(180,Math.floor(360-endlessLevel*1.5))*(droneMod?droneMod.droneRate:1))):240,maxMinions=endlessMode?Math.min(12,2+Math.floor(endlessLevel/8)+(droneMod?droneMod.extraDrones:0)):(activeMapLevel && activeMapLevel.id===21?12:4);
 const minionTypeForBoss=droneTypeIndexForBoss(sb.name,currentBossIndex);
-if(!(activeMapLevel && activeMapLevel.id<=-1) && sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.name!=="ROCK BEASTS" && sb.name!=="EMERALD KILLER" && sb.name!=="PULSAR CORE" && sb.name!=="DISMAL" && sb.name!=="DIAMOND MASTERPIECE" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
+if(!(activeMapLevel && activeMapLevel.id<=-1) && sb.name!=="GRASS MONSTROSITY" && sb.name!=="ROCK BEAST" && sb.name!=="ROCK BEASTS" && sb.name!=="EMERALD KILLER" && sb.name!=="PULSAR CORE" && sb.name!=="DISMAL" && sb.name!=="DIAMOND MASTERPIECE" && sb.name!=="CLOUD MASTER" && sb.timer>100 && sb.timer%spawnInterval===0 && minions.length<maxMinions) spawnMinion(minionTypeForBoss);
 for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-sb.x,b.y-sb.y)<sb.size/2){if(sb.shield>0){sb.shield-=b.damage;if(sb.shield<0){sb.hp+=sb.shield;sb.shield=0;}}else sb.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(sb.hp<=0){mapSniperBosses.splice(si,1);break;}}}
 }
+if(endlessMode && mapSniperBosses.length===0 && !waitingForPowerup && !levelCompletePending && endlessPendingUpgrades===0){
+endlessPendingUpgrades=1;choosePowerups();return;
+}
 separateBosses(mapSniperBosses);
-if(mapSniperBosses.length===0 && minions.length===0 && !levelCompletePending){levelCompletePending=true;showLevelComplete();}
+if(mapSniperBosses.length===0 && (endlessMode || minions.length===0) && !levelCompletePending && !(endlessMode && endlessPendingUpgrades>0)){if(endlessMode){advanceEndlessLevel();}else{levelCompletePending=true;showLevelComplete();}}
 if(mapMode && activeMapLevel && activeMapLevel.id<=-1) minions=[];
 for(let mi=minions.length-1;mi>=0;mi--){
 const m=minions[mi];
@@ -1825,9 +1942,30 @@ if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){if(player.shiel
 if(b.x<-100||b.x>canvas.width+100||b.y<-100||b.y>canvas.height+100) enemyBullets.splice(i,1);
 }
 }
+
+/* FIX #2 helper: bouncing bullets move, reflect at arena edges,
+   and honor their configured bounce count. */
+function stepBouncingBullet(b){
+  if(!b || b.speed === 0) return;
+  b.x += b.dx * b.speed;
+  b.y += b.dy * b.speed;
+  if(b.bounce && b.bounce > 0){
+    if(b.x < 0){ b.x = 0; b.dx = Math.abs(b.dx); b.bounce--; }
+    else if(b.x > canvas.width){ b.x = canvas.width; b.dx = -Math.abs(b.dx); b.bounce--; }
+    if(b.y < 0){ b.y = 0; b.dy = Math.abs(b.dy); b.bounce--; }
+    else if(b.y > canvas.height){ b.y = canvas.height; b.dy = -Math.abs(b.dy); b.bounce--; }
+  }
+}
 function draw(){
-ctx.fillStyle="rgba(0,0,0,.3)";
-ctx.fillRect(0,0,canvas.width,canvas.height);
+if((mapMode && activeMapLevel && activeMapLevel.id===26)||(sandboxMode&&sandboxBosses.some(b=>b.name==="CLOUD MASTER"))){
+ctx.fillStyle="#168bd7";ctx.fillRect(0,0,canvas.width,canvas.height);
+const frame=performance.now()/1000;
+for(let i=0;i<9;i++){
+const x=((i*137-frame*(13+i%3)*2)%(canvas.width+220)+canvas.width+220)%(canvas.width+220)-110;
+const y=45+(i*83)%560;const scale=.75+(i%4)*.17;
+ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ctx.fillStyle="rgba(255,255,255,.55)";ctx.beginPath();ctx.ellipse(0,8,48,17,0,0,Math.PI*2);ctx.ellipse(-24,2,25,20,0,0,Math.PI*2);ctx.ellipse(5,-9,29,28,0,0,Math.PI*2);ctx.ellipse(30,3,25,19,0,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+}else{ctx.fillStyle="rgba(0,0,0,.3)";ctx.fillRect(0,0,canvas.width,canvas.height);}
 ctx.fillStyle="#0f0";ctx.shadowBlur=15;ctx.shadowColor="#0f0";
 ctx.fillRect(player.x-player.size/2,player.y-player.size/2,player.size,player.size);
 if(player.shield>0){ctx.strokeStyle="#00ffff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(player.x,player.y,27,0,Math.PI*2);ctx.stroke();ctx.fillStyle="#00ffff";ctx.font="12px Courier New";ctx.fillText("S:"+player.shield,player.x+18,player.y-20);}
@@ -1845,7 +1983,7 @@ if(m.hp<m.maxHp){ctx.fillStyle="#222";ctx.fillRect(m.x-m.size/2,m.y-m.size/2-7,m
 });
 bullets.forEach(b=>{ctx.fillStyle="#fff";ctx.shadowColor="#fff";ctx.shadowBlur=5;ctx.fillRect(b.x-2,b.y-2,5,5);});
 drawBossHazards();
-enemyBullets.forEach(b=>{
+enemyBullets.forEach(b=>{if(b.cloud||b.kind==="cloudPuff"||b.kind==="cloudBank"||b.kind==="stormCloud"){ctx.save();ctx.translate(b.x,b.y);ctx.fillStyle=b.color||"#eafaff";ctx.shadowColor="#bceeff";ctx.shadowBlur=9;const r=Math.max(7,(b.size||16)*.58);ctx.beginPath();ctx.arc(-r*.55,r*.08,r*.58,0,Math.PI*2);ctx.arc(0,-r*.22,r*.72,0,Math.PI*2);ctx.arc(r*.58,r*.08,r*.55,0,Math.PI*2);ctx.fill();ctx.restore();return;}
 ctx.fillStyle=b.color;ctx.shadowColor=b.color;ctx.shadowBlur=8;
 if(b.kind && b.kind==='grassBlade'){
 ctx.beginPath();ctx.arc(b.x,b.y,b.size,0,Math.PI*2);ctx.fill();
@@ -1895,6 +2033,14 @@ const clearSandboxButton=document.getElementById("clearSandboxButton");
 const exitSandboxButton=document.getElementById("exitSandboxButton");
 const mobileToggle=document.getElementById("mobileToggle");
 const mobileControls=document.getElementById("mobileControls");
+const bossMobileJoystick=document.getElementById("bossMobileJoystick");
+const bossMobileStick=document.getElementById("bossMobileStick");
+let bossMobileMoveX=0,bossMobileMoveY=0,bossMobilePointer=null;
+function resetBossMobileStick(){bossMobileMoveX=0;bossMobileMoveY=0;bossMobilePointer=null;bossMobileStick.style.transform="translate(0px,0px)";}
+function moveBossMobileStick(e){const r=bossMobileJoystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,max=Math.min(42,r.width*.28);let dx=e.clientX-cx,dy=e.clientY-cy;const length=Math.hypot(dx,dy);if(length>max){dx=dx/length*max;dy=dy/length*max;}bossMobileMoveX=dx/max;bossMobileMoveY=dy/max;bossMobileStick.style.transform=`translate(${dx}px,${dy}px)`;}
+bossMobileJoystick.addEventListener("pointerdown",e=>{if(!twoPlayerMode||twoPlayerEnding||!mobileEnabled||bossMobilePointer!==null)return;bossMobilePointer=e.pointerId;bossMobileJoystick.setPointerCapture(e.pointerId);moveBossMobileStick(e);e.preventDefault();});
+bossMobileJoystick.addEventListener("pointermove",e=>{if(e.pointerId!==bossMobilePointer)return;moveBossMobileStick(e);e.preventDefault();});
+for(const eventName of ["pointerup","pointercancel","lostpointercapture"])bossMobileJoystick.addEventListener(eventName,e=>{if(e.pointerId===bossMobilePointer)resetBossMobileStick();});
 const mobileJoystick=document.getElementById("mobileJoystick");
 const mobileStick=document.getElementById("mobileStick");
 const mobileAim=document.getElementById("mobileAim");
@@ -1917,12 +2063,6 @@ const levelCardBossName=document.getElementById("levelCardBossName");
 const levelCardTag=document.getElementById("levelCardTag");
 let mobileEnabled=false,mobileMoveX=0,mobileMoveY=0,mobileFireDown=false;
 const SCROLL_SLOT_PX=260,SCROLL_PADDING_PX=120,ABYSS_SLOTS=6;
-/* ---------- LEVEL LAYOUT ----------
-world:0 → slots are absolute inside World 0 (abyss)
-world:1 → slots are offset by ABYSS_SLOTS so World 1 starts after the abyss
-Level 0 (DISMAL) is the only world:0 level → it sits at slot 2 (x≈770px, inside black)
-Level 10 (GRASS MONSTROSITY) has world:1 slot:10 → position 16 → x≈4410px, still green
-*/
 const mapLevels=[
 {id:-2,name:"SHADOW GHOST",tag:"",requires:-1,slot:0,rowY:0.55,world:0},
 {id:-1,name:"DISMAL",tag:"2× HEALTH",requires:0,slot:1,rowY:0.55,world:0},
@@ -1949,21 +2089,24 @@ const mapLevels=[
 {id:20,name:"DIAMOND MASTERPIECE",tag:"",requires:19,slot:20,rowY:0.55,world:1},
 {id:21,name:"WALL OF SILENCE & CHRONOS",tag:"3× TAG TEAM",requires:20,slot:21,rowY:0.55,world:2},
 {id:22,name:"ANGERED GRAVITY WELL",tag:"",requires:21,slot:22,rowY:0.55,world:2},
-{id:23,name:"THE PULSAR",tag:"3× HEALTH 2× ATTACK SPEED",requires:22,slot:23,rowY:0.55,world:2}
+{id:23,name:"THE PULSAR",tag:"3× HEALTH 2× ATTACK SPEED",requires:22,slot:23,rowY:0.55,world:2},
+{id:24,name:"CHRONOS",tag:"3×",requires:23,slot:24,rowY:0.55,world:2},
+{id:25,name:"THE SNIPER",tag:"5×",requires:24,slot:25,rowY:0.55,world:2},
+{id:26,name:"CLOUD MASTER",tag:"",requires:25,slot:26,rowY:0.55,world:3}
 ];
-const REWARD_OWNER_LEVEL_IDS=[0,6,12,15,20];
+const REWARD_OWNER_LEVEL_IDS=[0,6,12,15,20,25];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
 function loadMapSave(){try{const raw=localStorage.getItem(MAP_SAVE_KEY);if(!raw) return {};const obj=JSON.parse(raw);return (obj&&typeof obj==="object")?obj:{};}catch(e){return {};}}
 function saveMapSave(obj){try{localStorage.setItem(MAP_SAVE_KEY,JSON.stringify(obj));}catch(e){}}
 let mapCleared=loadMapSave();
 function sanitizePermanentUpgrades(){
-const rewardLevels=[0,6,12,15,20];
+const rewardLevels=REWARD_OWNER_LEVEL_IDS;
 const old=Array.isArray(permanentUpgradeIds)?permanentUpgradeIds:[];
 const valid=rewardLevels.map((levelId,i)=>{
 const id=old[i]||null;
 return mapCleared[levelId] && id && getPowerupById(id) ? id : null;
 });
-if(JSON.stringify(valid)!==JSON.stringify(old.slice(0,5))){
+if(JSON.stringify(valid)!==JSON.stringify(old.slice(0,rewardLevels.length))){
 permanentUpgradeIds=valid;
 permanentUpgradeId=permanentUpgradeIds.find(Boolean)||null;
 savePermanentUpgrade(null);
@@ -1973,15 +2116,37 @@ sanitizePermanentUpgrades();
 function sizeMapCanvas(){const w=mapTrack.clientWidth,h=mapTrack.clientHeight;mapCanvas.width=Math.max(1,w);mapCanvas.height=Math.max(1,h);drawMapBackground();}
 function drawMapBackground(){
 const w=mapCanvas.width,h=mapCanvas.height,g=mapCanvas.getContext("2d");
-const grad=g.createLinearGradient(0,0,0,h);
-grad.addColorStop(0,"#236b2a");
-grad.addColorStop(0.55,"#236b2a");
-grad.addColorStop(1,"#236b2a");
-g.fillStyle=grad;
-g.fillRect(0,0,w,h);
+const world0End=SCROLL_PADDING_PX+6*SCROLL_SLOT_PX;
+const world1End=SCROLL_PADDING_PX+(ABYSS_SLOTS+20.5)*SCROLL_SLOT_PX;
+const skyStart=SCROLL_PADDING_PX+(ABYSS_SLOTS+26)*SCROLL_SLOT_PX;
+const skyGrad=g.createLinearGradient(0,0,0,h);skyGrad.addColorStop(0,"#1689dc");skyGrad.addColorStop(.55,"#269fe9");skyGrad.addColorStop(1,"#73caff");
+const grass=g.createLinearGradient(0,0,0,h);grass.addColorStop(0,"#236b2a");grass.addColorStop(1,"#174c20");
+ g.fillStyle=grass;g.fillRect(0,0,w,h);
+ g.fillStyle="#000000";g.fillRect(0,0,Math.min(w,world0End),h);
+ const caveGrad=g.createLinearGradient(0,0,0,h);caveGrad.addColorStop(0,"#666666");caveGrad.addColorStop(.55,"#3d3d3d");caveGrad.addColorStop(1,"#252525");
+ g.fillStyle=caveGrad;g.fillRect(Math.min(w,world1End),0,Math.max(0,Math.min(w,skyStart)-world1End),h);
+ if(w>skyStart){
+  g.fillStyle=skyGrad;g.fillRect(skyStart,0,w-skyStart,h);
+  g.save();g.textAlign="left";g.fillStyle="rgba(255,255,255,.98)";g.font="bold 30px Courier New";g.textAlign="center";g.fillText("WORLD 3",SCROLL_PADDING_PX+(ABYSS_SLOTS+26)*SCROLL_SLOT_PX+SCROLL_SLOT_PX/2,43);g.font="bold 23px Courier New";g.fillText("THE SKY",SCROLL_PADDING_PX+(ABYSS_SLOTS+26)*SCROLL_SLOT_PX+SCROLL_SLOT_PX/2,73);g.restore();
+  const t=performance.now()/1000;const span=Math.max(1,w-skyStart);
+  for(let i=0;i<22;i++){
+   const speed=10+(i%5)*6;const x=skyStart+(((i*137+t*speed)%span)+span)%span;
+   const y=100+(i*61)%(Math.max(1,h-125));const scale=.78+(i%4)*.2;
+   g.fillStyle="rgba(255,255,255,.86)";g.beginPath();
+   g.ellipse(x,y,43*scale,14*scale,0,0,Math.PI*2);
+   g.ellipse(x-20*scale,y+4*scale,21*scale,12*scale,0,0,Math.PI*2);
+   g.ellipse(x+19*scale,y-5*scale,25*scale,17*scale,0,0,Math.PI*2);g.fill();
+  }
+ }
+}
+let mapSkyAnimationRunning=false;
+function animateMapSky(){
+ if(mapSkyAnimationRunning)return;mapSkyAnimationRunning=true;
+ const tick=()=>{if(bossMap.style.display!=="flex"){mapSkyAnimationRunning=false;return;}drawMapBackground();requestAnimationFrame(tick);};
+ requestAnimationFrame(tick);
 }
 window.addEventListener("resize",()=>{if(bossMap.style.display==="flex"){sizeMapCanvas();renderMapNodes();}});
-function computeTrackWidth(){const maxSlot=mapLevels.reduce((m,l)=>Math.max(m,l.slot),0);const needed=(maxSlot+1+ABYSS_SLOTS)*SCROLL_SLOT_PX+SCROLL_PADDING_PX*2;return Math.max(window.innerWidth,needed);}
+function computeTrackWidth(){const maxSlot=mapLevels.reduce((m,l)=>Math.max(m,l.slot),0);const needed=(maxSlot+1+ABYSS_SLOTS+3)*SCROLL_SLOT_PX+SCROLL_PADDING_PX*2;return Math.max(window.innerWidth,needed);}
 function levelNodePosition(level){
 const slot=(level.world===0?0:ABYSS_SLOTS)+level.slot;
 return {x:SCROLL_PADDING_PX+slot*SCROLL_SLOT_PX+SCROLL_SLOT_PX/2,y:level.rowY*mapTrack.clientHeight};
@@ -2042,7 +2207,8 @@ stopMusic();setMobileEnabled(false);document.body.classList.add("menuOpen");
 mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";
 levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
 bossMap.style.display="flex";gameActive=false;sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;
-renderMapNodes();mapScroll.scrollLeft=computeTrackWidth();startMenuMusic();
+resetTimeControl();
+renderMapNodes();mapScroll.scrollLeft=0;startMenuMusic();animateMapSky();
 }
 function closeBossMapToMenu(){bossMap.style.display="none";document.body.classList.add("menuOpen");mainMenu.style.display="flex";stopMusic();}
 let pendingLevel=null;
@@ -2072,6 +2238,7 @@ openRewardPicker(pendingLevel.id);
 levelStartButton.onclick=()=>{if(!pendingLevel) return;const lvl=pendingLevel;closeLevelStart();startMapLevel(lvl);};
 function startMapLevel(level){
 if(ensureAudio() && audioCtx.state!=="running") audioCtx.resume().catch(()=>{});
+resetTimeControl();
 bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
 document.body.classList.remove("menuOpen");
 mapMode=true;sandboxMode=false;noUpgradeMode=false;nightmareRush=false;activeMapLevel=level;levelCompletePending=false;
@@ -2206,18 +2373,52 @@ b.x=450;b.y=200;b.hp*=3;b.maxHp*=3;
 b.__bulletScale={damage:2,speed:2};
 }
 }
+else if(level.id===24){
+const idx=bosses.findIndex(b=>b.name==="CHRONOS");
+sandboxBossSelect.value=String(idx);currentBossIndex=idx;
+const positions=[[250,155],[650,155],[450,290]];
+for(let i=0;i<3;i++){
+spawnSandboxBoss();
+const b=mapSniperBosses[i];
+if(b){b.x=positions[i][0];b.y=positions[i][1];}
+}
+minions=[];
+}
+else if(level.id===25){
+const idx=bosses.findIndex(b=>b.name==="THE SNIPER");
+sandboxBossSelect.value=String(idx);currentBossIndex=idx;
+const positions=[[180,125],[450,115],[720,125],[300,260],[600,260]];
+for(let i=0;i<5;i++){
+spawnSandboxBoss();
+const b=mapSniperBosses[i];
+if(b){b.x=positions[i][0];b.y=positions[i][1];}
+}
+minions=[];
+}
+else if(level.id===26){
+const cloudMaster={name:"CLOUD MASTER",hp:2000,maxHp:2000,color:"#bdeeff",size:64,speed:0.8,x:450,y:165,timer:0,update:function(){
+const t=this.timer;
+this.x=450+Math.sin(t*0.012)*175;this.y=145+Math.sin(t*0.019)*38;
+if(t%105===0){const a=getAngleToPlayer(this);for(let j=-2;j<=2;j++){const ang=a+j*0.22;fireUniqueBullet(this.x,this.y,ang,3.2,"#f2fbff",15,8,"cloudPuff",{life:230,cloud:true});}}
+if(t%175===0){const gap=Math.floor(Math.random()*9);for(let j=0;j<9;j++){if(j===gap)continue;fireUniqueBullet(j*100+50,-15,Math.PI/2,2.5,"#d7f4ff",24,9,"cloudBank",{life:300,cloud:true});}}
+if(t%230===0){for(let j=-1;j<=1;j++){const a=getAngleToPlayer(this)+j*0.48;fireUniqueBullet(this.x,this.y,a,1.8,"#8fdcff",28,14,"stormCloud",{life:320,cloud:true});}}
+}};
+mapSniperBosses.push(cloudMaster);currentBossIndex=-1;minions=[];
+}
 sandboxBosses=savedSandboxBosses;
 uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
-if(level.id<=0) startAbyssMusic(); else if(level.id>=11) startCavesMusic(); else startGrassyMusic();
+if(level.id===26) startSkyMusic(); else if(level.id<=0) startAbyssMusic(); else if(level.id>=11) startCavesMusic(); else startGrassyMusic();
 gameActive=true;updateUI();
 }
 function showLevelComplete(){
+if(endlessMode){advanceEndlessLevel();return;}
 gameActive=false;levelCompleteText.textContent="LEVEL "+activeMapLevel.id+" COMPLETED!";
 levelCompleteScreen.style.display="flex";playDingSound();
 if(activeMapLevel){mapCleared[activeMapLevel.id]=true;saveMapSave(mapCleared);}
 setTimeout(()=>{levelCompleteScreen.style.display="none";exitMapLevelToMap();},2500);
 }
 function exitMapLevelToMap(){
+resetTimeControl();
 mapMode=false;activeMapLevel=null;mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];bossHazards=[];
 gameActive=false;waitingForPowerup=false;levelCompletePending=false;levelCompleteScreen.style.display="none";
 boss=null;sandboxBosses=[];
@@ -2246,9 +2447,10 @@ o1.start(t);o1.stop(t+0.6);o2.start(t);o2.stop(t+0.6);
 function showMainMenuOnStartup(){
 document.body.classList.add("menuOpen");mainMenu.style.display="flex";sandboxMenu.style.display="none";powerupScreen.style.display="none";
 bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
-gameActive=false;waitingForPowerup=false;sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;
+gameActive=false;waitingForPowerup=false;sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;endlessMode=false;const modHud=document.getElementById("endlessModifierHud");if(modHud)modHud.style.display="none";
 boss=null;bullets=[];enemyBullets=[];minions=[];bossHazards=[];
-updateMenuButtonStates();
+resetTimeControl();
+updateMenuButtonStates();updateEndlessRecord();
 }
 mainMenu.addEventListener("pointerdown",()=>{if(document.body.classList.contains("menuOpen")) startMenuMusic();},{passive:true});
 function fillSandboxMenus(){
@@ -2261,12 +2463,13 @@ sandboxOrder.push({b:bosses[dismalIndex],i:dismalIndex});
 sandboxOrder.forEach((entry,slot)=>{const option=document.createElement("option");option.value=entry.i;option.textContent=(slot+1)+" - "+entry.b.name;sandboxBossSelect.appendChild(option);});
 const rockOption=document.createElement("option");rockOption.value="ROCK_BEAST";rockOption.textContent="58 - ROCK BEAST";sandboxBossSelect.appendChild(rockOption);
 const emeraldOption=document.createElement("option");emeraldOption.value="EMERALD_KILLER";emeraldOption.textContent="59 - EMERALD KILLER";sandboxBossSelect.appendChild(emeraldOption);
+const cloudOption=document.createElement("option");cloudOption.value="CLOUD_MASTER";cloudOption.textContent="60 - CLOUD MASTER";sandboxBossSelect.appendChild(cloudOption);
 sandboxEnemySelect.innerHTML="";
 minionTypes.forEach((m,i)=>{const option=document.createElement("option");option.value=i;option.textContent=(i+1)+" - "+m.name;sandboxEnemySelect.appendChild(option);});
 }
 function resetPlayer(){player={x:450,y:600,size:18,hp:100,maxHp:100,speed:6,damage:5,fireRate:10,fireCooldown:0,shots:1,shotSpread:.13,piercing:0,shield:0,dashPower:0,dashCooldown:0};}
 function setMobileEnabled(enabled){
-mobileEnabled=enabled;mobileControls.classList.toggle("enabled",enabled);
+mobileEnabled=enabled;mobileControls.classList.toggle("enabled",enabled);document.body.classList.toggle("mobileModeEnabled",enabled);if(!enabled)resetBossMobileStick();
 mobileToggle.textContent=enabled?"DISABLE MOBILE":"ENABLE MOBILE";
 mobileToggle.style.borderColor=enabled?"#0f0":"#555";
 if(!enabled){mobileMoveX=0;mobileMoveY=0;mobileFireDown=false;mobileStick.style.transform="translate(0px,0px)";mobileAimStick.style.transform="translate(0px,0px)";}
@@ -2311,8 +2514,169 @@ startMusic(desiredMusicTheme||longMenuMusic,desiredMusicKey||"menu");
 };
 if(audioCtx.state==="running") begin();else audioCtx.resume().then(begin).catch(()=>{});
 }
+function endlessBossPool(){
+const availableCount=Math.min(40,Math.max(3,4+Math.floor((Math.max(1,endlessLevel)-1)/2)*2));
+return bosses.slice(0,availableCount).filter(b=>b && !["DIAMOND MASTERPIECE","PULSAR CORE","DISMAL","GRASS MONSTROSITY","ROCK BEAST","ROCK BEASTS","EMERALD KILLER"].includes(b.name));
+}
+function chooseEndlessModifiers(){
+const pool=[
+ {id:"tagTeam",name:"TAG TEAM",description:"TAG TEAM",extraBoss:1},
+ {id:"twoX",name:"2×",description:"2×",duplicateCount:2},
+ {id:"threeX",name:"3×",description:"3×",duplicateCount:3},
+ {id:"droneInvasion",name:"DRONE INVASION",description:"DRONE INVASION"},
+ {id:"twoHealth",name:"2× HEALTH",description:"2× HEALTH",health:2,size:2,chase:1/2},
+ {id:"threeHealth",name:"3× HEALTH",description:"3× HEALTH",health:3,size:3,chase:1/3},
+ {id:"doubleAttack",name:"2× ATTACK SPEED",description:"2× ATTACK SPEED",attackSpeed:2},
+ {id:"fiveX",name:"5×",description:"5×",duplicateCount:5}
+];
+let chance=1;
+if(endlessLevel<=3)chance=0.55;
+else if(endlessLevel<=6)chance=0.72;
+else if(endlessLevel<=9)chance=0.88;
+if(Math.random()>chance){
+ endlessActiveModifiers=[];
+}else{
+ let count=1;
+ if(endlessLevel>=30)count=4+Math.floor((endlessLevel-30)/10);
+ else if(endlessLevel>=20)count=3;
+ else if(endlessLevel>=13)count=2;
+ else if(endlessLevel>=10 && Math.random()<0.30)count=2;
+ const availablePool=endlessLevel<16?pool.filter(m=>m.id!=="threeHealth"&&m.id!=="fiveX"):pool;
+ endlessActiveModifiers=Array.from({length:count},()=>({...availablePool[Math.floor(Math.random()*availablePool.length)]}));
+}
+const hud=document.getElementById("endlessModifierHud"),list=document.getElementById("endlessModifierList");
+if(hud&&list){hud.style.display="block";const heading=hud.querySelector("strong");if(heading)heading.textContent="ACTIVE MODIFIERS";list.innerHTML=endlessActiveModifiers.length?endlessActiveModifiers.map(m=>"<b>"+m.name+"</b>").join("<br>"):'<b>NO MODIFIERS</b>';}
+}
+function refreshEndlessModifierMessage(bossCount){
+const hud=document.getElementById("endlessModifierHud"),list=document.getElementById("endlessModifierList");
+const counts={};for(const b of mapSniperBosses)counts[b.name]=(counts[b.name]||0)+1;
+const repeated=Object.entries(counts).filter(([,n])=>n>1).map(([name,n])=>n+"x "+name);
+const differentBossCount=Object.keys(counts).length;
+const tagTeamTextCount=Math.max(0,differentBossCount-1);
+const entries=[];
+for(let i=0;i<tagTeamTextCount;i++)entries.push("TAG TEAM");
+for(const mod of endlessActiveModifiers){
+ if(mod.id==="tagTeam"){
+  continue;
+ }else if(mod.duplicateCount){
+  entries.push(mod.name+" — "+(repeated[0]||"DUPLICATED BOSS"));
+ }else{
+  entries.push(mod.name);
+ }
+}
+for(const name of repeated){if(!entries.some(entry=>entry.includes(name)))entries.push(name);}
+if(hud&&list){hud.style.display="block";const heading=hud.querySelector("strong");if(heading)heading.textContent="ACTIVE MODIFIERS";list.innerHTML=entries.length?entries.map(name=>"<b>"+name+"</b>").join("<br>"):'<b>NO MODIFIERS</b>';}
+document.getElementById("msg").textContent=entries.length?entries.join(" + "):"NO MODIFIERS THIS LEVEL";
+}
+function spawnEndlessLevel(){
+if(!endlessMode)return;
+if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;
+endlessLevel=Math.max(1,endlessLevel);saveEndlessRecord(endlessLevel);
+activeMapLevel={id:1000+endlessLevel,name:"ENDLESS LEVEL "+endlessLevel,tag:""};levelCompletePending=false;waitingForPowerup=false;powerupScreen.style.display="none";
+bullets=[];enemyBullets=[];minions=[];bossHazards=[];mapSniperBosses=[];sandboxBosses=[];boss=null;
+chooseEndlessModifiers();
+const pool=endlessBossPool();if(!pool.length){exitEndlessToMenu();return;}
+let bossCount=Math.min(8,1+Math.floor((endlessLevel-1)/8));
+const extraBossCount=endlessActiveModifiers.reduce((sum,m)=>sum+(m.extraBoss||0),0);
+bossCount=Math.min(8,bossCount+extraBossCount);
+const chosenTemplates=Array.from({length:bossCount},()=>pool[Math.floor(Math.random()*pool.length)]);
+const duplicateMod=endlessActiveModifiers.find(m=>m.duplicateCount);
+if(duplicateMod){
+ const target=chosenTemplates[Math.floor(Math.random()*chosenTemplates.length)]||pool[Math.floor(Math.random()*pool.length)];
+ const targetCopies=Math.min(duplicateMod.duplicateCount,8);
+ const otherBosses=chosenTemplates.filter(t=>t.name!==target.name);
+ chosenTemplates.length=0;
+ for(let n=0;n<targetCopies;n++)chosenTemplates.push(target);
+ for(const other of otherBosses){if(chosenTemplates.length>=8)break;chosenTemplates.push(other);}
+}
+bossCount=chosenTemplates.length;
+const targetsByModifier={};
+for(const mod of endlessActiveModifiers){
+ if(mod.id==="tagTeam"||mod.id==="droneInvasion"||mod.duplicateCount)continue;
+ const used=targetsByModifier[mod.id]||[];
+ const candidates=Array.from({length:bossCount},(_,i)=>i).filter(i=>!used.includes(i));
+ const target=candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:Math.floor(Math.random()*Math.max(1,bossCount));
+ mod.__targetBossIndex=target;
+ used.push(target);targetsByModifier[mod.id]=used;
+}
+refreshEndlessModifierMessage(bossCount);
+for(let i=0;i<bossCount;i++){
+const template=chosenTemplates[i];
+const b={...template,x:450,y:170,timer:0,maxHp:template.hp,shield:template.shields||0,maxShield:template.shields||0};
+const cols=Math.min(4,bossCount),row=Math.floor(i/cols),col=i%cols;
+b.x=canvas.width*(col+1)/(cols+1);b.y=125+row*125;
+const healthTier=Math.floor((endlessLevel-1)/8);
+const healthMult=1+healthTier*0.12*(endlessLevel>=9?1:0);
+b.hp*=healthMult;b.maxHp*=healthMult;b.shield*=1+Math.floor((endlessLevel-1)/12)*0.08;b.maxShield=b.shield;
+const damageMult=1+Math.floor((endlessLevel-1)/12)*0.07;
+const speedMult=1+Math.floor((endlessLevel-1)/15)*0.05;
+b.__bulletScale={damage:damageMult,speed:speedMult};
+for(const mod of endlessActiveModifiers){
+ if(mod.__targetBossIndex!==i)continue;
+ if(mod.health){b.hp*=mod.health;b.maxHp*=mod.health;}
+ if(mod.size)b.size*=mod.size;
+ if(mod.health)b.__bulletScale.size=(b.__bulletScale.size||1)*mod.health;
+ if(mod.damage||mod.speed){b.__bulletScale.damage=(b.__bulletScale.damage||1)*(mod.damage||1);b.__bulletScale.speed=(b.__bulletScale.speed||1)*(mod.speed||1);}
+ if(mod.shield){b.shield*=mod.shield;b.maxShield=b.shield;}
+ if(mod.chase)b.__endlessChaseScale=(b.__endlessChaseScale||1)*mod.chase;
+}
+mapSniperBosses.push(b);
+}
+const nightmareDroneStart=minionTypes.findIndex(m=>m.kind==="nightmareDrone");
+const regularDroneCount=nightmareDroneStart>0?nightmareDroneStart:minionTypes.length;
+const droneInvasionCount=endlessActiveModifiers.filter(m=>m.id==="droneInvasion").length;
+for(let invasion=0;invasion<droneInvasionCount;invasion++){
+ const droneType=Math.floor(Math.random()*regularDroneCount);
+ const inset=34+invasion*18;
+ const corners=[
+  {x:inset,y:inset},
+  {x:canvas.width-inset,y:inset},
+  {x:inset,y:canvas.height-inset},
+  {x:canvas.width-inset,y:canvas.height-inset}
+ ];
+ for(const corner of corners){
+  spawnMinion(droneType);
+  const drone=minions[minions.length-1];
+  if(!drone)continue;
+  const dx=Math.max(inset,(drone.size||18)/2+4),dy=Math.max(inset,(drone.size||18)/2+4);
+  drone.x=corner.x<canvas.width/2?dx:canvas.width-dx;
+  drone.y=corner.y<canvas.height/2?dy:canvas.height-dy;
+ }
+}
+uiBoss.textContent="ENDLESS LEVEL: "+endlessLevel;uiName.textContent=bossCount+" RANDOM BOSS"+(bossCount===1?"":"ES");
+const hpTier=Math.floor((endlessLevel-1)/8);const hpMult=1+hpTier*.12;
+refreshEndlessModifierMessage(bossCount);
+startEndlessMusic();gameActive=true;updateUI();
+}
+function advanceEndlessLevel(){
+if(!endlessMode||levelCompletePending||endlessPendingUpgrades>0||waitingForPowerup)return;
+levelCompletePending=true;gameActive=true;saveEndlessRecord(endlessLevel);
+levelCompleteText.textContent="ENDLESS LEVEL "+endlessLevel+" CLEARED!";levelCompleteScreen.style.display="flex";playDingSound();
+endlessAdvanceTimer=setTimeout(()=>{levelCompleteScreen.style.display="none";endlessLevel++;spawnEndlessLevel();},1250);
+}
+function exitEndlessToMenu(){
+if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;
+resetTimeControl();
+endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];const modHud=document.getElementById("endlessModifierHud");if(modHud)modHud.style.display="none";mapMode=false;activeMapLevel=null;mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];bossHazards=[];gameActive=false;waitingForPowerup=false;levelCompletePending=false;
+levelCompleteScreen.style.display="none";powerupScreen.style.display="none";bossMap.style.display="none";sandboxMenu.style.display="none";document.getElementById("msg").textContent="WASD to Move | Click or E to Shoot | SPACE to Dash if unlocked";mainMenu.style.display="flex";document.body.classList.add("menuOpen");stopMusic();startMenuMusic();updateEndlessRecord();updateUI();
+}
+function startEndlessMode(){
+unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;
+if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
+resetTimeControl();
+twoPlayerMode=false;twoPlayerEnding=false;document.body.classList.remove("twoPlayerTouch");
+bullets=[];enemyBullets=[];minions=[];bossHazards=[];boss=null;sandboxBosses=[];mapSniperBosses=[];waitingForPowerup=false;levelCompletePending=false;
+endlessMode=true;endlessLevel=1;endlessPendingUpgrades=0;endlessActiveModifiers=[];mapMode=true;sandboxMode=false;noUpgradeMode=false;nightmareRush=false;enemyMadness=false;activeMapLevel=null;
+mainMenu.style.display="none";sandboxMenu.style.display="none";bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";powerupScreen.style.display="none";
+waitingForPowerup=false;resetPlayer();spawnEndlessLevel();
+}
 function startDroneMadness(){
 unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
+resetTimeControl();
+endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];twoPlayerMode=false;twoPlayerEnding=false;document.body.classList.remove("twoPlayerTouch");activeMapLevel=null;mapSniperBosses=[];sandboxBosses=[];bossHazards=[];
+const modifierHud=document.getElementById("endlessModifierHud");if(modifierHud)modifierHud.style.display="none";
 sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=true;
 enemyMadnessDefeated=0;enemyMadnessSpawnTimer=0;mainMenu.style.display="none";sandboxMenu.style.display="none";
 powerupScreen.style.display="none";bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
@@ -2320,6 +2684,9 @@ waitingForPowerup=false;boss=null;bullets=[];enemyBullets=[];minions=[];resetPla
 }
 function startGame(){
 unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
+resetTimeControl();
+endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];twoPlayerMode=false;twoPlayerEnding=false;document.body.classList.remove("twoPlayerTouch");activeMapLevel=null;mapSniperBosses=[];sandboxBosses=[];bossHazards=[];
 sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;
 mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";
 bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
@@ -2328,6 +2695,9 @@ gameActive=true;initBoss();updateUI();
 }
 function startNoUpgradeMode(){
 unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
+resetTimeControl();
+endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];twoPlayerMode=false;twoPlayerEnding=false;document.body.classList.remove("twoPlayerTouch");activeMapLevel=null;mapSniperBosses=[];sandboxBosses=[];bossHazards=[];
 sandboxMode=false;noUpgradeMode=true;mapMode=false;nightmareRush=false;
 mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";
 bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
@@ -2336,6 +2706,9 @@ gameActive=true;initBoss();updateUI();
 }
 function startNightmareRush(){
 unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
+resetTimeControl();
+endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];twoPlayerMode=false;twoPlayerEnding=false;document.body.classList.remove("twoPlayerTouch");activeMapLevel=null;mapSniperBosses=[];sandboxBosses=[];bossHazards=[];
 sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=true;
 mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";
 bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
@@ -2344,7 +2717,13 @@ gameActive=true;initBoss();updateUI();
 }
 function startSandbox(){
 unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
-sandboxMode=true;noUpgradeMode=false;mapMode=false;nightmareRush=false;
+if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;
+if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
+resetTimeControl();
+endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];twoPlayerMode=false;twoPlayerEnding=false;document.body.classList.remove("twoPlayerTouch");
+const modifierHud=document.getElementById("endlessModifierHud");if(modifierHud)modifierHud.style.display="none";
+activeMapLevel=null;mapSniperBosses=[];bossHazards=[];bullets=[];enemyBullets=[];minions=[];boss=null;sandboxBosses=[];levelCompletePending=false;
+sandboxMode=true;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;
 mainMenu.style.display="none";sandboxMenu.style.display="block";powerupScreen.style.display="none";
 bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
 waitingForPowerup=false;boss=null;sandboxBosses=[];bullets=[];enemyBullets=[];minions=[];
@@ -2352,6 +2731,17 @@ currentBossIndex=0;resetPlayer();gameActive=true;startSandboxMusic();updateUI();
 }
 function spawnSandboxBoss(){
 const selected=sandboxBossSelect.value;
+if(selected==="CLOUD_MASTER"){
+ const cloudMaster={name:"CLOUD MASTER",hp:2000,maxHp:2000,color:"#bdeeff",size:64,speed:0.8,x:450,y:165,timer:0,update:function(){
+  const t=this.timer;this.x=450+Math.sin(t*0.012)*175;this.y=145+Math.sin(t*0.019)*38;
+  if(t%105===0){const a=getAngleToPlayer(this);for(let j=-2;j<=2;j++)fireUniqueBullet(this.x,this.y,a+j*0.22,3.2,"#f2fbff",15,8,"cloudPuff",{life:230,cloud:true});}
+  if(t%175===0){const gap=Math.floor(Math.random()*9);for(let j=0;j<9;j++){if(j===gap)continue;fireUniqueBullet(j*100+50,-15,Math.PI/2,2.5,"#d7f4ff",24,9,"cloudBank",{life:300,cloud:true});}}
+  if(t%230===0){for(let j=-1;j<=1;j++){const a=getAngleToPlayer(this)+j*0.48;fireUniqueBullet(this.x,this.y,a,1.8,"#8fdcff",28,14,"stormCloud",{life:320,cloud:true});}}
+ }};
+ const count=sandboxBosses.length,angle=count*0.9,radius=Math.min(230,60+count*18);
+ cloudMaster.x=450+Math.cos(angle)*radius;cloudMaster.y=180+Math.sin(angle)*radius;
+ sandboxBosses.push(cloudMaster);boss=cloudMaster;currentBossIndex=-1;startSkyMusic();updateUI();return;
+}
 if(selected==="EMERALD_KILLER"){
 const emerald={name:"EMERALD KILLER",hp:2000,maxHp:2000,color:"#9cff9c",size:28,speed:1.7,x:450,y:220,timer:0,update:function(){
 const dx=player.x-this.x,dy=player.y-this.y,len=Math.hypot(dx,dy)||1;this.x+=dx/len*this.speed;this.y+=dy/len*this.speed;
@@ -2381,8 +2771,9 @@ sandboxBosses.push(newBoss);boss=newBoss;updateUI();
 function spawnSandboxEnemy(){const index=Number(sandboxEnemySelect.value);spawnMinion(index);}
 function clearSandbox(){boss=null;sandboxBosses=[];bullets=[];enemyBullets=[];minions=[];updateUI();}
 function exitToMainMenu(){
-setMobileEnabled(false);twoPlayerMode=false;twoPlayerEnding=false;document.getElementById("twoPlayerHud").style.display="none";document.getElementById("twoPlayerSelectScreen").style.display="none";document.getElementById("twoPlayerResult").style.display="none";stopMusic();document.body.classList.add("menuOpen");
-sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;gameActive=false;waitingForPowerup=false;
+resetTimeControl();
+setMobileEnabled(false);resetBossMobileStick();document.body.classList.remove("twoPlayerTouch");twoPlayerMode=false;twoPlayerEnding=false;document.getElementById("twoPlayerHud").style.display="none";document.getElementById("twoPlayerSelectScreen").style.display="none";document.getElementById("twoPlayerResult").style.display="none";stopMusic();document.body.classList.add("menuOpen");
+sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;endlessMode=false;const modHud=document.getElementById("endlessModifierHud");if(modHud)modHud.style.display="none";gameActive=false;waitingForPowerup=false;
 boss=null;sandboxBosses=[];mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];
 sandboxMenu.style.display="none";powerupScreen.style.display="none";bossMap.style.display="none";
 levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
@@ -2390,9 +2781,21 @@ mainMenu.style.display="flex";
 updateMenuButtonStates();updateUI();
 }
 startGameButton.onclick=startGame;
+document.getElementById("startEndlessButton").onclick=startEndlessMode;
 document.getElementById("startTwoPlayerButton").onclick=openTwoPlayerPicker;
 document.getElementById("twoPlayerBackButton").onclick=()=>{document.getElementById("twoPlayerSelectScreen").style.display="none";mainMenu.style.display="flex";startMenuMusic();};
-document.getElementById("twoDroneButton").onclick=summonTwoPlayerDrone;
+/* FIX: drone button binds its own click handler directly so every press
+   summons the drone (subject only to its intended cooldown), and nothing
+   else (no chime) competes for the event. */
+const twoDroneBtn=document.getElementById("twoDroneButton");
+if(twoDroneBtn){
+  twoDroneBtn.type="button";
+  twoDroneBtn.style.touchAction="manipulation";
+  twoDroneBtn.onclick=e=>{
+    if(e){e.stopPropagation();e.preventDefault();}
+    summonTwoPlayerDrone();
+  };
+}
 document.getElementById("twoPlayerResultMenu").onclick=exitTwoPlayerToMenu;
 startNoUpgradeButton.onclick=startNoUpgradeMode;
 startNightmareRushButton.onclick=startNightmareRush;
@@ -2405,8 +2808,12 @@ spawnEnemyButton.onclick=spawnSandboxEnemy;
 clearSandboxButton.onclick=clearSandbox;
 exitSandboxButton.onclick=exitToMainMenu;
 fillSandboxMenus();
-showMainMenuOnStartup();
-function gameLoop(){update();draw();requestAnimationFrame(gameLoop);}
+showMainMenuOnStartup();updateEndlessRecord();
+function gameLoop(){
+ try{update();}catch(err){if(!gameLoop.updateErrorLogged){console.error("Game update recovered from an error:",err);gameLoop.updateErrorLogged=true;}}
+ try{draw();}catch(err){if(!gameLoop.drawErrorLogged){console.error("Game rendering recovered from an error:",err);gameLoop.drawErrorLogged=true;}}
+ requestAnimationFrame(gameLoop);
+}
 gameLoop();
 (function(){
 function repairMobileLayer(){
@@ -2422,4 +2829,4 @@ window.addEventListener("resize",repairMobileLayer);
 })();
 </script>
 </body>
-    </html>
+ </html>
