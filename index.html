@@ -77,23 +77,15 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #mapTrack{position:relative;height:100%;min-width:100%;}
 #mapCanvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;border:none;box-shadow:none;transform:none;margin:0;box-sizing:border-box;z-index:0;}
 #mapOverlay{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;}
-/* ---------- WORLD LABELS & REGIONS ---------- */
-
-/* World 0 (Abyss) - Pushed Left */
 .mapAbyssRegion{position:absolute;left:calc(120px + 2 * 260px + 130px - 18px);top:calc(55% - 155px);height:auto;display:flex;flex-direction:column;align-items:center;padding-top:0;box-sizing:border-box;z-index:4;pointer-events:none;}
 .mapAbyssTitle{color:#e8e8e8;font-size:30px;letter-spacing:5px;text-shadow:0 0 18px rgba(255,255,255,.35),2px 2px #000;}
 .mapAbyssSub{color:#8a8a8a;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
-
-/* World 1 (Grassy) - Shifted Left, Text above Level 1 */
 .mapWorld1Region{position:absolute;left:calc(120px + 7 * 260px + 130px - 18px);top:calc(55% - 155px);display:flex;flex-direction:column;align-items:center;padding-top:0;box-sizing:border-box;pointer-events:none;}
 #bossMap .mapTitle{margin-top:0;color:#dfffdf;font-size:30px;letter-spacing:5px;text-shadow:0 0 14px rgba(80,255,80,.5),2px 2px #000;pointer-events:none;}
 #bossMap .mapSub{color:#8fc78f;margin:4px 0 0;font-size:14px;letter-spacing:3px;text-shadow:1px 1px #000;pointer-events:none;}
-
-/* World 2 (Caves) - Starts at Level 11 */
 .mapWorld2Region{position:absolute;left:calc(120px + 17 * 260px);top:0;height:100%;display:flex;flex-direction:column;align-items:flex-start;padding-left:35px;padding-top:26px;box-sizing:border-box;z-index:2;pointer-events:none;}
 .mapWorld2Title{color:#eee;font-size:30px;letter-spacing:5px;text-shadow:2px 2px #000;}
 .mapWorld2Sub{color:#bbb;font-size:14px;letter-spacing:3px;margin-top:4px;text-shadow:1px 1px #000;}
-
 #mapBackButton{position:fixed;top:16px;left:16px;z-index:9100;padding:10px 14px;background:#0c2b0c;color:#dfffdf;border:2px solid #4f8f4f;font:bold 14px 'Courier New',monospace;cursor:pointer;pointer-events:auto;}
 #mapBackButton:hover{border-color:#8fff8f;background:#14401a;}
 .mapLevelNode{position:absolute;transform:translate(-50%,-50%);z-index:103;display:flex;flex-direction:column;align-items:center;pointer-events:auto;width:220px;}
@@ -143,23 +135,11 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #rewardChoices{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;max-width:850px;}
 .rewardBack{margin-top:6px;padding:10px 18px;background:#111;color:#fff;border:2px solid #555;font:bold 14px 'Courier New',monospace;cursor:pointer;letter-spacing:2px;}
 .rewardBack:hover{border-color:#0f0;background:#182018;}
-
-/* ---------- WORLD LAYOUT BACKGROUNDS ---------- */
-/* World 0 (abyss/black):    x = 0 .. calc(120px + 6*260px)  = 0 .. 1680px */
-/* World 1 (grassy/green):   x = 1680px .. calc(120px + 16*260px) = 1680 .. 4280px */
-/* World 2 (caves/gray):     x = calc(120px + 17*260px) .. end = 4540px .. */
-
 #mapTrack::before{content:"";position:absolute;left:0;top:0;width:calc(120px + 6 * 260px);height:100%;background:#000;z-index:1;pointer-events:none;}
 #mapTrack::after{content:"";position:absolute;left:calc(120px + 17 * 260px);top:0;width:3900px;right:auto;height:100%;background:linear-gradient(180deg,#666,#3d3d3d 55%,#252525);z-index:1;pointer-events:none;}
-
-/* Abyss gradient + title: span the FULL World 0 width (0..1680px) */
 .mapAbyssGradient{position:absolute;left:0;top:0;width:calc(120px + 6 * 260px);height:100%;background:linear-gradient(90deg,#000 0%,#000 78%,rgba(0,0,0,0) 100%);z-index:2;pointer-events:none;}
-
-/* Eyes: kept INSIDE the black World 0 background, pushed to its RIGHT side */
 .mapAbyssEye{position:absolute;width:16px;height:7px;background:#fff;border-radius:50%;box-shadow:0 0 16px #fff,0 0 30px rgba(255,255,255,.8);opacity:0;animation:eyeBlink 7s infinite;z-index:3;pointer-events:none;}
 @keyframes eyeBlink{0%,88%,100%{opacity:0;}90%,96%{opacity:1;}}
-
-
 #twoPlayerSelectScreen{display:none;position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,.97);overflow:auto;padding:22px;box-sizing:border-box;flex-direction:column;align-items:center;}
 #twoPlayerSelectScreen h2{color:#0f0;letter-spacing:3px;margin:8px 0;}
 #twoPlayerSelectScreen p{color:#aaa;max-width:800px;line-height:1.5;}
@@ -182,15 +162,10 @@ body.menuOpen #gameCanvas,body.menuOpen #ui,body.menuOpen #msg,body.menuOpen #mo
 #twoPlayerResult p{color:#aaa;}
 #twoPlayerResult button{padding:13px 25px;background:#111;border:2px solid #0f0;color:#0f0;font:bold 16px 'Courier New',monospace;cursor:pointer;}
 @media(max-width:700px){#twoPlayerHud{right:4px;top:80px;width:210px;padding:7px;max-height:calc(100vh - 90px);font-size:10px}.twoAttackButton{font-size:10px;padding:5px}.twoBossIcon{max-width:48px;max-height:48px}}
-
 #bossMobileJoystick{display:none;position:fixed;right:24px;bottom:24px;width:150px;height:150px;border:3px solid #ff7777;border-radius:50%;background:rgba(255,60,60,.13);z-index:50;touch-action:none;user-select:none;box-sizing:border-box;pointer-events:auto;}
 #bossMobileJoystick::after{content:"BOSS MOVE";position:absolute;left:0;right:0;top:12px;text-align:center;color:#ffaaaa;font:bold 11px 'Courier New',monospace;pointer-events:none;}
 #bossMobileStick{position:absolute;width:62px;height:62px;left:41px;top:41px;border:2px solid #ff7777;border-radius:50%;background:rgba(255,65,65,.5);box-sizing:border-box;pointer-events:none;}
 body.twoPlayerTouch.mobileModeEnabled #bossMobileJoystick{display:block;}
-
-
-
-/* Versus mobile: independent simultaneous player and boss touch controls. */
 body.twoPlayerTouch #twoPlayerHud{z-index:65;pointer-events:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
 body.twoPlayerTouch .twoAttackButton,body.twoPlayerTouch #twoDroneButton{min-height:42px;touch-action:manipulation;pointer-events:auto;user-select:none;-webkit-user-select:none;}
 body.twoPlayerTouch #bossMobileJoystick{left:18px;right:auto;top:76px;bottom:auto;z-index:55;}
@@ -206,8 +181,6 @@ body.twoPlayerTouch #mobileControls.enabled{z-index:35;pointer-events:none;}
  body.twoPlayerTouch #mobileStick,body.twoPlayerTouch #mobileAimStick{width:44px;height:44px;left:28px;top:28px;}
  body.twoPlayerTouch #mobileDashButton{width:55px;height:55px;bottom:127px;left:55px;font-size:10px;}
 }
-
-/* ---------- ACHIEVEMENTS ---------- */
 #achievementsButton{border-color:#555;}
 #achievementsButton:hover{border-color:#ffd24d;background:#1a1600;color:#ffe89a;}
 #achievementsScreen{display:none;position:fixed;inset:0;z-index:100005;background:rgba(0,0,0,.96);overflow-y:auto;padding:24px 16px 40px;box-sizing:border-box;flex-direction:column;align-items:center;}
@@ -255,7 +228,6 @@ body.twoPlayerTouch #mobileControls.enabled{z-index:35;pointer-events:none;}
 <div id="bossMap">
 <div id="mapScroll"><div id="mapTrack">
 <div class="mapAbyssGradient"></div>
-<!-- Eyes now sit on the right side of the black World 0 background (still black, not green) -->
 <div class="mapAbyssEye" style="left:1420px;top:36%;animation-delay:0s;"></div>
 <div class="mapAbyssEye" style="left:1440px;top:37%;animation-delay:.12s;"></div>
 <div class="mapAbyssEye" style="left:1480px;top:63%;animation-delay:2.6s;"></div>
@@ -473,9 +445,27 @@ o1.start(t);o1.stop(t+0.36);o2.start(t);o2.stop(t+0.36);
 });
 }catch(e){}
 }
-/* FIX #3 & #4: single delegated click listener. #twoDroneButton is
-   intentionally NOT included, so the drone button (and the 0 key path)
-   stay silent. All other menu buttons play the chime exactly once. */
+function playAchievementsOpenSound(){
+if(!audioCtx){if(!ensureAudio()) return;}
+if(audioCtx.state!=="running"){audioCtx.resume().catch(()=>{});}
+try{
+const now=audioCtx.currentTime+0.005;
+const master=audioCtx.createGain();
+master.gain.setValueAtTime(0.0001,now);
+master.gain.linearRampToValueAtTime(0.2,now+0.006);
+master.gain.exponentialRampToValueAtTime(0.0001,now+0.5);
+master.connect(audioCtx.destination);
+[[1568.0,0],[2349.3,0.09]].forEach(([f,delay])=>{
+const t=now+delay;
+const o1=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();
+o1.type="triangle";o2.type="square";
+o1.frequency.setValueAtTime(f,t);o2.frequency.setValueAtTime(f*2,t);
+g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(0.85,t+0.006);g.gain.exponentialRampToValueAtTime(0.0001,t+0.28);
+o1.connect(g);o2.connect(g);g.connect(master);
+o1.start(t);o1.stop(t+0.32);o2.start(t);o2.stop(t+0.32);
+});
+}catch(e){}
+}
 document.addEventListener("click",e=>{
 const t=e.target;
 if(!t) return;
@@ -659,9 +649,10 @@ updateMenuButtonStates();
 }
 
 /* ============================================================
-   ACHIEVEMENTS SYSTEM
+   ACHIEVEMENTS SYSTEM (STRICT NO-DAMAGE TRACKING)
    ============================================================ */
 const ACHIEVEMENTS_SAVE_KEY="bossRushAchievements_v1";
+const CLEAN_RUN_MARKER_KEY="bossRushDedicationCleanRun_v1";
 const ACHIEVEMENTS=[
   {id:"dedication",name:"DEDICATION",description:"Complete a normal run without taking damage."}
 ];
@@ -676,6 +667,29 @@ function loadAchievements(){
 function saveAchievements(o){try{localStorage.setItem(ACHIEVEMENTS_SAVE_KEY,JSON.stringify(o));}catch(e){}}
 let unlockedAchievements=loadAchievements();
 let runTookDamage=false;
+
+/* One-time cleanup: if Dedication was previously unlocked by mistake
+   (because a hit bypassed hurtPlayer before this fix), remove it. After
+   that, Dedication is only ever written when runTookDamage===false at
+   the final boss kill in Start Game, so this won't remove real unlocks. */
+(function migrateDedicationOnce(){
+  try{
+    const alreadyClean = localStorage.getItem(CLEAN_RUN_MARKER_KEY);
+    if(unlockedAchievements && unlockedAchievements.dedication && !alreadyClean){
+      delete unlockedAchievements.dedication;
+      saveAchievements(unlockedAchievements);
+    }
+  }catch(e){}
+})();
+
+function markPlayerDamaged(){ runTookDamage = true; }
+function applyPlayerDamage(amount){
+  const beforeHp = player.hp;
+  const beforeShield = player.shield;
+  if(player.shield>0) player.shield--;
+  else player.hp -= amount;
+  if(player.hp < beforeHp || player.shield < beforeShield) markPlayerDamaged();
+}
 
 function playAchievementSound(){
   if(!audioCtx){if(!ensureAudio()) return;}
@@ -734,6 +748,7 @@ function renderAchievements(){
   });
 }
 function openAchievementsScreen(){
+  playAchievementsOpenSound();
   renderAchievements();
   document.getElementById("mainMenu").style.display="none";
   document.getElementById("achievementsScreen").style.display="flex";
@@ -772,13 +787,12 @@ fireBullet(origin.x,origin.y,base+offset,speed,color,size,0,damage);
 }
 }
 let bossHazards=[];
+/* All player damage is routed here so the no-damage flag is set the instant
+   the player actually loses HP or a shield. */
 function hurtPlayer(amount){
-const beforeHp=player.hp, beforeShield=player.shield;
-if(player.shield>0) player.shield--;
-else player.hp-=amount;
-if(player.hp<beforeHp || player.shield<beforeShield) runTookDamage=true;
-updateUI();
-if(player.hp<=0) playerDefeated();
+  applyPlayerDamage(amount);
+  updateUI();
+  if(player.hp<=0) playerDefeated();
 }
 function hazardHit(h,px=player.x,py=player.y){
 if(h.type==='lightning') return Math.abs(px-h.x)<h.width/2 && Math.abs(py-h.y)<h.height/2;
@@ -988,8 +1002,8 @@ ctx.restore();
 }
 function chainedCross(p1,p2,dmg){
 if(Math.abs((p1.x-p2.x)*(player.y-p1.y)-(p1.y-p2.y)*(player.x-p1.x))/Math.hypot(p2.x-p1.x,p2.y-p1.y)<18){
-if(player.shield>0) player.shield--;else player.hp-=dmg;
-updateUI();if(player.hp<=0) playerDefeated();
+  applyPlayerDamage(dmg);
+  updateUI();if(player.hp<=0) playerDefeated();
 }
 }
 const bosses=[
@@ -1390,7 +1404,32 @@ const minionTypes=[
 {name:"PALE DRONE",kind:"nightmareDrone",variant:13,color:"#e8e8e8",size:21,hp:92,speed:2.0},
 {name:"NIGHTMARE SPECK",kind:"nightmareDrone",variant:14,color:"#ff00aa",size:23,hp:110,speed:2.2}
 ];
+const NIGHTMARE_DRONE_FOR_BOSS={
+ "DROWNED":"DROWNLING",
+ "HOLLOW":"HOLLOWLING",
+ "MIRRORED":"MIRRORLING",
+ "SIREN":"SIRENLING",
+ "WATCHER":"WATCHLING",
+ "MASKED":"MASKEDLING",
+ "STITCHED":"STITCHLING",
+ "BURNING":"EMBERLING",
+ "FROZEN HEART":"FROSTLING",
+ "SWARM":"SWARMLING",
+ "WHISPERER":"WHISPERLING",
+ "DEVOURER":"DEVOURLING",
+ "CHAINED":"CHAINLING",
+ "PALE KING":"PALE DRONE",
+ "NIGHTMARE INCARNATE":"NIGHTMARE SPECK"
+};
+function nightmareDroneIndexForBoss(name){
+ const wanted=NIGHTMARE_DRONE_FOR_BOSS[name];
+ if(!wanted) return -1;
+ const idx=minionTypes.findIndex(m=>m.name===wanted);
+ return idx>=0?idx:-1;
+}
 function droneTypeIndexForBoss(name,fallbackIndex=0){
+ const nmIdx=nightmareDroneIndexForBoss(name);
+ if(nmIdx>=0) return nmIdx;
  const map={
  "THE SNIPER":"SNIPER DRONE","THE PULSAR":"PULSARLING","NEON GHOST":"GHOSTLING","V-TWIN REVENANT":"TWIN DRONE","WALL OF SILENCE":"SILENCE WALLER","THE BOUNCER":"BOUNCER","GRAVITY WELL":"GRAVITY DRONE","CHRONOS":"CHRONO DRONE","THE HYDRA":"HYDRA HEAD","ORBITAL STRIKE":"STRIKE DRONE","VOID SINGULARITY":"VOIDLING","GLITCH CORE":"GLITCHLING","RAIN MAKER":"RAIN DRONE","STAR DESTROYER":"STARLING","OMEGA ZERO":"OMEGA DRONE","THE MINELAYER":"MINI MINELAYER","THE SPLITTER":"SPLITTER","THE HUNTER":"HUNTER DRONE","THE HELIX":"HELIX DRONE","THE LASER GRID":"GRID DRONE","THE TELEPORTER":"TELEPORT DRONE","THE FIREWORK":"FIREWORK DRONE","THE TIDAL WAVE":"TIDAL DRONE","THE MIRROR":"MIRROR DRONE","THE ABSOLUTE":"ABSOLUTE DRONE","THE THUNDER LORD":"STORM HERALD","THE RINGMASTER":"CARNIVAL ORB","THE BEAM CORE":"PRISM LANCE","THE INFERNO":"EMBER WYRM","THE FROZEN ONE":"GLACIER WISP","ANGERED GRAVITY WELL":"ANGERED GRAVITY DRONE","THE LASER SWEEPER":"REDLINE SWEEPER","THE METEOR KING":"METEOR KING DRONE","THE SPIKE FORTRESS":"THORN BASTION","THE BOOMERANG":"RETURNING RAZOR","THE CLOSER":"CLOSING MAW","THE MINEFIELD":"MINE MONGER","THE TRAPPER":"SNARE WITCH","THE TIME BREAKER":"CLOCKBREAKER"
  };
@@ -1440,8 +1479,8 @@ case 14: for(let i=0;i<8;i++) fireUniqueBullet(m.x,m.y,i*Math.PI/4,4.5,m.color,5
 }
 m.x=Math.max(20,Math.min(canvas.width-20,m.x));m.y=Math.max(20,Math.min(canvas.height-20,m.y));
 if(m.contactCooldown<=0 && Math.hypot(m.x-player.x,m.y-player.y)<m.size/2+player.size/2){
-if(player.shield>0) player.shield--;else player.hp-=8;
-m.contactCooldown=45;updateUI();if(player.hp<=0) playerDefeated();
+  applyPlayerDamage(8);
+  m.contactCooldown=45;updateUI();if(player.hp<=0) playerDefeated();
 }
 return;
 }
@@ -1474,8 +1513,8 @@ else if(m.kind==="absolute"){m.x+=Math.sin(m.timer*.025)*1.5;m.y+=Math.cos(m.tim
 else if(m.kind==="newDrone"){const v=m.variant||0;if(v===5){const dx=m.x-player.x,dy=m.y-player.y,d=Math.hypot(dx,dy);if(d>1&&d<300){const force=Math.min(1.35,(300-d)/165);player.x+=dx/d*force;player.y+=dy/d*force;}}const a=getAngleToPlayer(m);m.x+=(player.x-m.x)*.003;m.y+=(player.y-m.y)*.003;if((v===14?m.timer%120===0:m.timer%70===0)){const attackVariant=v===14?Math.floor(Math.random()*14):v;const attackColor=v===14?["#ffff44","#ff66ff","#00ffff","#ff6600","#66ccff","#aa44ff","#ff2255","#ff8844","#88ff44","#ffffff","#00ff88","#ff66aa","#9966ff","#bbffff"][attackVariant]:m.color;switch(attackVariant){case 0: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.22,6,attackColor,5,7,'thunder',{life:150});break;case 1: for(let i=0;i<8;i++) fireUniqueBullet(m.x,m.y,i*Math.PI/4,4.5,attackColor,5,6,'ring',{life:190});break;case 2: fireUniqueBullet(m.x,m.y,a,8,attackColor,9,9,'beam',{life:130});break;case 3: for(let i=-2;i<=2;i++) fireUniqueBullet(m.x,m.y,a+i*.18,6,attackColor,6,7,'fire',{life:160});break;case 4: for(let i=0;i<5;i++) fireUniqueBullet(m.x,m.y,i*Math.PI*2/5,3.5,attackColor,7,7,'frost',{life:250});break;case 5: fireUniqueBullet(m.x,m.y,a,4,attackColor,9,8,'gravity',{turn:.02,life:240});break;case 6: fireUniqueBullet(0,m.y,0,6.5,attackColor,5,7,'sweep',{life:150});break;case 7: fireUniqueBullet(m.x,m.y,a,4.5,attackColor,10,9,'meteor',{life:240});break;case 8: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.28,5.5,attackColor,7,8,'spikeTriangle',{life:190});break;case 9: fireUniqueBullet(m.x,m.y,a,6,attackColor,6,8,'boomer',{life:280});break;case 10: fireUniqueBullet(0,m.y,0,5.5,attackColor,6,8,'closer',{life:210});fireUniqueBullet(900,m.y,Math.PI,5.5,attackColor,6,8,'closer',{life:210});break;case 11: fireUniqueBullet(m.x,m.y,a,3.5,attackColor,9,8,'mine',{life:260});break;case 12: for(let i=-1;i<=1;i++) fireUniqueBullet(m.x,m.y,a+i*.25,5.2,attackColor,6,7,'trap',{life:220});break;case 13: for(let i=0;i<6;i++) fireUniqueBullet(m.x,m.y,i*Math.PI/3,4.3,attackColor,6,8,'time',{life:240});break;}}}
 m.x=Math.max(-60,Math.min(canvas.width+60,m.x));m.y=Math.max(-60,Math.min(canvas.height+60,m.y));
 if(m.contactCooldown<=0 && Math.hypot(m.x-player.x,m.y-player.y)<m.size/2+player.size/2){
-if(player.shield>0) player.shield--;else player.hp-=7;
-m.contactCooldown=45;updateUI();if(player.hp<=0) playerDefeated();
+  applyPlayerDamage(7);
+  m.contactCooldown=45;updateUI();if(player.hp<=0) playerDefeated();
 }
 }
 function killMinion(index){
@@ -1499,8 +1538,8 @@ m.x+=dx/d*1.9;m.y+=dy/d*1.9;m.timer++;
 if(m.timer%70===0) fireBullet(m.x,m.y,getAngleToPlayer(m),5,m.color,4,0,4);
 if(m.contactCooldown>0) m.contactCooldown--;
 if(m.contactCooldown<=0 && Math.hypot(m.x-player.x,m.y-player.y)<m.size/2+player.size/2){
-if(player.shield>0) player.shield--;else player.hp-=5;
-m.contactCooldown=45;updateUI();if(player.hp<=0) playerDefeated();
+  applyPlayerDamage(5);
+  m.contactCooldown=45;updateUI();if(player.hp<=0) playerDefeated();
 }
 }
 function twoPlayerEligibleBosses(){
@@ -1796,10 +1835,6 @@ else if(nightmareRush){uiBoss.textContent="NM "+(currentBossIndex-NIGHTMARE_STAR
 else if(enemyMadness){uiBoss.textContent="DRONES: "+enemyMadnessDefeated;setBossCounter("/50");}
 else setBossCounter("/40");
 }
-
-/* ============================================================
-   FIX #1: REAL-TIME SIMULATION SPEED CONTROL (all six modes)
-   ============================================================ */
 let timeScale = 1;
 let timeScaleRealEnd = 0;
 let timeEffectKind = "";
@@ -1874,15 +1909,15 @@ if(twoPlayerMode){
  if(mouseDown||keys["e"])shoot();
  for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];if(Math.hypot(b.x-boss.x,b.y-boss.y)<(boss.size||40)/2){if(boss.shield>0){boss.shield-=b.damage;if(boss.shield<0){boss.hp+=boss.shield;boss.shield=0;}}else boss.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(i,1);if(boss.hp<=0){finishTwoPlayerMode("player");return;}}}
  for(let mi=minions.length-1;mi>=0;mi--){const m=minions[mi];if(m.kind==="splitFragment")updateSplitFragment(m);else updateMinion(m);for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];if(Math.hypot(b.x-m.x,b.y-m.y)<m.size/2+3){m.hp-=b.damage;if(b.pierce>0)b.pierce--;else bullets.splice(bi,1);if(m.hp<=0){minions.splice(mi,1);break;}}}}
- for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.age=(b.age||0)+1;if(b.bomb){b.timer=(b.timer||0)+1;const d=Math.hypot(b.x-player.x,b.y-player.y);if(d<player.size/2+b.size||(b.timer>=b.fuse&&d<=(b.blastRadius||0))){if(player.shield>0)player.shield--;else player.hp-=b.damage||8;enemyBullets.splice(i,1);if(player.hp<=0){finishTwoPlayerMode("boss");return;}continue;}if(b.timer>=b.fuse){enemyBullets.splice(i,1);continue;}}
+ for(let i=enemyBullets.length-1;i>=0;i--){const b=enemyBullets[i];b.age=(b.age||0)+1;if(b.bomb){b.timer=(b.timer||0)+1;const d=Math.hypot(b.x-player.x,b.y-player.y);if(d<player.size/2+b.size||(b.timer>=b.fuse&&d<=(b.blastRadius||0))){applyPlayerDamage(b.damage||8);enemyBullets.splice(i,1);if(player.hp<=0){finishTwoPlayerMode("boss");return;}continue;}if(b.timer>=b.fuse){enemyBullets.splice(i,1);continue;}}
   if(b.speed!==0){
    if(b.kind==="spiral"||b.kind==="reverse"){const turn=b.turn||0.035,dx=b.dx,dy=b.dy;b.dx=dx*Math.cos(turn)-dy*Math.sin(turn);b.dy=dx*Math.sin(turn)+dy*Math.cos(turn);}
    if(b.kind==="homing"){const a=Math.atan2(player.y-b.y,player.x-b.x);b.dx=b.dx*.94+Math.cos(a)*.06;b.dy=b.dy*.94+Math.sin(a)*.06;const l=Math.hypot(b.dx,b.dy)||1;b.dx/=l;b.dy/=l;}
    stepBouncingBullet(b);
   }
-  if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){if(player.shield>0)player.shield--;else player.hp-=b.damage||5;enemyBullets.splice(i,1);if(player.hp<=0){finishTwoPlayerMode("boss");return;}continue;}if(b.age>(b.life||900)||b.x<-100||b.x>1000||b.y<-100||b.y>800)enemyBullets.splice(i,1);
+  if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){applyPlayerDamage(b.damage||5);enemyBullets.splice(i,1);if(player.hp<=0){finishTwoPlayerMode("boss");return;}continue;}if(b.age>(b.life||900)||b.x<-100||b.x>1000||b.y<-100||b.y>800)enemyBullets.splice(i,1);
  }
- if(twoPlayerContactCooldown<=0&&Math.hypot(player.x-boss.x,player.y-boss.y)<player.size/2+(boss.size||40)/2){if(player.shield>0)player.shield--;else player.hp-=8;twoPlayerContactCooldown=35;if(player.hp<=0){finishTwoPlayerMode("boss");return;}}
+ if(twoPlayerContactCooldown<=0&&Math.hypot(player.x-boss.x,player.y-boss.y)<player.size/2+(boss.size||40)/2){applyPlayerDamage(8);twoPlayerContactCooldown=35;if(player.hp<=0){finishTwoPlayerMode("boss");return;}}
  twoPlayerAttackCooldowns=twoPlayerAttackCooldowns.map(v=>Math.max(0,v-1));updateTwoPlayerHud();updateUI();return;
 }
 if(mapMode){
@@ -1948,10 +1983,10 @@ else if(b.kind==='reverse'||b.kind==='apocalypse-reverse'){if(b.age%70===0){b.dx
 if(b.age>b.life){enemyBullets.splice(i,1);continue;}
 }
 if(b.kind && b.kind.includes('mine') && b.speed===0 && b.age>=b.life){enemyBullets.splice(i,1);continue;}
-if(b.speed===0){if(b.bomb){b.timer++;const d=Math.hypot(b.x-player.x,b.y-player.y);if(d<player.size/2+b.size){if(player.shield>0) player.shield--;else player.hp-=b.damage;enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();continue;}if(b.timer>=b.fuse){if(d<=b.blastRadius){if(player.shield>0) player.shield--;else player.hp-=b.damage;updateUI();if(player.hp<=0) playerDefeated();}enemyBullets.splice(i,1);}continue;}if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size){if(player.shield>0) player.shield--;else player.hp-=b.damage;enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();}continue;}
+if(b.speed===0){if(b.bomb){b.timer++;const d=Math.hypot(b.x-player.x,b.y-player.y);if(d<player.size/2+b.size){applyPlayerDamage(b.damage);enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();continue;}if(b.timer>=b.fuse){if(d<=b.blastRadius){applyPlayerDamage(b.damage);updateUI();if(player.hp<=0) playerDefeated();}enemyBullets.splice(i,1);}continue;}if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size){applyPlayerDamage(b.damage);enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();}continue;}
 if(b.kind!=='bossOrbit'&&b.kind!=='grassBlade'){b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;}
 if(b.bounce>0){if(b.x<0||b.x>canvas.width){b.dx*=-1;b.bounce--;}if(b.y<0||b.y>canvas.height){b.dy*=-1;b.bounce--;}}
-if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){if(player.shield>0) player.shield--;else player.hp-=b.damage||5;enemyBullets.splice(i,1);updateUI();if(player.hp<=0){playerDefeated();return;}continue;}
+if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){applyPlayerDamage(b.damage||5);enemyBullets.splice(i,1);updateUI();if(player.hp<=0){playerDefeated();return;}continue;}
 if(b.x<-100||b.x>canvas.width+100||b.y<-100||b.y>canvas.height+100) enemyBullets.splice(i,1);
 }
 updateUI();
@@ -1974,7 +2009,7 @@ bossChase(boss);
 const spawnInterval=currentBossIndex<15?240:220;
 const maxMinions=currentBossIndex<15?3:2;
 const unlimitedMinions=currentBossIndex===0;
-if(boss.name!=="NIGHTMARE INCARNATE" && boss.name!=="DISMAL" && boss.timer>100 && boss.timer%spawnInterval===0 && (unlimitedMinions||minions.length<maxMinions)) spawnMinion(nightmareRush && currentBossIndex>=NIGHTMARE_START_INDEX ? 40 + (currentBossIndex-NIGHTMARE_START_INDEX) : droneTypeIndexForBoss(boss.name,currentBossIndex));
+if(boss.name!=="NIGHTMARE INCARNATE" && boss.name!=="DISMAL" && boss.timer>100 && boss.timer%spawnInterval===0 && (unlimitedMinions||minions.length<maxMinions)) spawnMinion(nightmareRush && currentBossIndex>=NIGHTMARE_START_INDEX ? nightmareDroneIndexForBoss(boss.name) : droneTypeIndexForBoss(boss.name,currentBossIndex));
 for(let bi=bullets.length-1;bi>=0;bi--){
 const b=bullets[bi];
 if(Math.hypot(b.x-boss.x,b.y-boss.y)<boss.size/2){
@@ -1989,7 +2024,7 @@ if(currentBossIndex>=endIndex){
 gameActive=false;
 if(nightmareRush){markCompleted("nightmare");alert("NIGHTMARES CONQUERED!\nYou cleared all 15 Nightmare bosses!");}
 else if(noUpgradeMode){markCompleted("noUpgrade");alert("GOD SLAYER!\nYou cleared all 40 bosses!");}
-else{markCompleted("normal");if(!runTookDamage) unlockAchievement("dedication");alert("GOD SLAYER!\nYou cleared all 40 bosses!");}
+else{markCompleted("normal");if(!runTookDamage){unlockAchievement("dedication");try{localStorage.setItem(CLEAN_RUN_MARKER_KEY,"1");}catch(e){}}alert("GOD SLAYER!\nYou cleared all 40 bosses!");}
 exitToMainMenu();
 return;
 }
@@ -2046,10 +2081,10 @@ else if(b.kind==='reverse'||b.kind==='apocalypse-reverse'){if(b.age%70===0){b.dx
 if(b.age>b.life){enemyBullets.splice(i,1);continue;}
 }
 if(b.kind && b.kind.includes('mine') && b.speed===0 && b.age>=b.life){enemyBullets.splice(i,1);continue;}
-if(b.speed===0){if(b.bomb){b.timer++;const d=Math.hypot(b.x-player.x,b.y-player.y);if(d<player.size/2+b.size){if(player.shield>0) player.shield--;else player.hp-=b.damage;enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();continue;}if(b.timer>=b.fuse){if(d<=b.blastRadius){if(player.shield>0) player.shield--;else player.hp-=b.damage;updateUI();if(player.hp<=0) playerDefeated();}enemyBullets.splice(i,1);}continue;}if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size){if(player.shield>0) player.shield--;else player.hp-=b.damage;enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();}continue;}
+if(b.speed===0){if(b.bomb){b.timer++;const d=Math.hypot(b.x-player.x,b.y-player.y);if(d<player.size/2+b.size){applyPlayerDamage(b.damage);enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();continue;}if(b.timer>=b.fuse){if(d<=b.blastRadius){applyPlayerDamage(b.damage);updateUI();if(player.hp<=0) playerDefeated();}enemyBullets.splice(i,1);}continue;}if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size){applyPlayerDamage(b.damage);enemyBullets.splice(i,1);updateUI();if(player.hp<=0) playerDefeated();}continue;}
 if(b.kind!=='bossOrbit'&&b.kind!=='grassBlade'){b.x+=b.dx*b.speed;b.y+=b.dy*b.speed;}
 if(b.bounce>0){if(b.x<0||b.x>canvas.width){b.dx*=-1;b.bounce--;}if(b.y<0||b.y>canvas.height){b.dy*=-1;b.bounce--;}}
-if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){if(player.shield>0) player.shield--;else player.hp-=b.damage||5;enemyBullets.splice(i,1);updateUI();if(player.hp<=0){playerDefeated();return;}continue;}
+if(Math.hypot(b.x-player.x,b.y-player.y)<player.size/2+b.size/2){applyPlayerDamage(b.damage||5);enemyBullets.splice(i,1);updateUI();if(player.hp<=0){playerDefeated();return;}continue;}
 if(b.x<-100||b.x>canvas.width+100||b.y<-100||b.y>canvas.height+100) enemyBullets.splice(i,1);
 }
 }
