@@ -196,6 +196,9 @@ body.twoPlayerTouch #mobileControls.enabled{z-index:35;pointer-events:none;}
 #achievementToast{position:fixed;top:14px;left:50%;transform:translate(-50%,-160%);z-index:100030;background:linear-gradient(180deg,#0e3d0e,#06220a);border:2px solid #7fff7f;box-shadow:0 0 26px rgba(80,255,80,.65);color:#eaffea;font:bold 13px 'Courier New',monospace;letter-spacing:2px;padding:12px 20px;border-radius:4px;text-align:center;transition:transform .4s ease-out;pointer-events:none;max-width:90vw;}
 #achievementToast.show{transform:translate(-50%,0);}
 #achievementToast .big{display:block;color:#ffe14d;font-size:15px;letter-spacing:3px;margin-bottom:4px;text-shadow:0 0 10px rgba(255,220,80,.7),1px 1px #000;}
+#dedicationToast{position:fixed;top:14px;left:50%;transform:translate(-50%,-160%);z-index:100031;background:linear-gradient(180deg,#3a0a0a,#220505);border:2px solid #ff6060;box-shadow:0 0 26px rgba(255,60,60,.6);color:#ffdede;font:bold 13px 'Courier New',monospace;letter-spacing:1px;padding:12px 20px;border-radius:4px;text-align:center;transition:transform .4s ease-out;pointer-events:none;max-width:90vw;line-height:1.4;}
+#dedicationToast.show{transform:translate(-50%,0);}
+#dedicationToast .big{display:block;color:#ff8080;font-size:15px;letter-spacing:3px;margin-bottom:4px;text-shadow:0 0 10px rgba(255,80,80,.7),1px 1px #000;}
 </style>
 </head>
 <body class="menuOpen" style="margin:0;">
@@ -222,6 +225,7 @@ body.twoPlayerTouch #mobileControls.enabled{z-index:35;pointer-events:none;}
 <button class="menuButton" id="achievementsBackButton">BACK TO MENU</button>
 </div>
 <div id="achievementToast"><span class="big" id="achievementToastTitle">ACHIEVEMENT UNLOCKED!</span><span id="achievementToastName"></span></div>
+<div id="dedicationToast"><span class="big">DEDICATION FAILED</span><span>You took damage this run. The normal clear still counts, but this achievement won't unlock.</span></div>
 <div id="twoPlayerSelectScreen"><h2>2 PLAYER MODE</h2><p>Player 1: move with WASD and aim/shoot with the mouse or E. Player 2: choose a boss icon below, move with the arrow keys, use number keys for attacks, and summon a drone with 0. Boss Map-only and DLC bosses are excluded.</p><div id="twoPlayerBossGrid"></div><button class="menuButton" id="twoPlayerBackButton">BACK TO MENU</button></div>
 <div id="twoPlayerHud"><h3 id="twoPlayerBossTitle">PLAYER 2 BOSS</h3><div class="twoHudStat" id="twoPlayerHealthLine">Boss health: 0</div><div class="twoHudStat" id="twoPlayerShieldLine">Boss shields: 0</div><div class="twoHudStat" id="twoPlayerDroneLine">Drone summon: Ready</div><div id="twoAttackButtons"></div><button id="twoDroneButton">0 — SUMMON DRONE</button></div>
 <div id="twoPlayerResult"><h2 id="twoPlayerResultTitle">PLAYER WINS!</h2><p id="twoPlayerResultSub">Returning to the main menu...</p><button id="twoPlayerResultMenu">MAIN MENU</button></div>
@@ -648,9 +652,6 @@ saveCompletionState(completionState);
 updateMenuButtonStates();
 }
 
-/* ============================================================
-   ACHIEVEMENTS SYSTEM (STRICT NO-DAMAGE TRACKING)
-   ============================================================ */
 const ACHIEVEMENTS_SAVE_KEY="bossRushAchievements_v1";
 const CLEAN_RUN_MARKER_KEY="bossRushDedicationCleanRun_v1";
 const ACHIEVEMENTS=[
@@ -667,11 +668,8 @@ function loadAchievements(){
 function saveAchievements(o){try{localStorage.setItem(ACHIEVEMENTS_SAVE_KEY,JSON.stringify(o));}catch(e){}}
 let unlockedAchievements=loadAchievements();
 let runTookDamage=false;
-
-/* One-time cleanup: if Dedication was previously unlocked by mistake
-   (because a hit bypassed hurtPlayer before this fix), remove it. After
-   that, Dedication is only ever written when runTookDamage===false at
-   the final boss kill in Start Game, so this won't remove real unlocks. */
+let dedicationToastShown=false;
+let dedicationToastTimer=null;
 (function migrateDedicationOnce(){
   try{
     const alreadyClean = localStorage.getItem(CLEAN_RUN_MARKER_KEY);
@@ -681,8 +679,47 @@ let runTookDamage=false;
     }
   }catch(e){}
 })();
-
-function markPlayerDamaged(){ runTookDamage = true; }
+function isNormalStartGameRun(){
+  return gameActive && !twoPlayerMode && !noUpgradeMode && !nightmareRush
+      && !mapMode && !sandboxMode && !endlessMode && !enemyMadness;
+}
+function playDedicationFailedSound(){
+  if(!audioCtx){ if(!ensureAudio()) return; }
+  if(audioCtx.state!=="running") audioCtx.resume().catch(()=>{});
+  try{
+    const now = audioCtx.currentTime + 0.01;
+    const master = audioCtx.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.linearRampToValueAtTime(0.16, now + 0.01);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+    master.connect(audioCtx.destination);
+    [[523.25,0],[392.0,0.12]].forEach(([f,delay])=>{
+      const t = now + delay;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "triangle";
+      o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.75, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + 0.45);
+    });
+  }catch(e){}
+}
+function showDedicationFailedToast(){
+  if(dedicationToastShown) return;
+  dedicationToastShown = true;
+  const toast = document.getElementById("dedicationToast");
+  if(!toast) return;
+  toast.classList.add("show");
+  playDedicationFailedSound();
+  if(dedicationToastTimer) clearTimeout(dedicationToastTimer);
+  dedicationToastTimer = setTimeout(()=>{ toast.classList.remove("show"); }, 5000);
+}
+function markPlayerDamaged(){
+  runTookDamage = true;
+  if(isNormalStartGameRun()) showDedicationFailedToast();
+}
 function applyPlayerDamage(amount){
   const beforeHp = player.hp;
   const beforeShield = player.shield;
@@ -690,7 +727,6 @@ function applyPlayerDamage(amount){
   else player.hp -= amount;
   if(player.hp < beforeHp || player.shield < beforeShield) markPlayerDamaged();
 }
-
 function playAchievementSound(){
   if(!audioCtx){if(!ensureAudio()) return;}
   if(audioCtx.state!=="running") audioCtx.resume().catch(()=>{});
@@ -787,8 +823,6 @@ fireBullet(origin.x,origin.y,base+offset,speed,color,size,0,damage);
 }
 }
 let bossHazards=[];
-/* All player damage is routed here so the no-damage flag is set the instant
-   the player actually loses HP or a shield. */
 function hurtPlayer(amount){
   applyPlayerDamage(amount);
   updateUI();
@@ -1405,21 +1439,9 @@ const minionTypes=[
 {name:"NIGHTMARE SPECK",kind:"nightmareDrone",variant:14,color:"#ff00aa",size:23,hp:110,speed:2.2}
 ];
 const NIGHTMARE_DRONE_FOR_BOSS={
- "DROWNED":"DROWNLING",
- "HOLLOW":"HOLLOWLING",
- "MIRRORED":"MIRRORLING",
- "SIREN":"SIRENLING",
- "WATCHER":"WATCHLING",
- "MASKED":"MASKEDLING",
- "STITCHED":"STITCHLING",
- "BURNING":"EMBERLING",
- "FROZEN HEART":"FROSTLING",
- "SWARM":"SWARMLING",
- "WHISPERER":"WHISPERLING",
- "DEVOURER":"DEVOURLING",
- "CHAINED":"CHAINLING",
- "PALE KING":"PALE DRONE",
- "NIGHTMARE INCARNATE":"NIGHTMARE SPECK"
+ "DROWNED":"DROWNLING","HOLLOW":"HOLLOWLING","MIRRORED":"MIRRORLING","SIREN":"SIRENLING","WATCHER":"WATCHLING",
+ "MASKED":"MASKEDLING","STITCHED":"STITCHLING","BURNING":"EMBERLING","FROZEN HEART":"FROSTLING","SWARM":"SWARMLING",
+ "WHISPERER":"WHISPERLING","DEVOURER":"DEVOURLING","CHAINED":"CHAINLING","PALE KING":"PALE DRONE","NIGHTMARE INCARNATE":"NIGHTMARE SPECK"
 };
 function nightmareDroneIndexForBoss(name){
  const wanted=NIGHTMARE_DRONE_FOR_BOSS[name];
@@ -2832,6 +2854,8 @@ unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("men
 if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
 resetTimeControl();
 runTookDamage=false;
+dedicationToastShown=false;
+const dt=document.getElementById("dedicationToast");if(dt)dt.classList.remove("show");
 endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];twoPlayerMode=false;twoPlayerEnding=false;document.body.classList.remove("twoPlayerTouch");activeMapLevel=null;mapSniperBosses=[];sandboxBosses=[];bossHazards=[];
 sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;
 mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";
