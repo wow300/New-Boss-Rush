@@ -293,6 +293,26 @@ const uiName=document.getElementById("bossName");
 const uiPower=document.getElementById("power");
 let audioCtx=null, musicTimer=null, musicStep=0, currentMusicKey="", musicGeneration=0, musicBus=null;
 let desiredMusicTheme=null, desiredMusicKey="";
+let windstormAudioNodes=[];
+function startWindstormSound(){
+  if(!ensureAudio()||windstormAudioNodes.length)return;
+  try{
+    const length=Math.max(1,Math.floor(audioCtx.sampleRate*2));
+    const buffer=audioCtx.createBuffer(1,length,audioCtx.sampleRate);
+    const data=buffer.getChannelData(0);
+    for(let i=0;i<length;i++) data[i]=(Math.random()*2-1)*(.45+Math.random()*.55);
+    const source=audioCtx.createBufferSource();source.buffer=buffer;source.loop=true;
+    const filter=audioCtx.createBiquadFilter();filter.type="lowpass";filter.frequency.value=520;filter.Q.value=.7;
+    const gain=audioCtx.createGain();gain.gain.value=.095;
+    const lfo=audioCtx.createOscillator(),lfoGain=audioCtx.createGain();lfo.type="sine";lfo.frequency.value=.19;lfoGain.gain.value=.035;
+    lfo.connect(lfoGain);lfoGain.connect(gain.gain);source.connect(filter);filter.connect(gain);gain.connect(audioCtx.destination);
+    source.start();lfo.start();windstormAudioNodes=[source,filter,gain,lfo,lfoGain];
+  }catch(e){windstormAudioNodes=[];}
+}
+function stopWindstormSound(){
+  for(const node of windstormAudioNodes){try{if(node.stop)node.stop();}catch(e){}try{node.disconnect();}catch(e){}}
+  windstormAudioNodes=[];
+}
 const bossMusicThemes=[
 [132,110,[0,2,3,5,7,8,10],[0,2,3,5,3,2,0,2,7,5,3,2,3,5,8,7,10,8,7,5,3,5,7,8,5,3,2,0,2,3,5,2]],
 [138,220,[0,2,3,7,9],[0,1,3,2,4,3,1,2,4,2,1,3,0,2,4,3,1,3,4,2,0,1,3,4,2,4,3,1,2,0,1,3]],
@@ -883,6 +903,7 @@ if(b.name==="GRASS MONSTROSITY") speed*=0.4;
 if(b.name==="ROCK BEAST") speed=0.48;
 if(b.name==="DIAMOND MASTERPIECE") speed=0.38;
 if(b.name==="DISMAL") speed=1.1;
+if(mapMode && activeMapLevel && activeMapLevel.id===27 && b.name==="RAIN MAKER") speed*=0.5;
 if(endlessMode && b.__endlessChaseScale) speed*=b.__endlessChaseScale;
 if(d>2){b.x+=dx/d*speed;b.y+=dy/d*speed;}
 const edge=Math.max(20,b.size/2);
@@ -1911,6 +1932,7 @@ if(keys["w"]||(!twoPlayerMode&&keys["arrowup"])){player.y-=player.speed;player.v
 if(keys["s"]||(!twoPlayerMode&&keys["arrowdown"])){player.y+=player.speed;player.vy=player.speed;}
 if(keys["a"]||(!twoPlayerMode&&keys["arrowleft"])){player.x-=player.speed;player.vx=-player.speed;}
 if(keys["d"]||(!twoPlayerMode&&keys["arrowright"])){player.x+=player.speed;player.vx=player.speed;}
+if(mapMode && activeMapLevel && activeMapLevel.id===27){player.x-=1.25;player.vx=(player.vx||0)-1.25;}
 player.x=Math.max(player.size,Math.min(canvas.width-player.size,player.x));
 player.y=Math.max(player.size,Math.min(canvas.height-player.size,player.y));
 if(player.fireCooldown>0) player.fireCooldown--;
@@ -2135,13 +2157,18 @@ function stepBouncingBullet(b){
   }
 }
 function draw(){
-if((mapMode && activeMapLevel && activeMapLevel.id===26)||(sandboxMode&&sandboxBosses.some(b=>b.name==="CLOUD MASTER"))){
+if((mapMode && activeMapLevel && (activeMapLevel.id===26||activeMapLevel.id===27))||(sandboxMode&&sandboxBosses.some(b=>b.name==="CLOUD MASTER"))){
 ctx.fillStyle="#168bd7";ctx.fillRect(0,0,canvas.width,canvas.height);
 const frame=performance.now()/1000;
 for(let i=0;i<9;i++){
 const x=((i*137-frame*(13+i%3)*2)%(canvas.width+220)+canvas.width+220)%(canvas.width+220)-110;
 const y=45+(i*83)%560;const scale=.75+(i%4)*.17;
 ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ctx.fillStyle="rgba(255,255,255,.55)";ctx.beginPath();ctx.ellipse(0,8,48,17,0,0,Math.PI*2);ctx.ellipse(-24,2,25,20,0,0,Math.PI*2);ctx.ellipse(5,-9,29,28,0,0,Math.PI*2);ctx.ellipse(30,3,25,19,0,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+if(mapMode && activeMapLevel && activeMapLevel.id===27){
+  ctx.save();ctx.strokeStyle="rgba(220,245,255,.48)";ctx.lineWidth=2;
+  for(let i=0;i<24;i++){const y=(i*37+frame*95)%canvas.height;const x=(i*83-frame*230)%(canvas.width+180)+90;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-42-(i%4)*12,y+3);ctx.stroke();}
+  ctx.restore();
 }
 }else{ctx.fillStyle="rgba(0,0,0,.3)";ctx.fillRect(0,0,canvas.width,canvas.height);}
 ctx.fillStyle="#0f0";ctx.shadowBlur=15;ctx.shadowColor="#0f0";
@@ -2270,7 +2297,8 @@ const mapLevels=[
 {id:23,name:"THE PULSAR",tag:"3× HEALTH 2× ATTACK SPEED",requires:22,slot:23,rowY:0.55,world:2},
 {id:24,name:"CHRONOS",tag:"3×",requires:23,slot:24,rowY:0.55,world:2},
 {id:25,name:"THE SNIPER",tag:"5×",requires:24,slot:25,rowY:0.55,world:2},
-{id:26,name:"CLOUD MASTER",tag:"",requires:25,slot:26,rowY:0.55,world:3}
+{id:26,name:"CLOUD MASTER",tag:"",requires:25,slot:26,rowY:0.55,world:3},
+{id:27,name:"RAIN MAKER",tag:"WINDSTORM|2× HEALTH",requires:26,slot:27,rowY:0.55,world:3}
 ];
 const REWARD_OWNER_LEVEL_IDS=[0,6,12,15,20,25];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -2346,7 +2374,7 @@ if(unlocked) circle.onclick=()=>openLevelStart(level);
 else{circle.onclick=()=>{};circle.disabled=true;}
 const label=document.createElement("div");
 label.className="mapLevelLabel";
-label.innerHTML="<span class='lvTag'>LEVEL "+level.id+"</span><span class='lvName'>"+level.name+"</span>"+(level.tag?("<span class='lvTag' style='margin-top:2px;color:#ffe14d'>"+level.tag+"</span>"):"");
+label.innerHTML="<span class='lvTag'>LEVEL "+level.id+"</span><span class='lvName'>"+level.name+"</span>"+(level.tag?level.tag.split("|").map(tag=>"<span class='lvTag' style='margin-top:2px;color:#ffe14d'>"+tag+"</span>").join(""):"");
 node.appendChild(circle);node.appendChild(label);mapNodesLayer.appendChild(node);
 if(REWARD_OWNER_LEVEL_IDS.includes(level.id)){
 const rewardUnlocked=cleared;
@@ -2415,6 +2443,7 @@ openRewardPicker(pendingLevel.id);
 };
 levelStartButton.onclick=()=>{if(!pendingLevel) return;const lvl=pendingLevel;closeLevelStart();startMapLevel(lvl);};
 function startMapLevel(level){
+stopWindstormSound();
 if(ensureAudio() && audioCtx.state!=="running") audioCtx.resume().catch(()=>{});
 resetTimeControl();
 bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
@@ -2583,9 +2612,15 @@ if(t%230===0){for(let j=-1;j<=1;j++){const a=getAngleToPlayer(this)+j*0.48;fireU
 }};
 mapSniperBosses.push(cloudMaster);currentBossIndex=-1;minions=[];
 }
+else if(level.id===27){
+  const rainIndex=bosses.findIndex(b=>b.name==="RAIN MAKER");sandboxBossSelect.value=String(rainIndex);currentBossIndex=rainIndex;spawnSandboxBoss();
+  const rain=mapSniperBosses[0];
+  if(rain){rain.x=450;rain.y=175;rain.hp*=2;rain.maxHp*=2;rain.size*=2;rain.__bulletScale={size:2,speed:0.5,damage:2};const originalUpdate=rain.update.bind(rain);rain.update=function(){if(this.timer%2===0)originalUpdate();};}
+  minions=[];startWindstormSound();
+}
 sandboxBosses=savedSandboxBosses;
 uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
-if(level.id===26) startSkyMusic(); else if(level.id<=0) startAbyssMusic(); else if(level.id>=11) startCavesMusic(); else startGrassyMusic();
+if(level.id===26||level.id===27) startSkyMusic(); else if(level.id<=0) startAbyssMusic(); else if(level.id>=11) startCavesMusic(); else startGrassyMusic();
 gameActive=true;updateUI();
 }
 function showLevelComplete(){
@@ -2596,6 +2631,7 @@ if(activeMapLevel){mapCleared[activeMapLevel.id]=true;saveMapSave(mapCleared);}
 setTimeout(()=>{levelCompleteScreen.style.display="none";exitMapLevelToMap();},2500);
 }
 function exitMapLevelToMap(){
+stopWindstormSound();
 resetTimeControl();
 mapMode=false;activeMapLevel=null;mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];bossHazards=[];
 gameActive=false;waitingForPowerup=false;levelCompletePending=false;levelCompleteScreen.style.display="none";
@@ -2957,6 +2993,7 @@ sandboxBosses.push(newBoss);boss=newBoss;updateUI();
 function spawnSandboxEnemy(){const index=Number(sandboxEnemySelect.value);spawnMinion(index);}
 function clearSandbox(){boss=null;sandboxBosses=[];bullets=[];enemyBullets=[];minions=[];updateUI();}
 function exitToMainMenu(){
+stopWindstormSound();
 resetTimeControl();
 setMobileEnabled(false);resetBossMobileStick();document.body.classList.remove("twoPlayerTouch");twoPlayerMode=false;twoPlayerEnding=false;document.getElementById("twoPlayerHud").style.display="none";document.getElementById("twoPlayerSelectScreen").style.display="none";document.getElementById("twoPlayerResult").style.display="none";document.getElementById("achievementsScreen").style.display="none";stopMusic();document.body.classList.add("menuOpen");
 sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;endlessMode=false;const modHud=document.getElementById("endlessModifierHud");if(modHud)modHud.style.display="none";gameActive=false;waitingForPowerup=false;
