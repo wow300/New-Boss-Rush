@@ -1968,7 +1968,8 @@ if(endlessMode && mapSniperBosses.length===0 && !waitingForPowerup && !levelComp
 endlessPendingUpgrades=1;choosePowerups();return;
 }
 separateBosses(mapSniperBosses);
-if(mapSniperBosses.length===0 && (endlessMode || minions.length===0) && !levelCompletePending && !(endlessMode && endlessPendingUpgrades>0)){if(endlessMode){advanceEndlessLevel();}else{levelCompletePending=true;showLevelComplete();}}
+const requiresDroneClear=!!(activeMapLevel && activeMapLevel.tag==="DRONE INVASION");
+if(mapSniperBosses.length===0 && (endlessMode || !requiresDroneClear || minions.length===0) && !levelCompletePending && !(endlessMode && endlessPendingUpgrades>0)){if(endlessMode){advanceEndlessLevel();}else{levelCompletePending=true;showLevelComplete();}}
 if(mapMode && activeMapLevel && activeMapLevel.id<=-1) minions=[];
 for(let mi=minions.length-1;mi>=0;mi--){
 const m=minions[mi];
@@ -3014,4 +3015,4 @@ window.addEventListener("resize",repairMobileLayer);
 })();
 </script>
 </body>
-                       </html>
+ </html>
