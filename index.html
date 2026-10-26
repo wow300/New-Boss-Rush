@@ -199,11 +199,18 @@ body.twoPlayerTouch #mobileControls.enabled{z-index:35;pointer-events:none;}
 #dedicationToast{position:fixed;top:14px;left:50%;transform:translate(-50%,-160%);z-index:100031;background:linear-gradient(180deg,#3a0a0a,#220505);border:2px solid #ff6060;box-shadow:0 0 26px rgba(255,60,60,.6);color:#ffdede;font:bold 13px 'Courier New',monospace;letter-spacing:1px;padding:12px 20px;border-radius:4px;text-align:center;transition:transform .4s ease-out;pointer-events:none;max-width:90vw;line-height:1.4;}
 #dedicationToast.show{transform:translate(-50%,0);}
 #dedicationToast .big{display:block;color:#ff8080;font-size:15px;letter-spacing:3px;margin-bottom:4px;text-shadow:0 0 10px rgba(255,80,80,.7),1px 1px #000;}
+#halloweenPumpkins{position:fixed;inset:0;pointer-events:none;z-index:100002;overflow:hidden;display:none;will-change:transform;}
+body.menuOpen #halloweenPumpkins{display:block;}
+body.menuOpen.hidePumpkins #halloweenPumpkins{display:none !important;}
+.hwPumpkin{position:absolute;filter:drop-shadow(0 0 8px rgba(255,140,0,.65));animation:hwFloat linear infinite;will-change:transform;}
+.hwPumpkin svg{width:100%;height:100%;display:block;}
+@keyframes hwFloat{0%{transform:translate3d(0,0,0) rotate(-6deg);}50%{transform:translate3d(0,-18px,0) rotate(6deg);}100%{transform:translate3d(0,0,0) rotate(-6deg);}}
 </style>
 </head>
 <body class="menuOpen" style="margin:0;">
 <div id="dlcBanner">NIGHTMARES AWAIT DLC ENABLED</div>
 <div id="dlcBanner2">THE ABYSS DLC ENABLED</div>
+<div id="halloweenPumpkins"></div>
 <div id="mainMenu">
 <h1>BOSS RUSH</h1>
 <p>ULTRA ELITE</p>
@@ -424,7 +431,6 @@ const endlessIntenseMusic=expandTheme([176,49,[0,1,3,5,6,8,10],
  3,6,8,10,13,10,8,6,5,8,11,13,12,11,8,5,0,3,7,10,12,10,7,3,1,6,8,11,13,11,8,6,
  0,5,8,10,12,10,8,5,3,6,10,12,15,12,10,6,5,8,12,15,13,12,8,5,0,4,7,11,13,11,7,4,
  1,3,6,9,11,9,6,3,0,3,6,8,10,8,6,3,1,5,8,10,13,10,8,5,3,6,10,13,15,13,10,6]],7);
-// EXTREME endless theme (level 25+): longer 192-step motif, 184 BPM, dense chromatic motion.
 const endlessExtremeMusic=expandTheme([184,49,[0,1,3,5,6,8,10],
 [0,3,6,8,10,8,6,3,1,5,8,11,10,8,5,3,0,4,7,10,12,10,7,4,1,5,8,11,10,8,5,1,
  3,6,8,10,13,10,8,6,5,8,11,13,12,11,8,5,0,3,7,10,12,10,7,3,1,6,8,11,13,11,8,6,
@@ -433,6 +439,30 @@ const endlessExtremeMusic=expandTheme([184,49,[0,1,3,5,6,8,10],
  2,5,9,12,14,12,9,5,4,7,11,14,16,14,11,7,6,9,13,16,18,16,13,9,8,11,15,18,20,18,15,11,
  3,7,10,13,17,13,10,7,5,9,12,15,19,15,12,9,7,11,14,17,21,17,14,11,9,13,16,19,23,19,16,13]],9);
 const skyMusic=expandTheme([132,246,[0,2,4,5,7,9,11],[0,4,7,9,7,4,2,5,9,11,9,5,4,7,11,9,7,5,2,4,7,9,11,9,7,4,2,5,7,9,5,2]],4);
+const HALLOWEEN_ACTIVE=(new Date().getMonth()===9);
+const halloweenMenuMusic=expandTheme([92,146.83,[0,1,3,5,6,8,10],[0,1,3,1,0,3,6,5,3,1,0,5,6,8,10,8,6,5,3,1,0,1,3,6,5,3,1,0,6,5,3,1]],6);
+const halloweenMapMusic=expandTheme([96,110,[0,1,3,5,6,8,10],
+[0,3,1,0,6,5,3,1,0,3,5,6,8,6,5,3,
+ 1,5,3,1,6,8,6,3,1,0,3,5,6,5,3,1,
+ 0,5,3,6,8,6,5,3,1,3,6,8,10,8,6,5,
+ 3,1,0,1,5,3,1,0,6,5,3,1,0,1,3,0,
+ 0,3,6,8,10,8,6,5,3,1,3,5,6,8,6,3,
+ 1,0,3,5,3,1,6,5,3,1,0,3,5,6,5,3,
+ 0,6,5,8,6,10,8,6,5,3,1,3,5,3,1,0,
+ 3,6,8,10,8,6,5,3,1,3,5,6,8,5,3,0]],5);
+const halloweenEndlessMusic=expandTheme([150,55,[0,1,3,5,6,8,10],[0,3,5,6,3,1,5,8,6,5,3,1,0,5,8,10,8,6,5,3,1,3,6,8,10,8,6,5,3,1,0,6]],6);
+const halloweenEndlessIntenseMusic=expandTheme([168,49,[0,1,3,5,6,8,10],
+[0,3,6,8,10,8,6,3,1,5,8,11,10,8,5,3,0,4,7,10,12,10,7,4,1,5,8,11,10,8,5,1,
+ 3,6,8,10,13,10,8,6,5,8,11,13,12,11,8,5,0,3,7,10,12,10,7,3,1,6,8,11,13,11,8,6,
+ 0,5,8,10,12,10,8,5,3,6,10,12,15,12,10,6,5,8,12,15,13,12,8,5,0,4,7,11,13,11,7,4,
+ 1,3,6,9,11,9,6,3,0,3,6,8,10,8,6,3,1,5,8,10,13,10,8,5,3,6,10,13,15,13,10,6]],6);
+const halloweenEndlessExtremeMusic=expandTheme([178,49,[0,1,3,5,6,8,10],
+[0,3,6,8,10,8,6,3,1,5,8,11,10,8,5,3,0,4,7,10,12,10,7,4,1,5,8,11,10,8,5,1,
+ 3,6,8,10,13,10,8,6,5,8,11,13,12,11,8,5,0,3,7,10,12,10,7,3,1,6,8,11,13,11,8,6,
+ 0,5,8,10,12,10,8,5,3,6,10,12,15,12,10,6,5,8,12,15,13,12,8,5,0,4,7,11,13,11,7,4,
+ 1,3,6,9,11,9,6,3,0,3,6,8,10,8,6,3,1,5,8,10,13,10,8,5,3,6,10,13,15,13,10,6,
+ 2,5,9,12,14,12,9,5,4,7,11,14,16,14,11,7,6,9,13,16,18,16,13,9,8,11,15,18,20,18,15,11,
+ 3,7,10,13,17,13,10,7,5,9,12,15,19,15,12,9,7,11,14,17,21,17,14,11,9,13,16,19,23,19,16,13]],8);
 function ensureAudio(){
 if(!audioCtx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;audioCtx=new AC();}
 if(audioCtx.state!=="running") audioCtx.resume().catch(()=>{});
@@ -593,153 +623,110 @@ if(beat===4||beat===12) playSnare(when,.036);
 if(beat%2===0) playHat(when,.013);
 }
 if(key==="endless-intense"){
-  // Multi-section intense arrangement: driving bass, layered leads, rising tension, dense drums.
-  const phase=Math.floor(s/128)%4;          // 4 distinct 128-step movements
-  const sub=Math.floor(s/32)%4;             // 32-step sub-phrases for variation
-  const climax=(section>=56);               // final stretch gets extra intensity
+  const phase=Math.floor(s/128)%4;
+  const sub=Math.floor(s/32)%4;
+  const climax=(section>=56);
   const leadOct2=climax?12:0;
-
-  // --- Driving 8th-note bass ostinato (keeps the pulse alive) ---
   if(s%2===0){
     const bassDeg=scale[(Math.floor(s/2)+phase*2)%scale.length];
     playTone(noteFreq(root,bassDeg-12),d*2.2,.042,"triangle",when,.004,.06);
   }
-  // --- Off-beat root stab for groove ---
   if(s%4===2){
     playTone(noteFreq(root,scale[0]-24),d*1.4,.030,"sawtooth",when,.002,.04);
   }
-
-  // --- Main lead: stronger, with octave doubling in climax ---
   const leadDeg=scale[idx%scale.length];
   playTone(noteFreq(root,leadDeg+24+leadOct2),d*1.4,.050,"square",when,.002,.035,(s%4===0?-3:3));
   if(climax||phase>=2){
     playTone(noteFreq(root,leadDeg+36),d*1.2,.022,"sawtooth",when,.002,.03);
   }
-
-  // --- Counter-melody layer per phase ---
   if(phase===0){
     if(s%2===0)playArp(noteFreq(root,scale[(idx+4+sub)%scale.length]+24),d*.7,.030,when);
   }else if(phase===1){
     if(s%2===1)playTone(noteFreq(root,scale[(idx+7)%scale.length]+24),d*.5,.028,"triangle",when,.002,.03);
     if(beat===14)playTom(when,.05);
   }else if(phase===2){
-    // Rising chromatic-ish tension line
     const rise=scale[(idx+ (s%32 < 16 ? 9 : 11))%scale.length];
     playTone(noteFreq(root,rise+36),d*.42,.026,"square",when,.001,.025,(s%2?10:-10));
   }else{
-    // Full counter-melody answering the lead
     if(s%4===0)playTone(noteFreq(root,scale[(idx+5)%scale.length]+24),d*1.3,.038,"sawtooth",when,.001,.03);
   }
-
-  // --- Pad / harmonic anchor every 8 steps ---
   if(s%8===0){
     const padDeg=scale[(Math.floor(s/8)*3+phase)%scale.length];
     playTone(noteFreq(root,padDeg+12),d*7,.016,"triangle",when,.03,.2);
     playTone(noteFreq(root,padDeg+19),d*6,.010,"sine",when,.03,.2);
   }
-
-  // --- Dense, varied percussion ---
-  const kickP=[0,3,6,8,11,14][ (Math.floor(s/16)+phase)%6 ];
-  const snareP=[4,7,10,12,15][ (Math.floor(s/16)+sub)%5 ];
   if(beat===0||beat===6||beat===8||beat===12||(climax&&beat===14))playKick(when,.085+(climax?.02:0));
   if(beat===4||beat===12||(climax&&(beat===7||beat===15)))playSnare(when,.045+(climax?.015:0));
   if(beat%2===0)playHat(when,.014);
   else if(climax)playHat(when,.018);
   if(beat===2||beat===10)playTom(when,.028);
-
-  // --- Section transition accents ---
   if(s%32===0){
     playTone(noteFreq(root,scale[0]-24),d*5,.05,"triangle",when,.02,.2);
   }
   if(s%64===0&&section>0){
-    // Crash/impact marker at each 64-step boundary
     noiseHit(when,.05,.18);
     playTone(noteFreq(root,scale[9%scale.length]+36),d*2,.04,"square",when,.002,.08);
   }
-
-  // --- Final 16 steps of each 128-step movement: mini-fill ---
   if(s%128>=112){
     if(s%2===0)playTone(noteFreq(root,scale[(idx+11)%scale.length]+24),d*.4,.035,"sawtooth",when,.001,.02);
     if(s%4===0)playSnare(when,.04);
   }
 }
 if(key==="endless-extreme"){
-  // Extreme arrangement (level 25+): 6-phase structure, layered arps, chromatic runs, dense polyrhythms.
   const phase=Math.floor(s/192)%6;
   const sub=Math.floor(s/24)%8;
   const climax=(section>=56);
   const leadOct2=climax?12:0;
-
-  // --- Root pedal + driving 16th-note bass ostinato ---
   if(s%2===0){
     const bassDeg=scale[(Math.floor(s/2)+(phase*3))%scale.length];
     playTone(noteFreq(root,bassDeg-12),d*2.4,.044,"triangle",when,.004,.06);
-    // Chromatic bass pickup on off-beats
     if(s%4===2) playTone(noteFreq(root,bassDeg-11),d*1.2,.026,"sawtooth",when,.002,.035);
   }
-
-  // --- Main lead with octave stack ---
   const leadDeg=scale[idx%scale.length];
   playTone(noteFreq(root,leadDeg+24+leadOct2),d*1.4,.052,"square",when,.002,.035,(s%4===0?-3:3));
   playTone(noteFreq(root,leadDeg+36),d*1.1,.020,"sawtooth",when,.002,.03);
   if(climax) playTone(noteFreq(root,leadDeg+48),d*.7,.014,"triangle",when,.001,.02);
-
-  // --- Phase-based counter layers ---
   if(phase===0){
     if(s%2===0)playArp(noteFreq(root,scale[(idx+4+sub)%scale.length]+24),d*.7,.032,when);
     if(s%4===3)playTone(noteFreq(root,scale[(idx+6)%scale.length]+36),d*.35,.022,"square",when,.001,.02);
   }else if(phase===1){
-    // Chromatic neighbor runs
     if(s%2===0){
       const chr=scale[(idx+ (s%16<8 ? 7 : 8))%scale.length];
       playTone(noteFreq(root,chr+24),d*.5,.030,"sawtooth",when,.002,.025);
     }
     if(beat===14||beat===15)playTom(when,.045);
   }else if(phase===2){
-    // High sparkle arps
     for(let k=0;k<2;k++){
       const hk=scale[(idx+3+k*4+sub)%scale.length]+36;
       playTone(noteFreq(root,hk),d*.42,.020,"triangle",when+k*d*.25,.001,.02,5);
     }
   }else if(phase===3){
-    // Descending tension line
     const descDeg=scale[(11-idx+phase)%scale.length];
     if(s%2===1)playTone(noteFreq(root,descDeg+24),d*.55,.028,"square",when,.002,.025,(s%2?8:-8));
   }else if(phase===4){
-    // Doubled counter-melody call-and-response
     if(s%4===0)playTone(noteFreq(root,scale[(idx+5)%scale.length]+24),d*1.4,.038,"sawtooth",when,.001,.03);
     if(s%4===2)playTone(noteFreq(root,scale[(idx+9)%scale.length]+36),d*1.0,.026,"triangle",when,.001,.025);
   }else{
-    // Full chromatic lead harmonization
     if(s%2===0)playTone(noteFreq(root,scale[(idx+7)%scale.length]+36),d*.6,.030,"sawtooth",when,.001,.02,(s%4?12:-12));
   }
-
-  // --- Pad anchor every 8 steps ---
   if(s%8===0){
     const padDeg=scale[(Math.floor(s/8)*3+phase)%scale.length];
     playTone(noteFreq(root,padDeg+12),d*7,.015,"triangle",when,.03,.2);
     playTone(noteFreq(root,padDeg+19),d*6,.010,"sine",when,.03,.2);
     playTone(noteFreq(root,padDeg+24),d*5,.007,"sine",when,.03,.2);
   }
-
-  // --- Dense percussion with polyrhythm ---
   if(beat===0||beat===4||beat===8||beat===12||(climax&&beat===14))playKick(when,.09+(climax?.02:0));
   if(beat===3||beat===6||beat===11||beat===14)playSnare(when,.045+(climax?.015:0));
   if(beat%2===0)playHat(when,.014);
   else if(climax)playHat(when,.018);
   if(beat===2||beat===7||beat===10)playTom(when,.026);
-  // Off-beat 3:4 polyrhythm layer on hat
   if(s%3===1)playHat(when,.010);
-
-  // --- Transition accents ---
   if(s%32===0)playTone(noteFreq(root,scale[0]-24),d*5,.052,"triangle",when,.02,.2);
   if(s%64===0&&section>0){
     noiseHit(when,.055,.2);
     playTone(noteFreq(root,scale[9%scale.length]+48),d*2,.042,"square",when,.002,.08);
     playTone(noteFreq(root,scale[11%scale.length]+36),d*1.5,.03,"sawtooth",when,.002,.07);
   }
-
-  // --- Mini-fill in last 16 steps of each 192-movement ---
   if(s%192>=176){
     if(s%2===0)playTone(noteFreq(root,scale[(idx+11)%scale.length]+36),d*.4,.035,"sawtooth",when,.001,.02);
     if(s%4===0)playSnare(when,.042);
@@ -765,7 +752,8 @@ while(nextTime<audioCtx.currentTime+1.2){scheduleStep(scheduledStep,nextTime);sc
 scheduler();
 musicTimer=setInterval(scheduler,80);
 }
-function startMenuMusic(){startMusic(longMenuMusic,"menu");}
+function startMenuMusic(){startMusic(HALLOWEEN_ACTIVE?halloweenMenuMusic:longMenuMusic,"menu"+(HALLOWEEN_ACTIVE?"-halloween":""));}
+function startBossMapMusic(){startMusic(HALLOWEEN_ACTIVE?halloweenMapMusic:longMenuMusic,"bossmap"+(HALLOWEEN_ACTIVE?"-halloween":""));}
 function startSandboxMusic(){startMusic(longSandboxMusic,"sandbox");}
 function startBossMusic(index){startMusic(longBossMusicThemes[index%longBossMusicThemes.length],"boss"+index);}
 function startGrassyMusic(){startMusic(longGrassyMusic,"grassy");}
@@ -773,9 +761,9 @@ function startCavesMusic(){startMusic(cavesMusic,"caves");}
 function startAbyssMusic(){startMusic(abyssMusic,"abyss");}
 function startSkyMusic(){startMusic(skyMusic,"world3-sky");}
 function startEndlessMusic(){
-  if(endlessLevel>=25)startMusic(endlessExtremeMusic,"endless-extreme");
-  else if(endlessLevel>=10)startMusic(endlessIntenseMusic,"endless-intense");
-  else startMusic(endlessMusic,"endless");
+  if(endlessLevel>=25)startMusic(HALLOWEEN_ACTIVE?halloweenEndlessExtremeMusic:endlessExtremeMusic,"endless-extreme"+(HALLOWEEN_ACTIVE?"-halloween":""));
+  else if(endlessLevel>=10)startMusic(HALLOWEEN_ACTIVE?halloweenEndlessIntenseMusic:endlessIntenseMusic,"endless-intense"+(HALLOWEEN_ACTIVE?"-halloween":""));
+  else startMusic(HALLOWEEN_ACTIVE?halloweenEndlessMusic:endlessMusic,"endless"+(HALLOWEEN_ACTIVE?"-halloween":""));
 }
 document.addEventListener("pointerdown",()=>{
 if(!audioCtx) ensureAudio();
@@ -801,6 +789,7 @@ let player={x:450,y:600,size:18,hp:100,maxHp:100,speed:6,damage:5,fireRate:10,fi
 let bullets=[],enemyBullets=[],minions=[],boss=null,sandboxBosses=[];
 let currentBossIndex=0,keys={},mouseDown=false,gameActive=false,waitingForPowerup=false,sandboxMode=false,noUpgradeMode=false,nightmareRush=false,enemyMadness=false,enemyMadnessDefeated=0,enemyMadnessSpawnTimer=0;
 let mapMode=false,activeMapLevel=null,mapSniperBosses=[],levelCompletePending=false;
+let rainingTimer=0;
 let endlessMode=false,endlessLevel=0,endlessAdvanceTimer=null,endlessPendingUpgrades=0;
 let endlessActiveModifiers=[];
 const ENDLESS_RECORD_KEY="bossRushEndlessHighest_v1";
@@ -2165,6 +2154,15 @@ separateBosses(mapSniperBosses);
 const requiresDroneClear=!!(activeMapLevel && activeMapLevel.tag==="DRONE INVASION");
 if(mapSniperBosses.length===0 && (endlessMode || !requiresDroneClear || minions.length===0) && !levelCompletePending && !(endlessMode && endlessPendingUpgrades>0)){if(endlessMode){advanceEndlessLevel();}else{levelCompletePending=true;showLevelComplete();}}
 if(mapMode && activeMapLevel && activeMapLevel.id<=-1) minions=[];
+const rainingActive=(mapMode && activeMapLevel && activeMapLevel.raining) || (endlessMode && endlessActiveModifiers.some(m=>m.id==="raining"));
+if(rainingActive && !levelCompletePending){
+  rainingTimer++;
+  if(rainingTimer%18===0){
+    const blues=["#66aaff","#3d7fff","#99ccff","#4dd0ff","#3388ff","#5599ee"];
+    const rx=40+Math.random()*(canvas.width-80);
+    fireUniqueBullet(rx,-20,Math.PI/2+(Math.random()-.5)*.12,4.5+Math.random()*1.5,blues[Math.floor(Math.random()*blues.length)],9,5,'rain',{life:400});
+  }
+}
 for(let mi=minions.length-1;mi>=0;mi--){
 const m=minions[mi];
 if(m.kind==="splitFragment") updateSplitFragment(m);else updateMinion(m);
@@ -2328,8 +2326,62 @@ function stepBouncingBullet(b){
     else if(b.y > canvas.height){ b.y = canvas.height; b.dy = -Math.abs(b.dy); b.bounce--; }
   }
 }
+let webCacheCanvas=null,webCachePulse=0,webCacheTime=0,webPulseTick=0;
+function drawSpiderWebs(){
+  if(!webCacheCanvas || webCacheCanvas.width!==canvas.width || webCacheCanvas.height!==canvas.height){
+    webCacheCanvas=document.createElement("canvas");
+    webCacheCanvas.width=canvas.width;
+    webCacheCanvas.height=canvas.height;
+    webCachePulse=-1;
+  }
+  if((webPulseTick++ % 3)===0){webCacheTime=.5+.5*Math.sin(performance.now()/1400);}
+  if(Math.abs(webCacheTime-webCachePulse)>.06){
+    webCachePulse=webCacheTime;
+    const wc=webCacheCanvas.getContext("2d");
+    wc.clearRect(0,0,canvas.width,canvas.height);
+    const w=canvas.width,h=canvas.height;
+    const corners=[{x:0,y:0,a:0},{x:w,y:0,a:Math.PI/2},{x:0,y:h,a:-Math.PI/2},{x:w,y:h,a:Math.PI}];
+    const size=150,rings=6,spokes=6;
+    wc.save();
+    for(const c of corners){
+      wc.strokeStyle="rgba(230,225,255,"+(.28+.12*webCachePulse)+")";
+      wc.lineWidth=1.3;wc.shadowColor="rgba(150,90,255,.5)";wc.shadowBlur=6;
+      for(let i=0;i<spokes;i++){
+        const ang=c.a+(i*(Math.PI/2)/(spokes-1));
+        wc.beginPath();wc.moveTo(c.x,c.y);
+        wc.lineTo(c.x+Math.cos(ang)*size,c.y+Math.sin(ang)*size);wc.stroke();
+      }
+      for(let r=1;r<=rings;r++){
+        const rad=(size/rings)*r;wc.beginPath();
+        for(let i=0;i<spokes;i++){
+          const ang=c.a+(i*(Math.PI/2)/(spokes-1));
+          const px=c.x+Math.cos(ang)*rad,py=c.y+Math.sin(ang)*rad;
+          if(i===0)wc.moveTo(px,py);else wc.lineTo(px,py);
+        }
+        wc.stroke();
+      }
+      const ringRad=(size/rings)*2;
+      const spiderAng=c.a+(2*(Math.PI/2)/(spokes-1));
+      const sxp=c.x+Math.cos(spiderAng)*ringRad;
+      const syp=c.y+Math.sin(spiderAng)*ringRad;
+      wc.shadowBlur=8;wc.fillStyle="rgba(25,12,20,.9)";
+      wc.beginPath();wc.arc(sxp,syp,3.2,0,Math.PI*2);wc.fill();
+      wc.strokeStyle="rgba(25,12,20,.9)";wc.lineWidth=1;
+      for(let l=0;l<4;l++){
+        const la=spiderAng+Math.PI/2+l*.4;
+        wc.beginPath();wc.moveTo(sxp,syp);
+        wc.lineTo(sxp+Math.cos(la)*7,syp+Math.sin(la)*7);
+        wc.moveTo(sxp,syp);
+        wc.lineTo(sxp-Math.cos(la)*7,syp-Math.sin(la)*7);
+        wc.stroke();
+      }
+    }
+    wc.restore();
+  }
+  ctx.drawImage(webCacheCanvas,0,0);
+}
 function draw(){
-if((mapMode && activeMapLevel && (activeMapLevel.id===26||activeMapLevel.id===27||activeMapLevel.id===28))||(sandboxMode&&sandboxBosses.some(b=>b.name==="CLOUD MASTER"))){
+if((mapMode && activeMapLevel && (activeMapLevel.id===26||activeMapLevel.id===27||activeMapLevel.id===28||activeMapLevel.id===29))||(sandboxMode&&sandboxBosses.some(b=>b.name==="CLOUD MASTER"))){
 ctx.fillStyle="#168bd7";ctx.fillRect(0,0,canvas.width,canvas.height);
 const frame=performance.now()/1000;
 for(let i=0;i<9;i++){
@@ -2338,13 +2390,12 @@ const y=45+(i*83)%560;const scale=.75+(i%4)*.17;
 ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ctx.fillStyle="rgba(255,255,255,.55)";ctx.beginPath();ctx.ellipse(0,8,48,17,0,0,Math.PI*2);ctx.ellipse(-24,2,25,20,0,0,Math.PI*2);ctx.ellipse(5,-9,29,28,0,0,Math.PI*2);ctx.ellipse(30,3,25,19,0,0,Math.PI*2);ctx.fill();ctx.restore();
 }
 if(mapMode && activeMapLevel && activeMapLevel.id===27){
-  // Full-screen WINDSTORM overlay: layered gust streaks, drifting particles, and a cool storm tint.
   ctx.save();
   const gust=0.5+0.5*Math.sin(frame*2.7);
   const tint=ctx.createLinearGradient(0,0,canvas.width,0);
   tint.addColorStop(0,"rgba(215,245,255,.25)");tint.addColorStop(.45,"rgba(210,240,255,.04)");tint.addColorStop(1,"rgba(160,220,255,.19)");
   ctx.fillStyle=tint;ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.strokeStyle=`rgba(225,248,255,${.26+.2*gust})`;ctx.lineWidth=2;
+  ctx.strokeStyle="rgba(225,248,255,"+(.26+.2*gust)+")";ctx.lineWidth=2;
   for(let i=0;i<105;i++){
     const y=(i*31+frame*(75+(i%5)*23))%canvas.height;
     const x=((i*97-frame*(245+(i%4)*42))%(canvas.width+260)+canvas.width+260)%(canvas.width+260)-130;
@@ -2357,28 +2408,25 @@ if(mapMode && activeMapLevel && activeMapLevel.id===27){
     const x=((i*61-frame*(330+(i%3)*55))%(canvas.width+160)+canvas.width+160)%(canvas.width+160)-80;
     ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-24-(i%4)*9,y+1);ctx.stroke();
   }
-  // Strong gust bands span the entire arena so the effect is not confined to a small patch.
-  ctx.fillStyle=`rgba(220,246,255,${.035+.025*gust})`;
+  ctx.fillStyle="rgba(220,246,255,"+(.035+.025*gust)+")";
   for(let i=0;i<8;i++){const y=(i*103+frame*115)%(canvas.height+80)-40;ctx.fillRect(0,y,canvas.width,18+(i%3)*5);}
   ctx.restore();
 }
 }else{ctx.fillStyle="rgba(0,0,0,.3)";ctx.fillRect(0,0,canvas.width,canvas.height);}
 if(endlessMode && endlessLevel>=10){
   const redPulse=.085+.025*(.5+.5*Math.sin(performance.now()/900));
-  ctx.fillStyle=`rgba(145,12,24,${redPulse})`;ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="rgba(145,12,24,"+redPulse+")";ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 if(endlessMode && endlessLevel>=25){
-  // EXTREME red overlay: heavier vignette, brighter pulse, and edge glow.
   const t=performance.now()/1000;
   const strongPulse=.16+.06*(.5+.5*Math.sin(t*1.4));
-  ctx.fillStyle=`rgba(180,10,18,${strongPulse})`;ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="rgba(180,10,18,"+strongPulse+")";ctx.fillRect(0,0,canvas.width,canvas.height);
   const vig=ctx.createRadialGradient(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*.28,canvas.width/2,canvas.height/2,Math.max(canvas.width,canvas.height)*.72);
   vig.addColorStop(0,"rgba(0,0,0,0)");
-  vig.addColorStop(1,`rgba(90,0,6,${.55+.12*Math.sin(t*1.1)})`);
+  vig.addColorStop(1,"rgba(90,0,6,"+(.55+.12*Math.sin(t*1.1))+")");
   ctx.fillStyle=vig;ctx.fillRect(0,0,canvas.width,canvas.height);
-  // Thin red edge scanline glow
   const glowAlpha=.32+.18*(.5+.5*Math.sin(t*2.2));
-  ctx.strokeStyle=`rgba(255,60,70,${glowAlpha})`;
+  ctx.strokeStyle="rgba(255,60,70,"+glowAlpha+")";
   ctx.lineWidth=6;
   ctx.strokeRect(3,3,canvas.width-6,canvas.height-6);
 }
@@ -2388,12 +2436,13 @@ if(endlessMode && endlessActiveModifiers.some(m=>m.id==="windstorm")){
   const tint=ctx.createLinearGradient(0,0,canvas.width,canvas.height);
   tint.addColorStop(0,"rgba(215,245,255,.14)");tint.addColorStop(.5,"rgba(210,240,255,.025)");tint.addColorStop(1,"rgba(160,220,255,.12)");
   ctx.fillStyle=tint;ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.strokeStyle=`rgba(225,248,255,${.22+.18*gust})`;ctx.lineWidth=2;
+  ctx.strokeStyle="rgba(225,248,255,"+(.22+.18*gust)+")";ctx.lineWidth=2;
   for(let i=0;i<105;i++){const y=(i*31+frame*(75+(i%5)*23))%canvas.height;const x=((i*97-frame*(245+(i%4)*42))%(canvas.width+260)+canvas.width+260)%(canvas.width+260)-130;const len=48+(i%6)*22;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-len,y+((i%3)-1)*3);ctx.stroke();}
   ctx.strokeStyle="rgba(245,252,255,.36)";ctx.lineWidth=1;
   for(let i=0;i<70;i++){const y=(i*47+frame*(135+(i%4)*25))%canvas.height;const x=((i*61-frame*(330+(i%3)*55))%(canvas.width+160)+canvas.width+160)%(canvas.width+160)-80;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-24-(i%4)*9,y+1);ctx.stroke();}
-  ctx.fillStyle=`rgba(220,246,255,${.03+.025*gust})`;for(let i=0;i<8;i++){const y=(i*103+frame*115)%(canvas.height+80)-40;ctx.fillRect(0,y,canvas.width,18+(i%3)*5);}ctx.restore();
+  ctx.fillStyle="rgba(220,246,255,"+(.03+.025*gust)+")";for(let i=0;i<8;i++){const y=(i*103+frame*115)%(canvas.height+80)-40;ctx.fillRect(0,y,canvas.width,18+(i%3)*5);}ctx.restore();
 }
+if(HALLOWEEN_ACTIVE) drawSpiderWebs();
 ctx.fillStyle="#0f0";ctx.shadowBlur=15;ctx.shadowColor="#0f0";
 ctx.fillRect(player.x-player.size/2,player.y-player.size/2,player.size,player.size);
 if(player.shield>0){ctx.strokeStyle="#00ffff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(player.x,player.y,27,0,Math.PI*2);ctx.stroke();ctx.fillStyle="#00ffff";ctx.font="12px Courier New";ctx.fillText("S:"+player.shield,player.x+18,player.y-20);}
@@ -2522,7 +2571,8 @@ const mapLevels=[
 {id:25,name:"THE SNIPER",tag:"5×",requires:24,slot:25,rowY:0.55,world:2},
 {id:26,name:"CLOUD MASTER",tag:"",requires:25,slot:26,rowY:0.55,world:3},
 {id:27,name:"RAIN MAKER",tag:"WINDSTORM|3× HEALTH",requires:26,slot:27,rowY:0.55,world:3},
-{id:28,name:"RAIN MAKER",tag:"3×",requires:27,slot:28,rowY:0.55,world:3}
+{id:28,name:"RAIN MAKER",tag:"3×",requires:27,slot:28,rowY:0.55,world:3},
+{id:29,name:"RAIN MAKER & CLOUD MASTER",tag:"TAG TEAM|RAINING",requires:28,slot:29,rowY:0.55,world:3,raining:true}
 ];
 const REWARD_OWNER_LEVEL_IDS=[0,6,12,15,20,25];
 const MAP_SAVE_KEY="bossRushMapCleared_v1";
@@ -2633,14 +2683,14 @@ rewardNode.appendChild(rcircle);rewardNode.appendChild(rtag);mapRewardLayer.appe
 });
 }
 function openBossMap(){
-stopMusic();setMobileEnabled(false);document.body.classList.add("menuOpen");
+stopMusic();setMobileEnabled(false);document.body.classList.add("menuOpen");document.body.classList.add("hidePumpkins");
 mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";
 levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
 bossMap.style.display="flex";gameActive=false;sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;
 resetTimeControl();
-renderMapNodes();mapScroll.scrollLeft=0;startMenuMusic();animateMapSky();
+renderMapNodes();mapScroll.scrollLeft=0;startBossMapMusic();animateMapSky();
 }
-function closeBossMapToMenu(){bossMap.style.display="none";document.body.classList.add("menuOpen");mainMenu.style.display="flex";stopMusic();}
+function closeBossMapToMenu(){bossMap.style.display="none";document.body.classList.remove("hidePumpkins");document.body.classList.add("menuOpen");mainMenu.style.display="flex";stopMusic();}
 let pendingLevel=null;
 function openLevelStart(level){
 pendingLevel=level;
@@ -2673,6 +2723,7 @@ resetTimeControl();
 bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
 document.body.classList.remove("menuOpen");
 mapMode=true;sandboxMode=false;noUpgradeMode=false;nightmareRush=false;activeMapLevel=level;levelCompletePending=false;
+rainingTimer=0;
 resetPlayer();applyPermanentUpgradeToPlayer();
 bullets=[];enemyBullets=[];minions=[];bossHazards=[];mapSniperBosses=[];sandboxBosses=[];
 const savedSandboxBosses=sandboxBosses;sandboxBosses=mapSniperBosses;
@@ -2853,9 +2904,25 @@ else if(level.id===28){
   }
   minions=[];
 }
+else if(level.id===29){
+  rainingTimer=0;
+  const rainIndex=bosses.findIndex(b=>b.name==="RAIN MAKER");
+  sandboxBossSelect.value=String(rainIndex);currentBossIndex=rainIndex;spawnSandboxBoss();
+  const cloudMaster29={name:"CLOUD MASTER",hp:2000,maxHp:2000,color:"#bdeeff",size:64,speed:0.8,x:450,y:140,timer:0,update:function(){
+    const t=this.timer;
+    this.x=450+Math.sin(t*0.012)*175;this.y=145+Math.sin(t*0.019)*38;
+    if(t%105===0){const a=getAngleToPlayer(this);for(let j=-2;j<=2;j++){const ang=a+j*0.22;fireUniqueBullet(this.x,this.y,ang,3.2,"#f2fbff",15,8,"cloudPuff",{life:230,cloud:true});}}
+    if(t%175===0){const gap=Math.floor(Math.random()*9);for(let j=0;j<9;j++){if(j===gap)continue;fireUniqueBullet(j*100+50,-15,Math.PI/2,2.5,"#d7f4ff",24,9,"cloudBank",{life:300,cloud:true});}}
+    if(t%230===0){for(let j=-1;j<=1;j++){const a=getAngleToPlayer(this)+j*0.48;fireUniqueBullet(this.x,this.y,a,1.8,"#8fdcff",28,14,"stormCloud",{life:320,cloud:true});}}
+  }};
+  mapSniperBosses.push(cloudMaster29);
+  if(mapSniperBosses[0]){mapSniperBosses[0].x=330;mapSniperBosses[0].y=180;}
+  if(mapSniperBosses[1]){mapSniperBosses[1].x=570;mapSniperBosses[1].y=140;}
+  currentBossIndex=-1;minions=[];
+}
 sandboxBosses=savedSandboxBosses;
 uiBoss.textContent="MAP LEVEL: "+level.id;uiName.textContent=level.name;
-if(level.id===26||level.id===27||level.id===28) startSkyMusic(); else if(level.id<=0) startAbyssMusic(); else if(level.id>=11) startCavesMusic(); else startGrassyMusic();
+if(level.id===26||level.id===27||level.id===28||level.id===29) startSkyMusic(); else if(level.id<=0) startAbyssMusic(); else if(level.id>=11) startCavesMusic(); else startGrassyMusic();
 gameActive=true;updateUI();
 }
 function showLevelComplete(){
@@ -2868,11 +2935,11 @@ setTimeout(()=>{levelCompleteScreen.style.display="none";exitMapLevelToMap();},2
 function exitMapLevelToMap(){
 stopWindstormSound();
 resetTimeControl();
-mapMode=false;activeMapLevel=null;mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];bossHazards=[];
+mapMode=false;activeMapLevel=null;mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];bossHazards=[];rainingTimer=0;
 gameActive=false;waitingForPowerup=false;levelCompletePending=false;levelCompleteScreen.style.display="none";
 boss=null;sandboxBosses=[];
 document.body.classList.add("menuOpen");bossMap.style.display="flex";mainMenu.style.display="none";sandboxMenu.style.display="none";powerupScreen.style.display="none";
-renderMapNodes();startMenuMusic();updateUI();
+renderMapNodes();startBossMapMusic();updateUI();
 }
 function playDingSound(){
 if(!audioCtx){if(!ensureAudio()) return;}
@@ -2894,7 +2961,7 @@ o1.start(t);o1.stop(t+0.6);o2.start(t);o2.stop(t+0.6);
 }catch(e){}
 }
 function showMainMenuOnStartup(){
-document.body.classList.add("menuOpen");mainMenu.style.display="flex";sandboxMenu.style.display="none";powerupScreen.style.display="none";
+document.body.classList.add("menuOpen");document.body.classList.remove("hidePumpkins");mainMenu.style.display="flex";sandboxMenu.style.display="none";powerupScreen.style.display="none";
 bossMap.style.display="none";levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
 document.getElementById("achievementsScreen").style.display="none";
 gameActive=false;waitingForPowerup=false;sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;endlessMode=false;const modHud=document.getElementById("endlessModifierHud");if(modHud)modHud.style.display="none";
@@ -2969,22 +3036,24 @@ const availableCount=Math.min(40,Math.max(3,4+Math.floor((Math.max(1,endlessLeve
 return bosses.slice(0,availableCount).filter(b=>b && !["DIAMOND MASTERPIECE","PULSAR CORE","DISMAL","GRASS MONSTROSITY","ROCK BEAST","ROCK BEASTS","EMERALD KILLER"].includes(b.name));
 }
 function chooseEndlessModifiers(){
-const pool=[
- {id:"tagTeam",name:"TAG TEAM",description:"TAG TEAM",extraBoss:1},
- {id:"twoX",name:"2×",description:"2×",duplicateCount:2},
- {id:"threeX",name:"3×",description:"3×",duplicateCount:3},
- {id:"droneInvasion",name:"DRONE INVASION",description:"DRONE INVASION"},
- {id:"windstorm",name:"WINDSTORM",description:"WINDSTORM"},
- {id:"twoHealth",name:"2× HEALTH",description:"2× HEALTH",health:2,size:2,chase:1/2},
- {id:"threeHealth",name:"3× HEALTH",description:"3× HEALTH",health:3,size:3,chase:1/3},
- {id:"doubleAttack",name:"2× ATTACK SPEED",description:"2× ATTACK SPEED",attackSpeed:2},
- {id:"fiveX",name:"5×",description:"5×",duplicateCount:5}
+const allModifiers=[
+ {id:"tagTeam",name:"TAG TEAM",description:"TAG TEAM",extraBoss:1,unlockLevel:3},
+ {id:"twoX",name:"2×",description:"2×",duplicateCount:2,unlockLevel:2},
+ {id:"threeX",name:"3×",description:"3×",duplicateCount:3,unlockLevel:12},
+ {id:"droneInvasion",name:"DRONE INVASION",description:"DRONE INVASION",unlockLevel:18},
+ {id:"windstorm",name:"WINDSTORM",description:"WINDSTORM",unlockLevel:27},
+ {id:"twoHealth",name:"2× HEALTH",description:"2× HEALTH",health:2,size:2,chase:1/2,unlockLevel:-1},
+ {id:"threeHealth",name:"3× HEALTH",description:"3× HEALTH",health:3,size:3,chase:1/3,unlockLevel:23},
+ {id:"doubleAttack",name:"2× ATTACK SPEED",description:"2× ATTACK SPEED",attackSpeed:2,unlockLevel:23},
+ {id:"fiveX",name:"5×",description:"5×",duplicateCount:5,unlockLevel:25},
+ {id:"raining",name:"RAINING",description:"RAINING",raining:true,unlockLevel:29}
 ];
+const pool=allModifiers.filter(m=>!!mapCleared[m.unlockLevel]);
 let chance=1;
 if(endlessLevel<=3)chance=0.55;
 else if(endlessLevel<=6)chance=0.72;
 else if(endlessLevel<=9)chance=0.88;
-if(Math.random()>chance){
+if(pool.length===0 || Math.random()>chance){
  endlessActiveModifiers=[];
 }else{
  let count=1;
@@ -3028,6 +3097,7 @@ activeMapLevel={id:1000+endlessLevel,name:"ENDLESS LEVEL "+endlessLevel,tag:""};
 bullets=[];enemyBullets=[];minions=[];bossHazards=[];mapSniperBosses=[];sandboxBosses=[];boss=null;
 chooseEndlessModifiers();
 if(endlessActiveModifiers.some(m=>m.id==="windstorm"))startWindstormSound();else stopWindstormSound();
+if(endlessActiveModifiers.some(m=>m.id==="raining"))rainingTimer=0;
 const pool=endlessBossPool();if(!pool.length){exitEndlessToMenu();return;}
 let bossCount=Math.min(8,1+Math.floor((endlessLevel-1)/8));
 const extraBossCount=endlessActiveModifiers.reduce((sum,m)=>sum+(m.extraBoss||0),0);
@@ -3045,7 +3115,7 @@ if(duplicateMod){
 bossCount=chosenTemplates.length;
 const targetsByModifier={};
 for(const mod of endlessActiveModifiers){
- if(mod.id==="tagTeam"||mod.id==="droneInvasion"||mod.duplicateCount)continue;
+ if(mod.id==="tagTeam"||mod.id==="droneInvasion"||mod.duplicateCount||mod.id==="raining")continue;
  const used=targetsByModifier[mod.id]||[];
  const candidates=Array.from({length:bossCount},(_,i)=>i).filter(i=>!used.includes(i));
  const target=candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:Math.floor(Math.random()*Math.max(1,bossCount));
@@ -3111,11 +3181,11 @@ function exitEndlessToMenu(){
 stopWindstormSound();
 if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;
 resetTimeControl();
-endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];const modHud=document.getElementById("endlessModifierHud");if(modHud)modHud.style.display="none";mapMode=false;activeMapLevel=null;mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];bossHazards=[];gameActive=false;waitingForPowerup=false;levelCompletePending=false;
-levelCompleteScreen.style.display="none";powerupScreen.style.display="none";bossMap.style.display="none";sandboxMenu.style.display="none";document.getElementById("msg").textContent="WASD to Move | Click or E to Shoot | SPACE to Dash if unlocked";mainMenu.style.display="flex";document.body.classList.add("menuOpen");stopMusic();startMenuMusic();updateEndlessRecord();updateUI();
+endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];const modHud=document.getElementById("endlessModifierHud");if(modHud)modHud.style.display="none";mapMode=false;activeMapLevel=null;mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];bossHazards=[];rainingTimer=0;gameActive=false;waitingForPowerup=false;levelCompletePending=false;
+levelCompleteScreen.style.display="none";powerupScreen.style.display="none";bossMap.style.display="none";sandboxMenu.style.display="none";document.getElementById("msg").textContent="WASD to Move | Click or E to Shoot | SPACE to Dash if unlocked";mainMenu.style.display="flex";document.body.classList.add("menuOpen");document.body.classList.remove("hidePumpkins");stopMusic();startMenuMusic();updateEndlessRecord();updateUI();
 }
 function startEndlessMode(){
-unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");document.body.classList.remove("hidePumpkins");
 if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;
 if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
 resetTimeControl();
@@ -3126,7 +3196,7 @@ mainMenu.style.display="none";sandboxMenu.style.display="none";bossMap.style.dis
 waitingForPowerup=false;resetPlayer();spawnEndlessLevel();
 }
 function startDroneMadness(){
-unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");document.body.classList.remove("hidePumpkins");
 if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
 resetTimeControl();
 endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];twoPlayerMode=false;twoPlayerEnding=false;document.body.classList.remove("twoPlayerTouch");activeMapLevel=null;mapSniperBosses=[];sandboxBosses=[];bossHazards=[];
@@ -3137,7 +3207,7 @@ powerupScreen.style.display="none";bossMap.style.display="none";levelStartScreen
 waitingForPowerup=false;boss=null;bullets=[];enemyBullets=[];minions=[];resetPlayer();gameActive=true;updateUI();
 }
 function startGame(){
-unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");document.body.classList.remove("hidePumpkins");
 if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
 resetTimeControl();
 runTookDamage=false;
@@ -3151,7 +3221,7 @@ waitingForPowerup=false;currentBossIndex=0;resetPlayer();bullets=[];enemyBullets
 gameActive=true;initBoss();updateUI();
 }
 function startNoUpgradeMode(){
-unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");document.body.classList.remove("hidePumpkins");
 runTookDamage=false;
 dedicationToastShown=false;
 const dt=document.getElementById("dedicationToast");if(dt)dt.classList.remove("show");
@@ -3165,7 +3235,7 @@ waitingForPowerup=false;currentBossIndex=0;resetPlayer();bullets=[];enemyBullets
 gameActive=true;initBoss();updateUI();
 }
 function startNightmareRush(){
-unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");document.body.classList.remove("hidePumpkins");
 if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
 resetTimeControl();
 endlessMode=false;endlessLevel=0;endlessPendingUpgrades=0;endlessActiveModifiers=[];twoPlayerMode=false;twoPlayerEnding=false;document.body.classList.remove("twoPlayerTouch");activeMapLevel=null;mapSniperBosses=[];sandboxBosses=[];bossHazards=[];
@@ -3176,7 +3246,7 @@ waitingForPowerup=false;currentBossIndex=NIGHTMARE_START_INDEX;resetPlayer();bul
 gameActive=true;initBoss();updateUI();
 }
 function startSandbox(){
-unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");
+unlockAndPlayMusic();setMobileEnabled(false);document.body.classList.remove("menuOpen");document.body.classList.remove("hidePumpkins");
 if(endlessAdvanceTimer)clearTimeout(endlessAdvanceTimer);endlessAdvanceTimer=null;
 if(twoPlayerEndTimer)clearTimeout(twoPlayerEndTimer);twoPlayerEndTimer=null;
 resetTimeControl();
@@ -3233,9 +3303,9 @@ function clearSandbox(){boss=null;sandboxBosses=[];bullets=[];enemyBullets=[];mi
 function exitToMainMenu(){
 stopWindstormSound();
 resetTimeControl();
-setMobileEnabled(false);resetBossMobileStick();document.body.classList.remove("twoPlayerTouch");twoPlayerMode=false;twoPlayerEnding=false;document.getElementById("twoPlayerHud").style.display="none";document.getElementById("twoPlayerSelectScreen").style.display="none";document.getElementById("twoPlayerResult").style.display="none";document.getElementById("achievementsScreen").style.display="none";stopMusic();document.body.classList.add("menuOpen");
+setMobileEnabled(false);resetBossMobileStick();document.body.classList.remove("twoPlayerTouch");document.body.classList.remove("hidePumpkins");twoPlayerMode=false;twoPlayerEnding=false;document.getElementById("twoPlayerHud").style.display="none";document.getElementById("twoPlayerSelectScreen").style.display="none";document.getElementById("twoPlayerResult").style.display="none";document.getElementById("achievementsScreen").style.display="none";stopMusic();document.body.classList.add("menuOpen");
 sandboxMode=false;noUpgradeMode=false;mapMode=false;nightmareRush=false;enemyMadness=false;endlessMode=false;const modHud=document.getElementById("endlessModifierHud");if(modHud)modHud.style.display="none";gameActive=false;waitingForPowerup=false;
-boss=null;sandboxBosses=[];mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];
+boss=null;sandboxBosses=[];mapSniperBosses=[];bullets=[];enemyBullets=[];minions=[];rainingTimer=0;
 sandboxMenu.style.display="none";powerupScreen.style.display="none";bossMap.style.display="none";
 levelStartScreen.style.display="none";levelCompleteScreen.style.display="none";rewardScreen.style.display="none";
 mainMenu.style.display="flex";
@@ -3276,6 +3346,25 @@ function gameLoop(){
  requestAnimationFrame(gameLoop);
 }
 gameLoop();
+(function initHalloweenPumpkins(){
+  if(!HALLOWEEN_ACTIVE) return;
+  const layer=document.getElementById("halloweenPumpkins");
+  if(!layer) return;
+  const svg='<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><ellipse cx="32" cy="40" rx="24" ry="20" fill="#e8720c"/><ellipse cx="20" cy="40" rx="9" ry="19" fill="#c95a05"/><ellipse cx="44" cy="40" rx="9" ry="19" fill="#c95a05"/><ellipse cx="32" cy="40" rx="12" ry="20" fill="#ffa31a" opacity=".55"/><path d="M30 20c0-6 4-9 8-8-2 2-2 5-1 6 2-2 5-2 6-1-3 1-4 3-4 5z" fill="#3a6b1e"/><path d="M24 38l6 4-6 4z" fill="#2a1200"/><path d="M40 38l-6 4 6 4z" fill="#2a1200"/><path d="M26 48c3 3 9 3 12 0-3 1-9 1-12 0z" fill="#2a1200"/></svg>';
+  for(let i=0;i<8;i++){
+    const p=document.createElement("div");
+    p.className="hwPumpkin";
+    const scale=.7+Math.random()*.9;
+    p.style.width=p.style.height=(48*scale)+"px";
+    p.style.left=(Math.random()*90)+"vw";
+    p.style.top=(Math.random()*88)+"vh";
+    p.style.animationDuration=(3.5+Math.random()*3.5)+"s";
+    p.style.animationDelay=(-Math.random()*5)+"s";
+    p.style.opacity=(.75+Math.random()*.25).toString();
+    p.innerHTML=svg;
+    layer.appendChild(p);
+  }
+})();
 (function(){
 function repairMobileLayer(){
 const layer=document.getElementById("mobileControls");
